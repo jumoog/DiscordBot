@@ -6,7 +6,7 @@ import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
-import { mockup_EventSubChannelHypeTrainEndEvent } from './mockup.js';
+import { mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainProgressEvent } from './mockup.js';
 dotenv.config();
 process.on('unhandledRejection', (reason, p) => {
     signale.fatal('caught your junk %s', reason);
@@ -72,7 +72,7 @@ class Bot {
         }
         else {
             this.sendMessage(`no tokens.json! No Twitch Support! Running in Mocking mode!`);
-            const e = this.genFakeEvent(2);
+            const e = this.genFakeEndEvent(2);
             this._currentCoolDown = e.cooldownEndDate.getTime();
             this._timerLeft = this._currentCoolDown - Date.now();
             e.topContributors.forEach(element => {
@@ -115,7 +115,7 @@ class Bot {
     timeInSeconds() {
         return Math.floor(this._currentCoolDown / 1000);
     }
-    genFakeEvent(minutes) {
+    genFakeEndEvent(minutes) {
         return new mockup_EventSubChannelHypeTrainEndEvent({
             id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
             broadcaster_user_id: "1337",
@@ -130,6 +130,44 @@ class Bot {
             started_at: "2020-07-15T17:16:03.17106713Z",
             ended_at: "2020-07-15T17:16:11.17106713Z",
             cooldown_ends_at: new Date(new Date().getTime() + (minutes * 60 * 1000)).toISOString()
+        });
+    }
+    genFakeBeginEvent() {
+        return new mockup_EventSubChannelHypeTrainBeginEvent({
+            id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
+            broadcaster_user_id: "1337",
+            broadcaster_user_login: "cool_user",
+            broadcaster_user_name: "Cool_User",
+            total: 137,
+            progress: 137,
+            goal: 500,
+            top_contributions: [
+                { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
+                { "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
+            ],
+            last_contribution: { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
+            level: 2,
+            started_at: "2020-07-15T17:16:03.17106713Z",
+            expires_at: "2020-07-15T17:16:11.17106713Z"
+        });
+    }
+    genFakeProgressEvent() {
+        return new mockup_EventSubChannelHypeTrainProgressEvent({
+            id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
+            broadcaster_user_id: "1337",
+            broadcaster_user_login: "cool_user",
+            broadcaster_user_name: "Cool_User",
+            level: 2,
+            total: 700,
+            progress: 200,
+            goal: 1000,
+            top_contributions: [
+                { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
+                { "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
+            ],
+            last_contribution: { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
+            started_at: "2020-07-15T17:16:03.17106713Z",
+            expires_at: "2020-07-15T17:16:11.17106713Z"
         });
     }
 }
