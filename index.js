@@ -64,10 +64,10 @@ class Bot {
                 this._timerLeft = this._currentCoolDown - Date.now();
                 this._currentCoolDownTimer.stop();
                 this._currentCoolDownTimer.start(this._timerLeft);
-                this.sendMessage(`Next HypeTrain <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
+                this.sendMessage(`Next Hype Train <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
             });
             await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
-                this.sendMessage(`A HypeTrain has started!`);
+                this.sendMessage(`A Hype Train has started!`);
             });
         }
         else {
@@ -82,10 +82,10 @@ class Bot {
             });
             this._currentCoolDownTimer.stop();
             this._currentCoolDownTimer.start(this._timerLeft);
-            this.sendMessage(`Next HypeTrain <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
+            this.sendMessage(`Next Hype Train <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
         }
         this._currentCoolDownTimer.on('done', () => {
-            this.sendMessage(`The next HypeTrain is ready!`);
+            this.sendMessage(`The next Hype Train is ready!`);
         });
     }
     async sendHypeTrainMessage() {

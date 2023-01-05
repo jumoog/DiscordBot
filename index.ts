@@ -6,7 +6,7 @@ import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField, TextChannel } from 'discord.js';
-import { mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainProgressEvent, genFakeEndEvent } from './mockup.js';
+import { genFakeEndEvent } from './mockup.js';
 
 dotenv.config()
 
@@ -99,11 +99,11 @@ class Bot {
 				// inform channel about new cool down
 				// R -> Relative (in 2 minutes)
 				// t -> short time (2:19 AM)
-				this.sendMessage(`Next HypeTrain <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
+				this.sendMessage(`Next Hype Train <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
 			});
 
 			await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
-				this.sendMessage(`A HypeTrain has started!`);
+				this.sendMessage(`A Hype Train has started!`);
 			});
 
 		} else {
@@ -126,11 +126,11 @@ class Bot {
 			// inform channel about new cool down
 			// R -> Relative (in 2 minutes)
 			// t -> short time (2:19 AM)
-			this.sendMessage(`Next HypeTrain <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
+			this.sendMessage(`Next Hype Train <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
 		}
 		// time is over event
 		this._currentCoolDownTimer.on('done', () => {
-			this.sendMessage(`The next HypeTrain is ready!`);
+			this.sendMessage(`The next Hype Train is ready!`);
 		});
 	}
 
