@@ -25,6 +25,7 @@ class Bot {
     _discordClient;
     _timerLeft;
     _tokenPath;
+    _level;
     constructor() {
         this._userId = process.env.USERID || 631529415;
         this._roomName = process.env.ROOMNAME || '';
@@ -36,6 +37,7 @@ class Bot {
         this._discordClient = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
         this._timerLeft = 0;
         this._tokenPath = '';
+        this._level = 0;
     }
     async main() {
         this._discordClient.once(Events.ClientReady, c => {
@@ -58,31 +60,22 @@ class Bot {
             const twitchListener = new EventSubWsListener({ apiClient });
             await twitchListener.start();
             await twitchListener.subscribeToChannelHypeTrainEndEvents(Number(this._userId), e => {
-                console.info(e.topContributors);
-                console.info(e.level);
-                this._currentCoolDown = e.cooldownEndDate.getTime();
-                this._timerLeft = this._currentCoolDown - Date.now();
-                this._currentCoolDownTimer.stop();
-                this._currentCoolDownTimer.start(this._timerLeft);
-                this.sendMessage(`Next Hype Train <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
+                this.hypeTrainEndEventsHandler(e);
             });
             await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
-                this.sendMessage(`A Hype Train has started!`);
+                this._level = e.level;
+                this.sendMessage(`A Hype Train has started at Level ${e.level}!`);
+            });
+            await twitchListener.subscribeToChannelHypeTrainProgressEvents(Number(this._userId), e => {
+                if (this._level !== e.level) {
+                    this._level = e.level;
+                    this.sendMessage(`Hype Train reached Level ${this._level}!`);
+                }
             });
         }
         else {
             this.sendMessage(`no tokens.json! No Twitch Support! Running in Mocking mode!`);
-            const e = genFakeEndEvent(2);
-            this._currentCoolDown = e.cooldownEndDate.getTime();
-            this._timerLeft = this._currentCoolDown - Date.now();
-            e.topContributors.forEach(element => {
-                if (element.type === "subscription") {
-                    this.sendMessage(`${element.userDisplayName} contributed ${element.total} ${element.type}`);
-                }
-            });
-            this._currentCoolDownTimer.stop();
-            this._currentCoolDownTimer.start(this._timerLeft);
-            this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
+            this.hypeTrainEndEventsHandler(genFakeEndEvent(2));
         }
         this._currentCoolDownTimer.on('done', () => {
             this.sendMessage(`The next Hype Train is ready!`);
@@ -116,6 +109,15 @@ class Bot {
     }
     timeInSeconds() {
         return Math.floor(this._currentCoolDown / 1000);
+    }
+    hypeTrainEndEventsHandler(e) {
+        this.sendMessage(`We reached Level ${e.level}!`);
+        this._level = 0;
+        this._currentCoolDown = e.cooldownEndDate.getTime();
+        this._timerLeft = this._currentCoolDown - Date.now();
+        this._currentCoolDownTimer.stop();
+        this._currentCoolDownTimer.start(this._timerLeft);
+        this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
     }
 }
 const bot = new Bot();
