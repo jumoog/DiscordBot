@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+      "module": "esnext",
+      "noImplicitAny": true,
+      "noImplicitReturns": true,
+      "moduleResolution": "node",
+      "declaration": true,
+      "strictNullChecks": true,
+      "strictPropertyInitialization": true,
+      "resolveJsonModule": true,
+      "esModuleInterop": true,
+      "removeComments": true,
+      "noFallthroughCasesInSwitch": true,
+      "target": "ES2022"
+  },
+  "exclude": [
+      "node_modules"
+  ]
+}
