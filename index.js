@@ -47,7 +47,7 @@ class Bot {
     async startTwitch() {
         this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json';
         if (fs.existsSync(this._tokenPath)) {
-            this.sendMessage(`found tokens.json!`);
+            signale.success(`found tokens.json!`);
             const tokenDataHypeTrain = JSON.parse(fs.readFileSync(this._tokenPath, 'utf8'));
             const authProviderHypeTrain = new RefreshingAuthProvider({
                 clientId: this._clientId,
@@ -72,6 +72,9 @@ class Bot {
             const e = this.genFakeEvent(2);
             this._currentCoolDown = e.cooldownEndDate.getTime();
             this._timerLeft = this._currentCoolDown - Date.now();
+            e.topContributors.forEach(element => {
+                this.sendMessage(`${element.userDisplayName} contributed ${element.total} ${element.type}`);
+            });
             this._currentCoolDownTimer.stop();
             this._currentCoolDownTimer.start(this._timerLeft);
             this.sendMessage(`Next HypeTrain <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);

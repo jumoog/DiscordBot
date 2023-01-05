@@ -12,10 +12,10 @@ dotenv.config()
 
 // catch all possible errors and don't crash
 process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
-    signale.fatal('caught your junk %s', reason);
-    if (reason.stack) {
-        signale.fatal(reason.stack);
-    }
+	signale.fatal('caught your junk %s', reason);
+	if (reason.stack) {
+		signale.fatal(reason.stack);
+	}
 });
 
 class Bot {
@@ -56,7 +56,7 @@ class Bot {
 		this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json'
 		// check if json file exists
 		if (fs.existsSync(this._tokenPath)) {
-			this.sendMessage(`found tokens.json!`)
+			signale.success(`found tokens.json!`);
 			const tokenDataHypeTrain = JSON.parse(fs.readFileSync(this._tokenPath, 'utf8'));
 			const authProviderHypeTrain = new RefreshingAuthProvider(
 				{
@@ -95,6 +95,9 @@ class Bot {
 			// next hype train as UTC
 			this._currentCoolDown = e.cooldownEndDate.getTime();
 			this._timerLeft = this._currentCoolDown - Date.now();
+			e.topContributors.forEach( element => {
+				this.sendMessage(`${element.userDisplayName} contributed ${element.total} ${element.type}`);
+			});
 			// stop timer just to be sure
 			this._currentCoolDownTimer.stop();
 			// set timer
@@ -152,7 +155,7 @@ class Bot {
 		return Math.floor(this._currentCoolDown / 1000);
 	}
 
-	genFakeEvent(minutes: number): mockup_EventSubChannelHypeTrainEndEvent{
+	genFakeEvent(minutes: number): mockup_EventSubChannelHypeTrainEndEvent {
 		return new mockup_EventSubChannelHypeTrainEndEvent({
 			id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
 			broadcaster_user_id: "1337",
