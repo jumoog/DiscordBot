@@ -88,6 +88,11 @@ class Bot {
 				// t -> short time (2:19 AM)
 				this.sendMessage(`Next HypeTrain <t:${this._currentCoolDown}:R> at <t:${this._currentCoolDown}:t>`);
 			});
+
+			await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
+				this.sendMessage(`A HypeTrain has started!`);
+			});
+
 		} else {
 			this.sendMessage(`no tokens.json! No Twitch Support! Running in Mocking mode!`);
 			// create fake EventSubChannelHypeTrainEndEvent

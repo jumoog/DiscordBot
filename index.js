@@ -66,6 +66,9 @@ class Bot {
                 this._currentCoolDownTimer.start(this._timerLeft);
                 this.sendMessage(`Next HypeTrain <t:${this._currentCoolDown}:R> at <t:${this._currentCoolDown}:t>`);
             });
+            await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
+                this.sendMessage(`A HypeTrain has started!`);
+            });
         }
         else {
             this.sendMessage(`no tokens.json! No Twitch Support! Running in Mocking mode!`);
