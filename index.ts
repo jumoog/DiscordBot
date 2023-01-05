@@ -10,6 +10,14 @@ import { mockup_EventSubChannelHypeTrainEndEvent } from './mockup.js';
 
 dotenv.config()
 
+// catch all possible errors and don't crash
+process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
+    signale.fatal('caught your junk %s', reason);
+    if (reason.stack) {
+        signale.fatal(reason.stack);
+    }
+});
+
 class Bot {
 	_userId: number | string;
 	_roomName: string;

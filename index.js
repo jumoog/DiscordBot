@@ -8,6 +8,12 @@ import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
 import { mockup_EventSubChannelHypeTrainEndEvent } from './mockup.js';
 dotenv.config();
+process.on('unhandledRejection', (reason, p) => {
+    signale.fatal('caught your junk %s', reason);
+    if (reason.stack) {
+        signale.fatal(reason.stack);
+    }
+});
 class Bot {
     _userId;
     _roomName;
