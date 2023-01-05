@@ -126,7 +126,7 @@ class Bot {
 			// inform channel about new cool down
 			// R -> Relative (in 2 minutes)
 			// t -> short time (2:19 AM)
-			this.sendMessage(`Next Hype Train <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
+			this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
 		}
 		// time is over event
 		this._currentCoolDownTimer.on('done', () => {
