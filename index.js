@@ -83,7 +83,7 @@ class Bot {
             this.sendMessage(`Next HypeTrain <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
         }
         this._currentCoolDownTimer.on('done', () => {
-            this.sendHypeTrainMessage();
+            this.sendMessage(`The next HypeTrain is ready!`);
         });
     }
     async sendHypeTrainMessage() {

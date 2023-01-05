@@ -114,7 +114,7 @@ class Bot {
 		}
 		// time is over event
 		this._currentCoolDownTimer.on('done', () => {
-			this.sendHypeTrainMessage();
+			this.sendMessage(`The next HypeTrain is ready!`);
 		});
 	}
 
