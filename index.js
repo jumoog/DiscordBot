@@ -64,7 +64,7 @@ class Bot {
                 this._timerLeft = this._currentCoolDown - Date.now();
                 this._currentCoolDownTimer.stop();
                 this._currentCoolDownTimer.start(this._timerLeft);
-                this.sendMessage(`Next HypeTrain <t:${this._currentCoolDown}:R> at <t:${this._currentCoolDown}:t>`);
+                this.sendMessage(`Next HypeTrain <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
             });
             await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
                 this.sendMessage(`A HypeTrain has started!`);

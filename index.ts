@@ -86,7 +86,7 @@ class Bot {
 				// inform channel about new cool down
 				// R -> Relative (in 2 minutes)
 				// t -> short time (2:19 AM)
-				this.sendMessage(`Next HypeTrain <t:${this._currentCoolDown}:R> at <t:${this._currentCoolDown}:t>`);
+				this.sendMessage(`Next HypeTrain <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t>`);
 			});
 
 			await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
@@ -198,7 +198,7 @@ class Bot {
 			expires_at: "2020-07-15T17:16:11.17106713Z"
 		});
 	}
-	
+
 	genFakeProgressEvent() {
 		return new mockup_EventSubChannelHypeTrainProgressEvent({
 			id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
