@@ -6,7 +6,7 @@ import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField, TextChannel } from 'discord.js';
-import { mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainProgressEvent } from './mockup.js';
+import { mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainProgressEvent, genFakeEndEvent } from './mockup.js';
 
 dotenv.config()
 
@@ -18,6 +18,9 @@ process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
 	}
 });
 
+/**
+ * Bot lasss
+ */
 class Bot {
 	_userId: number | string;
 	_roomName: string;
@@ -48,16 +51,23 @@ class Bot {
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
 			this.startTwitch();
 		});
+		// login
 		this._discordClient.login(this._discordToken);
 	}
 
+	/***
+	 * starts the Twitch Bots
+	 */
 	async startTwitch() {
 		// check if it runs in Docker or local
+		// /tokens/tokens.json is the location in Docker
 		this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json'
-		// check if json file exists
+		// check if tokens.json exists
 		if (fs.existsSync(this._tokenPath)) {
 			signale.success(`found tokens.json!`);
+			// read tokens.json
 			const tokenDataHypeTrain = JSON.parse(fs.readFileSync(this._tokenPath, 'utf8'));
+			// refresh tokens if they expire
 			const authProviderHypeTrain = new RefreshingAuthProvider(
 				{
 					clientId: this._clientId,
@@ -67,7 +77,10 @@ class Bot {
 				tokenDataHypeTrain
 			);
 
+			// Twitch API
 			const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
+			// We need the Twitch Events
+			// https://dev.twitch.tv/docs/eventsub/handling-webhook-events
 			const twitchListener = new EventSubWsListener({ apiClient });
 			await twitchListener.start();
 
@@ -95,13 +108,16 @@ class Bot {
 
 		} else {
 			this.sendMessage(`no tokens.json! No Twitch Support! Running in Mocking mode!`);
-			// create fake EventSubChannelHypeTrainEndEvent
-			const e = this.genFakeEndEvent(2);
+			// create fake EventSubChannelHypeTrainEndEvent with cooldown_ends_at of 2 Minutes
+			const e = genFakeEndEvent(2);
 			// next hype train as UTC
 			this._currentCoolDown = e.cooldownEndDate.getTime();
+			// get difference as UNIX Timestamp
 			this._timerLeft = this._currentCoolDown - Date.now();
-			e.topContributors.forEach( element => {
-				this.sendMessage(`${element.userDisplayName} contributed ${element.total} ${element.type}`);
+			e.topContributors.forEach(element => {
+				if (element.type === "subscription") {
+					this.sendMessage(`${element.userDisplayName} contributed ${element.total} ${element.type}`);
+				}
 			});
 			// stop timer just to be sure
 			this._currentCoolDownTimer.stop();
@@ -118,6 +134,9 @@ class Bot {
 		});
 	}
 
+	/**
+	 * helper function to send Embed messages
+	 */
 	async sendHypeTrainMessage() {
 		// check if client is connected
 		if (this._discordClient.isReady()) {
@@ -140,6 +159,9 @@ class Bot {
 		}
 	}
 
+	/**
+	 * helper function to send normal text messages
+	 */
 	async sendMessage(message: string) {
 		// check if client is connected
 		if (this._discordClient.isReady()) {
@@ -156,67 +178,13 @@ class Bot {
 		}
 	}
 
+	/**
+	 * Javascript has UNIX Timestamps in milliseconds.
+	 * Convert to seconds to avoid 52961 years problem
+	 * @returns 
+	 */
 	timeInSeconds(): number {
 		return Math.floor(this._currentCoolDown / 1000);
-	}
-
-	genFakeEndEvent(minutes: number): mockup_EventSubChannelHypeTrainEndEvent {
-		return new mockup_EventSubChannelHypeTrainEndEvent({
-			id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
-			broadcaster_user_id: "1337",
-			broadcaster_user_login: "cool_user",
-			broadcaster_user_name: "Cool_User",
-			level: 2,
-			total: 137,
-			top_contributions: [
-				{ "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-				{ "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
-			],
-			started_at: "2020-07-15T17:16:03.17106713Z",
-			ended_at: "2020-07-15T17:16:11.17106713Z",
-			// now + 20 mins
-			cooldown_ends_at: new Date(new Date().getTime() + (minutes * 60 * 1000)).toISOString()
-		});
-	}
-
-	genFakeBeginEvent(){
-		return new mockup_EventSubChannelHypeTrainBeginEvent({
-			id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
-			broadcaster_user_id: "1337",
-			broadcaster_user_login: "cool_user",
-			broadcaster_user_name: "Cool_User",
-			total: 137,
-			progress: 137,
-			goal: 500,
-			top_contributions: [
-				{ "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-				{ "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
-			],
-			last_contribution: { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-			level: 2,
-			started_at: "2020-07-15T17:16:03.17106713Z",
-			expires_at: "2020-07-15T17:16:11.17106713Z"
-		});
-	}
-
-	genFakeProgressEvent() {
-		return new mockup_EventSubChannelHypeTrainProgressEvent({
-			id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
-			broadcaster_user_id: "1337",
-			broadcaster_user_login: "cool_user",
-			broadcaster_user_name: "Cool_User",
-			level: 2,
-			total: 700,
-			progress: 200,
-			goal: 1000,
-			top_contributions: [
-				{ "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-				{ "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
-			],
-			last_contribution: { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-			started_at: "2020-07-15T17:16:03.17106713Z",
-			expires_at: "2020-07-15T17:16:11.17106713Z"
-		});
 	}
 }
 

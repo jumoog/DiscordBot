@@ -101,4 +101,7 @@ export declare class mockup_EventSubChannelHypeTrainProgressEvent {
     get startDate(): Date;
     get expiryDate(): Date;
 }
+export declare function genFakeEndEvent(minutes?: number): mockup_EventSubChannelHypeTrainEndEvent;
+export declare function genFakeBeginEvent(): mockup_EventSubChannelHypeTrainBeginEvent;
+export declare function genFakeProgressEvent(): mockup_EventSubChannelHypeTrainProgressEvent;
 export {};
