@@ -1,0 +1,13 @@
+version: '3.9'
+services:
+  hypetrain_discordbot:
+    image: jumoog/hypetrain_discordbot
+    environment:
+      - USERID=${USERID}
+      - ROOMNAME=${ROOMNAME}
+      - CLIENTID=${CLIENTID}
+      - CLIENTSECRET=${CLIENTSECRET}
+      - DISCORDTOKEN=${DISCORDTOKEN}
+    restart: "always"
+    volumes:
+      - /home/HypetrainDiscordBot/:/tokens/
