@@ -91,22 +91,7 @@ class Bot {
 		} else {
 			this.sendMessage(`no tokens.json! No Twitch Support! Running in Mocking mode!`);
 			// create fake EventSubChannelHypeTrainEndEvent
-			const e = new mockup_EventSubChannelHypeTrainEndEvent({
-				id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
-				broadcaster_user_id: "1337",
-				broadcaster_user_login: "cool_user",
-				broadcaster_user_name: "Cool_User",
-				level: 2,
-				total: 137,
-				top_contributions: [
-					{ "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-					{ "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
-				],
-				started_at: "2020-07-15T17:16:03.17106713Z",
-				ended_at: "2020-07-15T17:16:11.17106713Z",
-				// now + 20 mins
-				cooldown_ends_at: new Date(new Date().getTime() + (2 * 60 * 1000)).toISOString()
-			});
+			const e = this.genFakeEvent(2);
 			// next hype train as UTC
 			this._currentCoolDown = e.cooldownEndDate.getTime();
 			this._timerLeft = this._currentCoolDown - Date.now();
@@ -139,8 +124,8 @@ class Bot {
 				const exampleEmbed = new EmbedBuilder()
 					.setColor(0x0099FF)
 					.setTitle('Hypetrain Time!')
-					.setTimestamp()
-				targetChannel.send({ embeds: [exampleEmbed] })
+					.setTimestamp();
+				targetChannel.send({ embeds: [exampleEmbed] });
 			} else {
 				signale.error(`Help! i can't post in this room`);
 			}
@@ -156,7 +141,7 @@ class Bot {
 			) as TextChannel;
 			// check send Message permission
 			if (channel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
-				channel.send(message)
+				channel.send(message);
 			} else {
 				signale.error(`Help! i can't post in this room`);
 			}
@@ -164,7 +149,26 @@ class Bot {
 	}
 
 	timeInSeconds(): number {
-		return Math.floor(this._currentCoolDown / 1000)
+		return Math.floor(this._currentCoolDown / 1000);
+	}
+
+	genFakeEvent(minutes: number): mockup_EventSubChannelHypeTrainEndEvent{
+		return new mockup_EventSubChannelHypeTrainEndEvent({
+			id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
+			broadcaster_user_id: "1337",
+			broadcaster_user_login: "cool_user",
+			broadcaster_user_name: "Cool_User",
+			level: 2,
+			total: 137,
+			top_contributions: [
+				{ "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
+				{ "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
+			],
+			started_at: "2020-07-15T17:16:03.17106713Z",
+			ended_at: "2020-07-15T17:16:11.17106713Z",
+			// now + 20 mins
+			cooldown_ends_at: new Date(new Date().getTime() + (minutes * 60 * 1000)).toISOString()
+		});
 	}
 }
 

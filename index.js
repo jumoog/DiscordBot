@@ -69,21 +69,7 @@ class Bot {
         }
         else {
             this.sendMessage(`no tokens.json! No Twitch Support! Running in Mocking mode!`);
-            const e = new mockup_EventSubChannelHypeTrainEndEvent({
-                id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
-                broadcaster_user_id: "1337",
-                broadcaster_user_login: "cool_user",
-                broadcaster_user_name: "Cool_User",
-                level: 2,
-                total: 137,
-                top_contributions: [
-                    { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-                    { "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
-                ],
-                started_at: "2020-07-15T17:16:03.17106713Z",
-                ended_at: "2020-07-15T17:16:11.17106713Z",
-                cooldown_ends_at: new Date(new Date().getTime() + (2 * 60 * 1000)).toISOString()
-            });
+            const e = this.genFakeEvent(2);
             this._currentCoolDown = e.cooldownEndDate.getTime();
             this._timerLeft = this._currentCoolDown - Date.now();
             this._currentCoolDownTimer.stop();
@@ -122,6 +108,23 @@ class Bot {
     }
     timeInSeconds() {
         return Math.floor(this._currentCoolDown / 1000);
+    }
+    genFakeEvent(minutes) {
+        return new mockup_EventSubChannelHypeTrainEndEvent({
+            id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
+            broadcaster_user_id: "1337",
+            broadcaster_user_login: "cool_user",
+            broadcaster_user_name: "Cool_User",
+            level: 2,
+            total: 137,
+            top_contributions: [
+                { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
+                { "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
+            ],
+            started_at: "2020-07-15T17:16:03.17106713Z",
+            ended_at: "2020-07-15T17:16:11.17106713Z",
+            cooldown_ends_at: new Date(new Date().getTime() + (minutes * 60 * 1000)).toISOString()
+        });
     }
 }
 const bot = new Bot();
