@@ -1,4 +1,4 @@
-type EventSubChannelHypeTrainContributionType = 'bits' | 'subscription' | 'other';
+export type EventSubChannelHypeTrainContributionType = 'bits' | 'subscription' | 'other';
 
 interface EventSubChannelHypeTrainEndEventData {
     id: string;
@@ -13,7 +13,7 @@ interface EventSubChannelHypeTrainEndEventData {
     cooldown_ends_at: string;
 }
 
-interface EventSubChannelHypeTrainContributionData {
+export interface EventSubChannelHypeTrainContributionData {
     user_id: string;
     user_login: string;
     user_name: string;
@@ -369,61 +369,3 @@ export class mockup_EventSubChannelHypeTrainProgressEvent {
     }
 }
 
-export function genFakeEndEvent(minutes: number = 60, level: number = 2): mockup_EventSubChannelHypeTrainEndEvent {
-    return new mockup_EventSubChannelHypeTrainEndEvent({
-        id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
-        broadcaster_user_id: "1337",
-        broadcaster_user_login: "cool_user",
-        broadcaster_user_name: "Cool_User",
-        level,
-        total: 137,
-        top_contributions: [
-            { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-            { "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
-        ],
-        started_at: new Date().toISOString(),
-        ended_at: new Date(new Date().getTime() + (8 * 1000)).toISOString(),
-        // now + 60
-        cooldown_ends_at: new Date(new Date().getTime() + (minutes * 60 * 1000)).toISOString()
-    });
-}
-
-export function genFakeBeginEvent(level: number) {
-    return new mockup_EventSubChannelHypeTrainBeginEvent({
-        id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
-        broadcaster_user_id: "1337",
-        broadcaster_user_login: "cool_user",
-        broadcaster_user_name: "Cool_User",
-        total: 137,
-        progress: 137,
-        goal: 500,
-        top_contributions: [
-            { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-            { "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
-        ],
-        last_contribution: { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-        level,
-        started_at: new Date().toISOString(),
-        expires_at: new Date(new Date().getTime() + (8 * 1000)).toISOString()
-    });
-}
-
-export function genFakeProgressEvent(level: number) {
-    return new mockup_EventSubChannelHypeTrainProgressEvent({
-        id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
-        broadcaster_user_id: "1337",
-        broadcaster_user_login: "cool_user",
-        broadcaster_user_name: "Cool_User",
-        level,
-        total: 700,
-        progress: 200,
-        goal: 1000,
-        top_contributions: [
-            { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-            { "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
-        ],
-        last_contribution: { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-        started_at: new Date().toISOString(),
-        expires_at: new Date(new Date().getTime() + (8 * 1000)).toISOString()
-    });
-}

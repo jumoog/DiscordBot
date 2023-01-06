@@ -1,4 +1,4 @@
-declare type EventSubChannelHypeTrainContributionType = 'bits' | 'subscription' | 'other';
+export declare type EventSubChannelHypeTrainContributionType = 'bits' | 'subscription' | 'other';
 interface EventSubChannelHypeTrainEndEventData {
     id: string;
     broadcaster_user_id: string;
@@ -11,7 +11,7 @@ interface EventSubChannelHypeTrainEndEventData {
     ended_at: string;
     cooldown_ends_at: string;
 }
-interface EventSubChannelHypeTrainContributionData {
+export interface EventSubChannelHypeTrainContributionData {
     user_id: string;
     user_login: string;
     user_name: string;
@@ -101,7 +101,4 @@ export declare class mockup_EventSubChannelHypeTrainProgressEvent {
     get startDate(): Date;
     get expiryDate(): Date;
 }
-export declare function genFakeEndEvent(minutes?: number, level?: number): mockup_EventSubChannelHypeTrainEndEvent;
-export declare function genFakeBeginEvent(level: number): mockup_EventSubChannelHypeTrainBeginEvent;
-export declare function genFakeProgressEvent(level: number): mockup_EventSubChannelHypeTrainProgressEvent;
 export {};

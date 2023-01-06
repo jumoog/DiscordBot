@@ -6,8 +6,9 @@ import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField, TextChannel } from 'discord.js';
-import { genFakeBeginEvent, genFakeEndEvent, genFakeProgressEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent } from './mockup.js';
+import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent } from './mockup.js';
 import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent } from '@twurple/eventsub-base/lib/index.js';
+import { Simulation } from './simulation.js';
 
 dotenv.config()
 
@@ -22,7 +23,7 @@ process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
 });
 
 /**
- * Bot lasss
+ * Bot class
  */
 class Bot {
 	_userId: number | string;
@@ -65,7 +66,7 @@ class Bot {
 			} else {
 				this.startHypeTrainSimulation();
 			}
-			
+
 			// time is over event
 			this._currentCoolDownTimer.on('done', () => {
 				this.sendMessage(`The next Hype Train is ready!`);
@@ -116,40 +117,37 @@ class Bot {
 			await twitchListener.subscribeToChannelHypeTrainProgressEvents(Number(this._userId), e => {
 				this.hypeTrainProgressEvents(e);
 			});
-		} else {
-			this.sendMessage(`no tokens.json! No Twitch Support! Running in Mocking mode!`);
-			// create fake EventSubChannelHypeTrainEndEvent with cooldown_ends_at of 2 Minutes
-			this.hypeTrainEndEventsHandler(genFakeEndEvent(2));
 		}
 	}
 
 	async startHypeTrainSimulation() {
+		const sim = new Simulation("this._userId", "this._userId", "this._userId");
 		while (true) {
-			this.hypeTrainBeginEventsHandler(genFakeBeginEvent(2));
+			this.hypeTrainBeginEventsHandler(sim.genFakeBeginEvent(2));
 			await sleep(1000);
-			this.hypeTrainProgressEvents(genFakeProgressEvent(2));
+			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
 			await sleep(50000);
-			this.hypeTrainProgressEvents(genFakeProgressEvent(3));
+			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
 			await sleep(50000);
-			this.hypeTrainProgressEvents(genFakeProgressEvent(4));
+			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
 			await sleep(50000);
-			this.hypeTrainProgressEvents(genFakeProgressEvent(5));
+			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
 			await sleep(50000);
-			this.hypeTrainProgressEvents(genFakeProgressEvent(6));
+			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
 			await sleep(50000);
-			this.hypeTrainProgressEvents(genFakeProgressEvent(7));
+			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
 			await sleep(50000);
-			this.hypeTrainProgressEvents(genFakeProgressEvent(8));
+			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
 			await sleep(50000);
-			this.hypeTrainProgressEvents(genFakeProgressEvent(9));
+			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
 			await sleep(50000);
 			// end hype train at level 10 with 2 minutes cool down
-			this.hypeTrainEndEventsHandler(genFakeEndEvent(2, 10));
+			this.hypeTrainEndEventsHandler(sim.genFakeEndEvent(2));
 			// wait 3 minutes
 			await sleep(180000);
 		}
 	}
-	
+
 	/**
 	 * helper function to send Embed messages
 	 */
@@ -163,7 +161,7 @@ class Bot {
 			// check send Message permission
 			if (targetChannel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
 				// build Embed
-				// TODO build something usefull
+				// TODO build something useful
 				const exampleEmbed = new EmbedBuilder()
 					.setColor(0x0099FF)
 					.setTitle('Hypetrain Time!')
@@ -241,6 +239,9 @@ class Bot {
 		if (this._level !== e.level) {
 			this._level = e.level;
 			this.sendMessage(`Hype Train reached Level ${this._level}!`);
+		}
+		if (this._simulation) {
+			this.sendMessage(`Hype Train points ${e.total}!`);
 		}
 	}
 }

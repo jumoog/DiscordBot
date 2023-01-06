@@ -6,7 +6,7 @@ import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
-import { genFakeBeginEvent, genFakeEndEvent, genFakeProgressEvent } from './mockup.js';
+import { Simulation } from './simulation.js';
 dotenv.config();
 const sleep = (waitTimeInMs) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
 process.on('unhandledRejection', (reason, p) => {
@@ -83,32 +83,29 @@ class Bot {
                 this.hypeTrainProgressEvents(e);
             });
         }
-        else {
-            this.sendMessage(`no tokens.json! No Twitch Support! Running in Mocking mode!`);
-            this.hypeTrainEndEventsHandler(genFakeEndEvent(2));
-        }
     }
     async startHypeTrainSimulation() {
+        const sim = new Simulation("this._userId", "this._userId", "this._userId");
         while (true) {
-            this.hypeTrainBeginEventsHandler(genFakeBeginEvent(2));
+            this.hypeTrainBeginEventsHandler(sim.genFakeBeginEvent(2));
             await sleep(1000);
-            this.hypeTrainProgressEvents(genFakeProgressEvent(2));
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             await sleep(50000);
-            this.hypeTrainProgressEvents(genFakeProgressEvent(3));
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             await sleep(50000);
-            this.hypeTrainProgressEvents(genFakeProgressEvent(4));
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             await sleep(50000);
-            this.hypeTrainProgressEvents(genFakeProgressEvent(5));
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             await sleep(50000);
-            this.hypeTrainProgressEvents(genFakeProgressEvent(6));
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             await sleep(50000);
-            this.hypeTrainProgressEvents(genFakeProgressEvent(7));
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             await sleep(50000);
-            this.hypeTrainProgressEvents(genFakeProgressEvent(8));
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             await sleep(50000);
-            this.hypeTrainProgressEvents(genFakeProgressEvent(9));
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             await sleep(50000);
-            this.hypeTrainEndEventsHandler(genFakeEndEvent(2, 10));
+            this.hypeTrainEndEventsHandler(sim.genFakeEndEvent(2));
             await sleep(180000);
         }
     }
@@ -158,6 +155,9 @@ class Bot {
         if (this._level !== e.level) {
             this._level = e.level;
             this.sendMessage(`Hype Train reached Level ${this._level}!`);
+        }
+        if (this._simulation) {
+            this.sendMessage(`Hype Train points ${e.total}!`);
         }
     }
 }
