@@ -20,3 +20,19 @@ install TypeScript then run
 ```shell
   tsc
 ```
+
+## Levels
+How much Bits or Tier 1 Subs to complete goals
+
+| Level | Bits | Subs |
+|-------|------|------|
+| 1     | 1600 | 4    |
+| 2     | 1800 | 4    |
+| 3     | 2100 | 5    |
+| 4     | 2300 | 5    |
+| 5     | 3000 | 6    |
+| 6     | 3700 | 8    |
+| 7     | 4700 | 10   |
+| 8     | 5900 | 12   |
+| 9     | 7200 | 15   |
+| 10    | 8800 | 18   |
