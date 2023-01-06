@@ -24,7 +24,6 @@ install TypeScript then run
 ## Levels
 How much Bits or Tier 1 Subs to complete goals
 
-
 | Level | Bits  | Subs | converted |
 |-------|-------|------|-----------|
 | 1     | 1600  | 4    | 2000      |
@@ -41,3 +40,8 @@ How much Bits or Tier 1 Subs to complete goals
 | 12    | 12600 | 26   | 13000     |
 | 13    | 14700 | 30   | 15000     |
 | 14    | 17100 | 35   | 17500     |
+| 15    | 19700 | 40   | 20000     |
+| 16    | 22400 | 45   | 22500     |
+| 17    | 25400 | 51   | 25500     |
+| 18    | 28600 | 58   | 29000     |
+| 19    | 32000 | 64   | 32000     |
