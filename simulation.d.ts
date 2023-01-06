@@ -17,4 +17,5 @@ export declare class Simulation {
     randomTotal(type: EventSubChannelHypeTrainContributionType): number;
     randomInteger(min: number, max: number): number;
     fakeLastContribution(): EventSubChannelHypeTrainContributionData;
+    levelCalculator(): void;
 }

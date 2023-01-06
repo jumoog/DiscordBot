@@ -90,21 +90,31 @@ class Bot {
             this.hypeTrainBeginEventsHandler(sim.genFakeBeginEvent(2));
             await sleep(1000);
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            await sleep(50000);
+            await sleep(1000);
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            await sleep(50000);
+            await sleep(1000);
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            await sleep(50000);
+            await sleep(1000);
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            await sleep(50000);
+            await sleep(1000);
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            await sleep(50000);
+            await sleep(1000);
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            await sleep(50000);
+            await sleep(1000);
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            await sleep(50000);
+            await sleep(1000);
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            await sleep(50000);
+            await sleep(1000);
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            await sleep(1000);
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            await sleep(1000);
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            await sleep(1000);
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            await sleep(1000);
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            await sleep(1000);
             this.hypeTrainEndEventsHandler(sim.genFakeEndEvent(2));
             await sleep(180000);
         }
@@ -154,6 +164,12 @@ class Bot {
     hypeTrainProgressEvents(e) {
         if (this._level !== e.level) {
             this._level = e.level;
+            if (e.lastContribution.type === "subscription") {
+                this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`);
+            }
+            else if (e.lastContribution.type === "bits") {
+                this.sendMessage(`:coin: ${e.lastContribution.userDisplayName} cheered ${e.lastContribution.total} bits! :coin:`);
+            }
             this.sendMessage(`Hype Train reached Level ${this._level}!`);
         }
         if (this._simulation) {

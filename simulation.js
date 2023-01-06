@@ -79,17 +79,8 @@ export class Simulation {
         if (type === "bits")
             return this.randomInteger(100, 1000);
         if (type === "subscription") {
-            const tier = this.randomInteger(1, 3);
-            const amount = this.randomInteger(1, 20);
-            if (tier === 1) {
-                return amount * 500;
-            }
-            if (tier === 2) {
-                return amount * 1000;
-            }
-            if (tier === 2) {
-                return amount * 2500;
-            }
+            const tier = 1;
+            return tier * this.randomInteger(1, 20) * 500;
         }
         return 0;
     }
@@ -100,8 +91,18 @@ export class Simulation {
         const type = this.randomType();
         const total = this.randomTotal(type);
         this.total += total;
-        this.level = Math.floor(this.total / 1000);
-        const contribution = { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", type, total };
+        this.levelCalculator();
+        const contribution = { "user_id": "31378319", "user_login": "kilian_de", "user_name": "kilian_de", type, total };
         return contribution;
+    }
+    levelCalculator() {
+        const points = [1600, 3400, 5500, 7800, 10800, 14500, 19200, 25100, 32300, 41100, 51700, 64300, 79000, 96100, 115800, 138200, 163600, 192200, 224200];
+        for (let index = 0; index < points.length; index++) {
+            const element = points[index];
+            if (element > this.total) {
+                this.level = index;
+                break;
+            }
+        }
     }
 }
