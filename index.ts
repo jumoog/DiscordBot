@@ -6,9 +6,12 @@ import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField, TextChannel } from 'discord.js';
-import { genFakeEndEvent } from './mockup.js';
+import { genFakeBeginEvent, genFakeEndEvent, genFakeProgressEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent } from './mockup.js';
+import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent } from '@twurple/eventsub-base/lib/index.js';
 
 dotenv.config()
+
+const sleep = (waitTimeInMs: number) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
 
 // catch all possible errors and don't crash
 process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
@@ -33,6 +36,7 @@ class Bot {
 	_timerLeft;
 	_tokenPath;
 	_level;
+	_simulation;
 	constructor() {
 		this._userId = process.env.USERID || 631529415; // annabelstopit
 		this._roomName = process.env.ROOMNAME || '';
@@ -45,13 +49,27 @@ class Bot {
 		this._timerLeft = 0;
 		this._tokenPath = '';
 		this._level = 0;
+		this._simulation = false;
 	}
 
 	async main() {
+		this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json'
+		if (!fs.existsSync(this._tokenPath)) {
+			this._simulation = true;
+		}
 		// discord client
 		this._discordClient.once(Events.ClientReady, c => {
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
-			this.startTwitch();
+			if (!this._simulation) {
+				this.startTwitch();
+			} else {
+				this.startHypeTrainSimulation();
+			}
+			
+			// time is over event
+			this._currentCoolDownTimer.on('done', () => {
+				this.sendMessage(`The next Hype Train is ready!`);
+			});
 		});
 		// login
 		this._discordClient.login(this._discordToken);
@@ -63,7 +81,7 @@ class Bot {
 	async startTwitch() {
 		// check if it runs in Docker or local
 		// /tokens/tokens.json is the location in Docker
-		this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json'
+
 		// check if tokens.json exists
 		if (fs.existsSync(this._tokenPath)) {
 			signale.success(`found tokens.json!`);
@@ -92,30 +110,46 @@ class Bot {
 			});
 
 			await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
-				this._level = e.level;
-				this.sendMessage(`A Hype Train has started at Level ${e.level}!`);
+				this.hypeTrainBeginEventsHandler(e);
 			});
 
 			await twitchListener.subscribeToChannelHypeTrainProgressEvents(Number(this._userId), e => {
-				if (this._level !== e.level) {
-					this._level = e.level;
-					this.sendMessage(`Hype Train reached Level ${this._level}!`);
-				}
-
+				this.hypeTrainProgressEvents(e);
 			});
-
 		} else {
 			this.sendMessage(`no tokens.json! No Twitch Support! Running in Mocking mode!`);
 			// create fake EventSubChannelHypeTrainEndEvent with cooldown_ends_at of 2 Minutes
 			this.hypeTrainEndEventsHandler(genFakeEndEvent(2));
 		}
-
-		// time is over event
-		this._currentCoolDownTimer.on('done', () => {
-			this.sendMessage(`The next Hype Train is ready!`);
-		});
 	}
 
+	async startHypeTrainSimulation() {
+		while (true) {
+			this.hypeTrainBeginEventsHandler(genFakeBeginEvent(2));
+			await sleep(1000);
+			this.hypeTrainProgressEvents(genFakeProgressEvent(2));
+			await sleep(50000);
+			this.hypeTrainProgressEvents(genFakeProgressEvent(3));
+			await sleep(50000);
+			this.hypeTrainProgressEvents(genFakeProgressEvent(4));
+			await sleep(50000);
+			this.hypeTrainProgressEvents(genFakeProgressEvent(5));
+			await sleep(50000);
+			this.hypeTrainProgressEvents(genFakeProgressEvent(6));
+			await sleep(50000);
+			this.hypeTrainProgressEvents(genFakeProgressEvent(7));
+			await sleep(50000);
+			this.hypeTrainProgressEvents(genFakeProgressEvent(8));
+			await sleep(50000);
+			this.hypeTrainProgressEvents(genFakeProgressEvent(9));
+			await sleep(50000);
+			// end hype train at level 10 with 2 minutes cool down
+			this.hypeTrainEndEventsHandler(genFakeEndEvent(2, 10));
+			// wait 3 minutes
+			await sleep(180000);
+		}
+	}
+	
 	/**
 	 * helper function to send Embed messages
 	 */
@@ -169,7 +203,11 @@ class Bot {
 		return Math.floor(this._currentCoolDown / 1000);
 	}
 
-	hypeTrainEndEventsHandler(e: any) {
+	/**
+	 * handle Hype Train EndEvents (fake and real)
+	 * @param e 
+	 */
+	hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndEvent | mockup_EventSubChannelHypeTrainEndEvent) {
 		this.sendMessage(`We reached Level ${e.level}!`);
 		// reset level
 		this._level = 0;
@@ -184,6 +222,26 @@ class Bot {
 		// R -> Relative (in 2 minutes)
 		// t -> short time (2:19 AM)
 		this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
+	}
+
+	/**
+	 * handle Hype Train BeginEvents (fake and real)
+	 * @param e 
+	 */
+	hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginEvent | mockup_EventSubChannelHypeTrainBeginEvent) {
+		this._level = e.level;
+		this.sendMessage(`A Hype Train has started at Level ${e.level}!`);
+	}
+
+	/**
+	 * handle Hype Train ProgressEvents (fake and real)
+	 * @param e 
+	 */
+	hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressEvent | mockup_EventSubChannelHypeTrainProgressEvent) {
+		if (this._level !== e.level) {
+			this._level = e.level;
+			this.sendMessage(`Hype Train reached Level ${this._level}!`);
+		}
 	}
 }
 

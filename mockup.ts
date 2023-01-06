@@ -369,26 +369,26 @@ export class mockup_EventSubChannelHypeTrainProgressEvent {
     }
 }
 
-export function genFakeEndEvent(minutes: number = 2): mockup_EventSubChannelHypeTrainEndEvent {
+export function genFakeEndEvent(minutes: number = 60, level: number = 2): mockup_EventSubChannelHypeTrainEndEvent {
     return new mockup_EventSubChannelHypeTrainEndEvent({
         id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
         broadcaster_user_id: "1337",
         broadcaster_user_login: "cool_user",
         broadcaster_user_name: "Cool_User",
-        level: 2,
+        level,
         total: 137,
         top_contributions: [
             { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
             { "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
         ],
-        started_at: "2020-07-15T17:16:03.17106713Z",
-        ended_at: "2020-07-15T17:16:11.17106713Z",
-        // now + 20 mins
+        started_at: new Date().toISOString(),
+        ended_at: new Date(new Date().getTime() + (8 * 1000)).toISOString(),
+        // now + 60
         cooldown_ends_at: new Date(new Date().getTime() + (minutes * 60 * 1000)).toISOString()
     });
 }
 
-export function genFakeBeginEvent(){
+export function genFakeBeginEvent(level: number) {
     return new mockup_EventSubChannelHypeTrainBeginEvent({
         id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
         broadcaster_user_id: "1337",
@@ -402,19 +402,19 @@ export function genFakeBeginEvent(){
             { "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
         ],
         last_contribution: { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-        level: 2,
-        started_at: "2020-07-15T17:16:03.17106713Z",
-        expires_at: "2020-07-15T17:16:11.17106713Z"
+        level,
+        started_at: new Date().toISOString(),
+        expires_at: new Date(new Date().getTime() + (8 * 1000)).toISOString()
     });
 }
 
-export function genFakeProgressEvent() {
+export function genFakeProgressEvent(level: number) {
     return new mockup_EventSubChannelHypeTrainProgressEvent({
         id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
         broadcaster_user_id: "1337",
         broadcaster_user_login: "cool_user",
         broadcaster_user_name: "Cool_User",
-        level: 2,
+        level,
         total: 700,
         progress: 200,
         goal: 1000,
@@ -423,7 +423,7 @@ export function genFakeProgressEvent() {
             { "user_id": "456", "user_login": "kappa", "user_name": "Kappa", "type": "subscription", "total": 45 }
         ],
         last_contribution: { "user_id": "123", "user_login": "pogchamp", "user_name": "PogChamp", "type": "bits", "total": 50 },
-        started_at: "2020-07-15T17:16:03.17106713Z",
-        expires_at: "2020-07-15T17:16:11.17106713Z"
+        started_at: new Date().toISOString(),
+        expires_at: new Date(new Date().getTime() + (8 * 1000)).toISOString()
     });
 }
