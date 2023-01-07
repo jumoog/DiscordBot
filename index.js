@@ -48,7 +48,7 @@ class Bot {
             this._simulation = true;
         }
         this._discordClient.once(Events.ClientReady, c => {
-            signale.success(`Ready! Logged in as ${c.user.tag}`);
+            signale.fatal(`Ready! Logged in as ${c.user.tag}`);
             if (!this._simulation) {
                 this.startTwitch();
             }
