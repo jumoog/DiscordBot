@@ -10,6 +10,7 @@ import { Simulation } from './simulation.js';
 import { getRawData } from '@twurple/common';
 dotenv.config();
 const sleep = (waitTimeInMs) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
+const OneHour = 60 * 60 * 1000;
 process.on('unhandledRejection', (reason, p) => {
     signale.fatal('caught your junk %s', reason);
     if (reason.stack) {
@@ -75,6 +76,22 @@ class Bot {
                 onRefresh: async (newTokenData) => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8')
             }, tokenDataHypeTrain);
             const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
+            const { data: events } = await apiClient.hypeTrain.getHypeTrainEventsForBroadcaster(this._userId);
+            events.forEach(hypetrain => {
+                if (hypetrain.expiryDate.getTime() - new Date().getTime() > 0) {
+                    this.sendDebugMessage(`A Hype Train is currently running`);
+                }
+                else {
+                    this.sendDebugMessage(`No Hype Train is currently running`);
+                }
+                if (new Date().getTime() - hypetrain.cooldownDate.getTime() < OneHour) {
+                    this.sendDebugMessage(`The last train was less than an hour ago. Set cooldown.`);
+                    this.setCooldownEndDate(hypetrain.cooldownDate);
+                }
+                else {
+                    this.sendDebugMessage(`The last train was at <t:${this.timeInSeconds(hypetrain.cooldownDate.getTime())}:f>`);
+                }
+            });
             const twitchListener = new EventSubWsListener({ apiClient });
             await twitchListener.start();
             try {
@@ -177,18 +194,14 @@ class Bot {
             }
         }
     }
-    timeInSeconds() {
-        return Math.floor(this._currentCoolDown / 1000);
+    timeInSeconds(date = this._currentCoolDown) {
+        return Math.floor(date / 1000);
     }
     hypeTrainEndEventsHandler(e) {
         signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this.sendMessage(`We reached Level ${e.level}!`);
         this._level = 0;
-        this._currentCoolDown = e.cooldownEndDate.getTime();
-        this._timerLeft = this._currentCoolDown - Date.now();
-        this._currentCoolDownTimer.stop();
-        this._currentCoolDownTimer.start(this._timerLeft);
-        this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
+        this.setCooldownEndDate(e.cooldownEndDate);
     }
     hypeTrainBeginEventsHandler(e) {
         signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
@@ -216,6 +229,13 @@ class Bot {
     StreamOfflineEventsHandler(e) {
         signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this.sendDebugMessage(`${e.broadcasterDisplayName} went offline! See you next time!`);
+    }
+    setCooldownEndDate(cooldownEndDate) {
+        this._currentCoolDown = cooldownEndDate.getTime();
+        this._timerLeft = this._currentCoolDown - Date.now();
+        this._currentCoolDownTimer.stop();
+        this._currentCoolDownTimer.start(this._timerLeft);
+        this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
     }
 }
 const bot = new Bot();

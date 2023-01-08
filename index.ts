@@ -14,6 +14,7 @@ import { getRawData } from '@twurple/common';
 dotenv.config()
 
 const sleep = (waitTimeInMs: number) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
+const OneHour = 60 * 60 * 1000;
 
 // catch all possible errors and don't crash
 process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
@@ -104,6 +105,23 @@ class Bot {
 
 			// Twitch API
 			const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
+
+			// query Twitch API for last hype train
+			const { data: events } = await apiClient.hypeTrain.getHypeTrainEventsForBroadcaster(this._userId);
+			events.forEach( hypetrain => {
+				// check if hype train is active
+				if (hypetrain.expiryDate.getTime() - new Date().getTime() > 0) {
+					this.sendDebugMessage(`A Hype Train is currently running`);
+				} else {
+					this.sendDebugMessage(`No Hype Train is currently running`);
+				}
+				if (new Date().getTime() - hypetrain.cooldownDate.getTime() < OneHour) {
+					this.sendDebugMessage(`The last train was less than an hour ago. Set cooldown.`);
+					this.setCooldownEndDate(hypetrain.cooldownDate);
+				} else {
+					this.sendDebugMessage(`The last train was at <t:${this.timeInSeconds(hypetrain.cooldownDate.getTime())}:f>`);
+				}
+			});
 			// We need the Twitch Events
 			// https://dev.twitch.tv/docs/eventsub/handling-webhook-events
 			const twitchListener = new EventSubWsListener({ apiClient });
@@ -248,8 +266,8 @@ class Bot {
 	 * Convert to seconds to avoid 52961 years problem
 	 * @returns 
 	 */
-	timeInSeconds(): number {
-		return Math.floor(this._currentCoolDown / 1000);
+	timeInSeconds(date = this._currentCoolDown): number {
+		return Math.floor(date / 1000);
 	}
 
 	/**
@@ -262,16 +280,7 @@ class Bot {
 		// reset level
 		this._level = 0;
 		// next hype train as UTC
-		this._currentCoolDown = e.cooldownEndDate.getTime();
-		this._timerLeft = this._currentCoolDown - Date.now();
-		// stop timer just to be sure
-		this._currentCoolDownTimer.stop();
-		// set timer
-		this._currentCoolDownTimer.start(this._timerLeft);
-		// inform channel about new cool down
-		// R -> Relative (in 2 minutes)
-		// t -> short time (2:19 AM)
-		this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
+		this.setCooldownEndDate(e.cooldownEndDate)
 	}
 
 	/**
@@ -319,6 +328,19 @@ class Bot {
 	StreamOfflineEventsHandler(e: EventSubStreamOfflineEvent | mockup_EventSubStreamOfflineEvent) {
 		signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
 		this.sendDebugMessage(`${e.broadcasterDisplayName} went offline! See you next time!`);
+	}
+
+	setCooldownEndDate(cooldownEndDate: Date) {
+		this._currentCoolDown = cooldownEndDate.getTime();
+		this._timerLeft = this._currentCoolDown - Date.now();
+		// stop timer just to be sure
+		this._currentCoolDownTimer.stop();
+		// set timer
+		this._currentCoolDownTimer.start(this._timerLeft);
+		// inform channel about new cool down
+		// R -> Relative (in 2 minutes)
+		// t -> short time (2:19 AM)
+		this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
 	}
 }
 
