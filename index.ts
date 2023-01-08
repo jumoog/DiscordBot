@@ -6,8 +6,8 @@ import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField, TextChannel } from 'discord.js';
-import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent } from './mockup.js';
-import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent } from '@twurple/eventsub-base/lib/index.js';
+import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent, mockup_EventSubStreamOfflineEvent, mockup_EventSubStreamOnlineEvent } from './mockup.js';
+import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent } from '@twurple/eventsub-base/lib/index.js';
 import { Simulation } from './simulation.js';
 import { getRawData } from '@twurple/common';
 
@@ -121,12 +121,22 @@ class Bot {
 			await twitchListener.subscribeToChannelHypeTrainProgressEvents(Number(this._userId), e => {
 				this.hypeTrainProgressEvents(e);
 			});
+
+			await twitchListener.subscribeToStreamOnlineEvents(Number(this._userId), e => {
+				this.StreamOnlineEventsHandler(e);
+			});
+
+			await twitchListener.subscribeToStreamOfflineEvents(Number(this._userId), e => {
+				this.StreamOfflineEventsHandler(e);
+			});
 		}
 	}
 
 	async startHypeTrainSimulation() {
-		const sim = new Simulation("this._userId", "this._userId", "this._userId");
+		const sim = new Simulation("631529415", "annabelstopit", "annabelstopit");
 		while (true) {
+			this.StreamOnlineEventsHandler(sim.fakeOnline());
+			await sleep(20000);
 			this.hypeTrainBeginEventsHandler(sim.genFakeBeginEvent(2));
 			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
@@ -159,6 +169,8 @@ class Bot {
 			this.hypeTrainEndEventsHandler(sim.genFakeEndEvent(2));
 			// wait 3 minutes
 			await sleep(180000);
+			this.StreamOfflineEventsHandler(sim.fakeOffline());
+			await sleep(10000);
 		}
 	}
 
@@ -239,7 +251,7 @@ class Bot {
 	 * @param e 
 	 */
 	hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndEvent | mockup_EventSubChannelHypeTrainEndEvent) {
-		this.sendDebugMessage(JSON.stringify(getRawData(e), null , 4));
+		this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
 		this.sendMessage(`We reached Level ${e.level}!`);
 		// reset level
 		this._level = 0;
@@ -261,7 +273,7 @@ class Bot {
 	 * @param e 
 	 */
 	hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginEvent | mockup_EventSubChannelHypeTrainBeginEvent) {
-		this.sendDebugMessage(JSON.stringify(getRawData(e), null , 4));
+		this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
 		this._level = e.level;
 		this.sendMessage(`A Hype Train has started at Level ${e.level}!`);
 	}
@@ -271,7 +283,7 @@ class Bot {
 	 * @param e 
 	 */
 	hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressEvent | mockup_EventSubChannelHypeTrainProgressEvent) {
-		this.sendDebugMessage(JSON.stringify(getRawData(e), null , 4));
+		this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
 		if (this._level !== e.level) {
 			this._level = e.level;
 			if (e.lastContribution.type === "subscription") {
@@ -285,6 +297,28 @@ class Bot {
 		if (this._simulation) {
 			this.sendMessage(`Hype Train points ${e.total}!`);
 		}
+	}
+
+	/**
+	 * handle Stream OnlineEvents (fake and real)
+	 * @param e 
+	 */
+	StreamOnlineEventsHandler(e: EventSubStreamOnlineEvent | mockup_EventSubStreamOnlineEvent) {
+		if (this._simulation) {
+			this.sendMessage(`${e.broadcasterDisplayName} went online!`);
+		}
+		this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
+	}
+
+	/**
+	 * handle Stream OfflineEvents (fake and real)
+	 * @param e 
+	 */
+	StreamOfflineEventsHandler(e: EventSubStreamOfflineEvent | mockup_EventSubStreamOfflineEvent) {
+		if (this._simulation) {
+			this.sendMessage(`${e.broadcasterDisplayName} went offline! See you next time!`);
+		}
+		this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
 	}
 }
 

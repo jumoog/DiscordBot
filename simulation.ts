@@ -1,5 +1,5 @@
 import { time } from "node:console";
-import { mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainProgressEvent, EventSubChannelHypeTrainContributionData, EventSubChannelHypeTrainContributionType } from "./mockup.js";
+import { mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainProgressEvent, EventSubChannelHypeTrainContributionData, EventSubChannelHypeTrainContributionType, mockup_EventSubStreamOnlineEvent, mockup_EventSubStreamOfflineEvent } from "./mockup.js";
 
 export class Simulation {
     broadcaster_user_id: string;
@@ -117,5 +117,24 @@ export class Simulation {
                 break;
             }
         }
+    }
+
+    fakeOnline(): mockup_EventSubStreamOnlineEvent {
+        return new mockup_EventSubStreamOnlineEvent({
+            "id": "9001",
+            "broadcaster_user_id": this.broadcaster_user_id,
+            "broadcaster_user_login": this.broadcaster_user_login,
+            "broadcaster_user_name": this.broadcaster_user_name,
+            "type": "live",
+            "started_at": new Date().toISOString()
+        });
+    }
+
+    fakeOffline(): mockup_EventSubStreamOfflineEvent {
+        return new mockup_EventSubStreamOfflineEvent({
+            "broadcaster_user_id": this.broadcaster_user_id,
+            "broadcaster_user_login": this.broadcaster_user_login,
+            "broadcaster_user_name": this.broadcaster_user_name
+        });
     }
 }

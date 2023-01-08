@@ -1,4 +1,4 @@
-import { mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainProgressEvent, EventSubChannelHypeTrainContributionData, EventSubChannelHypeTrainContributionType } from "./mockup.js";
+import { mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainProgressEvent, EventSubChannelHypeTrainContributionData, EventSubChannelHypeTrainContributionType, mockup_EventSubStreamOnlineEvent, mockup_EventSubStreamOfflineEvent } from "./mockup.js";
 export declare class Simulation {
     broadcaster_user_id: string;
     broadcaster_user_login: string;
@@ -18,4 +18,6 @@ export declare class Simulation {
     randomInteger(min: number, max: number): number;
     fakeLastContribution(): EventSubChannelHypeTrainContributionData;
     levelCalculator(): void;
+    fakeOnline(): mockup_EventSubStreamOnlineEvent;
+    fakeOffline(): mockup_EventSubStreamOfflineEvent;
 }

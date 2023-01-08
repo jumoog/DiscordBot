@@ -86,11 +86,19 @@ class Bot {
             await twitchListener.subscribeToChannelHypeTrainProgressEvents(Number(this._userId), e => {
                 this.hypeTrainProgressEvents(e);
             });
+            await twitchListener.subscribeToStreamOnlineEvents(Number(this._userId), e => {
+                this.StreamOnlineEventsHandler(e);
+            });
+            await twitchListener.subscribeToStreamOfflineEvents(Number(this._userId), e => {
+                this.StreamOfflineEventsHandler(e);
+            });
         }
     }
     async startHypeTrainSimulation() {
-        const sim = new Simulation("this._userId", "this._userId", "this._userId");
+        const sim = new Simulation("631529415", "annabelstopit", "annabelstopit");
         while (true) {
+            this.StreamOnlineEventsHandler(sim.fakeOnline());
+            await sleep(20000);
             this.hypeTrainBeginEventsHandler(sim.genFakeBeginEvent(2));
             await sleep(1000);
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
@@ -121,6 +129,8 @@ class Bot {
             await sleep(1000);
             this.hypeTrainEndEventsHandler(sim.genFakeEndEvent(2));
             await sleep(180000);
+            this.StreamOfflineEventsHandler(sim.fakeOffline());
+            await sleep(10000);
         }
     }
     async sendHypeTrainMessage() {
@@ -193,6 +203,18 @@ class Bot {
         if (this._simulation) {
             this.sendMessage(`Hype Train points ${e.total}!`);
         }
+    }
+    StreamOnlineEventsHandler(e) {
+        if (this._simulation) {
+            this.sendMessage(`${e.broadcasterDisplayName} went online!`);
+        }
+        this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
+    }
+    StreamOfflineEventsHandler(e) {
+        if (this._simulation) {
+            this.sendMessage(`${e.broadcasterDisplayName} went offline! See you next time!`);
+        }
+        this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
     }
 }
 const bot = new Bot();

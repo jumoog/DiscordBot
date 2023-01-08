@@ -136,3 +136,40 @@ export class mockup_EventSubChannelHypeTrainProgressEvent extends DataObject {
         return new Date(this[rawDataSymbol].expires_at);
     }
 }
+export class mockup_EventSubStreamOnlineEvent extends DataObject {
+    constructor(data) {
+        super(data);
+    }
+    get broadcasterId() {
+        return this[rawDataSymbol].broadcaster_user_id;
+    }
+    get broadcasterName() {
+        return this[rawDataSymbol].broadcaster_user_login;
+    }
+    get broadcasterDisplayName() {
+        return this[rawDataSymbol].broadcaster_user_name;
+    }
+    get id() {
+        return this[rawDataSymbol].id;
+    }
+    get type() {
+        return this[rawDataSymbol].type;
+    }
+    get startDate() {
+        return new Date(this[rawDataSymbol].started_at);
+    }
+}
+export class mockup_EventSubStreamOfflineEvent extends DataObject {
+    constructor(data) {
+        super(data);
+    }
+    get broadcasterId() {
+        return this[rawDataSymbol].broadcaster_user_id;
+    }
+    get broadcasterName() {
+        return this[rawDataSymbol].broadcaster_user_login;
+    }
+    get broadcasterDisplayName() {
+        return this[rawDataSymbol].broadcaster_user_name;
+    }
+}

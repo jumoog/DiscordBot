@@ -1,4 +1,4 @@
-import { mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainProgressEvent } from "./mockup.js";
+import { mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainProgressEvent, mockup_EventSubStreamOnlineEvent, mockup_EventSubStreamOfflineEvent } from "./mockup.js";
 export class Simulation {
     broadcaster_user_id;
     broadcaster_user_login;
@@ -104,5 +104,22 @@ export class Simulation {
                 break;
             }
         }
+    }
+    fakeOnline() {
+        return new mockup_EventSubStreamOnlineEvent({
+            "id": "9001",
+            "broadcaster_user_id": this.broadcaster_user_id,
+            "broadcaster_user_login": this.broadcaster_user_login,
+            "broadcaster_user_name": this.broadcaster_user_name,
+            "type": "live",
+            "started_at": new Date().toISOString()
+        });
+    }
+    fakeOffline() {
+        return new mockup_EventSubStreamOfflineEvent({
+            "broadcaster_user_id": this.broadcaster_user_id,
+            "broadcaster_user_login": this.broadcaster_user_login,
+            "broadcaster_user_name": this.broadcaster_user_name
+        });
     }
 }

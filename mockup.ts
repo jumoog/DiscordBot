@@ -367,3 +367,98 @@ export class mockup_EventSubChannelHypeTrainProgressEvent extends DataObject<Eve
     }
 }
 
+export class mockup_EventSubStreamOnlineEvent extends DataObject<EventSubStreamOnlineEventData> {
+	/** @private */
+	constructor(data: EventSubStreamOnlineEventData) {
+		super(data);
+	}
+
+	/**
+	 * The ID of the broadcaster.
+	 */
+	get broadcasterId(): string {
+		return this[rawDataSymbol].broadcaster_user_id;
+	}
+
+	/**
+	 * The name of the broadcaster.
+	 */
+	get broadcasterName(): string {
+		return this[rawDataSymbol].broadcaster_user_login;
+	}
+
+	/**
+	 * The display name of the broadcaster.
+	 */
+	get broadcasterDisplayName(): string {
+		return this[rawDataSymbol].broadcaster_user_name;
+	}
+
+
+	/**
+	 * The ID of the stream going live.
+	 */
+	get id(): string {
+		return this[rawDataSymbol].id;
+	}
+
+	/**
+	 * The type of the stream going live.
+	 */
+	get type(): EventSubStreamOnlineEventStreamType {
+		return this[rawDataSymbol].type;
+	}
+
+	/**
+	 * The date and time when the stream was started.
+	 */
+	get startDate(): Date {
+		return new Date(this[rawDataSymbol].started_at);
+	}
+}
+
+type EventSubStreamOnlineEventStreamType = 'live' | 'playlist' | 'watch_party' | 'premiere' | 'rerun';
+
+/** @private */
+interface EventSubStreamOnlineEventData {
+	id: string;
+	broadcaster_user_id: string;
+	broadcaster_user_login: string;
+	broadcaster_user_name: string;
+	type: EventSubStreamOnlineEventStreamType;
+	started_at: string;
+}
+
+export class mockup_EventSubStreamOfflineEvent extends DataObject<EventSubStreamOfflineEventData> {
+	/** @private */
+	constructor(data: EventSubStreamOfflineEventData) {
+		super(data);
+	}
+
+	/**
+	 * The ID of the broadcaster.
+	 */
+	get broadcasterId(): string {
+		return this[rawDataSymbol].broadcaster_user_id;
+	}
+
+	/**
+	 * The name of the broadcaster.
+	 */
+	get broadcasterName(): string {
+		return this[rawDataSymbol].broadcaster_user_login;
+	}
+
+	/**
+	 * The display name of the broadcaster.
+	 */
+	get broadcasterDisplayName(): string {
+		return this[rawDataSymbol].broadcaster_user_name;
+	}
+}
+
+interface EventSubStreamOfflineEventData {
+	broadcaster_user_id: string;
+	broadcaster_user_login: string;
+	broadcaster_user_name: string;
+}

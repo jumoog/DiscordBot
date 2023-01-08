@@ -98,4 +98,33 @@ export declare class mockup_EventSubChannelHypeTrainProgressEvent extends DataOb
     get startDate(): Date;
     get expiryDate(): Date;
 }
+export declare class mockup_EventSubStreamOnlineEvent extends DataObject<EventSubStreamOnlineEventData> {
+    constructor(data: EventSubStreamOnlineEventData);
+    get broadcasterId(): string;
+    get broadcasterName(): string;
+    get broadcasterDisplayName(): string;
+    get id(): string;
+    get type(): EventSubStreamOnlineEventStreamType;
+    get startDate(): Date;
+}
+declare type EventSubStreamOnlineEventStreamType = 'live' | 'playlist' | 'watch_party' | 'premiere' | 'rerun';
+interface EventSubStreamOnlineEventData {
+    id: string;
+    broadcaster_user_id: string;
+    broadcaster_user_login: string;
+    broadcaster_user_name: string;
+    type: EventSubStreamOnlineEventStreamType;
+    started_at: string;
+}
+export declare class mockup_EventSubStreamOfflineEvent extends DataObject<EventSubStreamOfflineEventData> {
+    constructor(data: EventSubStreamOfflineEventData);
+    get broadcasterId(): string;
+    get broadcasterName(): string;
+    get broadcasterDisplayName(): string;
+}
+interface EventSubStreamOfflineEventData {
+    broadcaster_user_id: string;
+    broadcaster_user_login: string;
+    broadcaster_user_name: string;
+}
 export {};
