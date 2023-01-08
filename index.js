@@ -77,19 +77,20 @@ class Bot {
             }, tokenDataHypeTrain);
             const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
             const { data: events } = await apiClient.hypeTrain.getHypeTrainEventsForBroadcaster(this._userId);
-            events.forEach(hypetrain => {
-                if (hypetrain.expiryDate.getTime() - new Date().getTime() > 0) {
-                    this.sendDebugMessage(`A Hype Train is currently running`);
+            events.forEach(hypetrainEvent => {
+                signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypetrainEvent), null, 4));
+                if (hypetrainEvent.expiryDate.getTime() - new Date().getTime() > 0) {
+                    this.sendDebugMessage(`A Hype Train Event is currently running`);
                 }
                 else {
-                    this.sendDebugMessage(`No Hype Train is currently running`);
+                    this.sendDebugMessage(`No Hype Train Event is currently running`);
                 }
-                if (new Date().getTime() - hypetrain.cooldownDate.getTime() < OneHour) {
-                    this.sendDebugMessage(`The last train was less than an hour ago. Set cooldown.`);
-                    this.setCooldownEndDate(hypetrain.cooldownDate);
+                if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < OneHour) {
+                    this.sendDebugMessage(`The last Hype Train was less than an hour ago. Set cool down.`);
+                    this.setCooldownEndDate(hypetrainEvent.cooldownDate);
                 }
                 else {
-                    this.sendDebugMessage(`The last train was at <t:${this.timeInSeconds(hypetrain.cooldownDate.getTime())}:f>`);
+                    this.sendDebugMessage(`The last Hype Train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f with Level ${hypetrainEvent.level}>`);
                 }
             });
             const twitchListener = new EventSubWsListener({ apiClient });

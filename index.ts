@@ -108,18 +108,20 @@ class Bot {
 
 			// query Twitch API for last hype train
 			const { data: events } = await apiClient.hypeTrain.getHypeTrainEventsForBroadcaster(this._userId);
-			events.forEach( hypetrain => {
+			events.forEach( hypetrainEvent => {
+				signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypetrainEvent), null, 4));
 				// check if hype train is active
-				if (hypetrain.expiryDate.getTime() - new Date().getTime() > 0) {
-					this.sendDebugMessage(`A Hype Train is currently running`);
+				if (hypetrainEvent.expiryDate.getTime() - new Date().getTime() > 0) {
+					this.sendDebugMessage(`A Hype Train Event is currently running`);
 				} else {
-					this.sendDebugMessage(`No Hype Train is currently running`);
+					this.sendDebugMessage(`No Hype Train Event is currently running`);
 				}
-				if (new Date().getTime() - hypetrain.cooldownDate.getTime() < OneHour) {
-					this.sendDebugMessage(`The last train was less than an hour ago. Set cooldown.`);
-					this.setCooldownEndDate(hypetrain.cooldownDate);
+				// check if the cool down was less than one hour ago
+				if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < OneHour) {
+					this.sendDebugMessage(`The last Hype Train was less than an hour ago. Set cool down.`);
+					this.setCooldownEndDate(hypetrainEvent.cooldownDate);
 				} else {
-					this.sendDebugMessage(`The last train was at <t:${this.timeInSeconds(hypetrain.cooldownDate.getTime())}:f>`);
+					this.sendDebugMessage(`The last Hype Train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f with Level ${hypetrainEvent.level}>`);
 				}
 			});
 			// We need the Twitch Events
