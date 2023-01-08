@@ -7,7 +7,8 @@ ENV USERID= \
 	ROOMNAME= \
 	CLIENTID= \
 	CLIENTSECRET= \
-	DISCORDTOKEN=
+	DISCORDTOKEN= \ 
+	DEBUGROOMNAME=
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64 /bin/dumb-init
 RUN npm ci --only=production &&\
     npm cache clean --force &&\

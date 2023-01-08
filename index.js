@@ -22,6 +22,7 @@ class Bot {
     _clientId;
     _clientSecret;
     _discordToken;
+    _debugRoomName;
     _currentCoolDownTimer;
     _currentCoolDown;
     _discordClient;
@@ -35,6 +36,7 @@ class Bot {
         this._clientId = process.env.CLIENTID || '';
         this._clientSecret = process.env.CLIENTSECRET || '';
         this._discordToken = process.env.DISCORDTOKEN || '';
+        this._debugRoomName = process.env.DEBUGROOMNAME || 'debug';
         this._currentCoolDownTimer = new Timer();
         this._currentCoolDown = 0;
         this._discordClient = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
@@ -149,7 +151,7 @@ class Bot {
     }
     async sendDebugMessage(message) {
         if (this._discordClient.isReady()) {
-            const channel = this._discordClient.channels.cache.find((channel) => channel.name === "debug");
+            const channel = this._discordClient.channels.cache.find((channel) => channel.name === this._debugRoomName);
             if (channel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
                 channel.send(message);
             }
