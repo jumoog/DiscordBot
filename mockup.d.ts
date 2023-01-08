@@ -1,3 +1,4 @@
+import { DataObject } from "@twurple/common";
 export declare type EventSubChannelHypeTrainContributionType = 'bits' | 'subscription' | 'other';
 interface EventSubChannelHypeTrainEndEventData {
     id: string;
@@ -46,8 +47,7 @@ interface EventSubChannelHypeTrainProgressEventData {
     started_at: string;
     expires_at: string;
 }
-export declare class mockup_EventSubChannelHypeTrainEndEvent {
-    data: EventSubChannelHypeTrainEndEventData;
+export declare class mockup_EventSubChannelHypeTrainEndEvent extends DataObject<EventSubChannelHypeTrainEndEventData> {
     constructor(data: EventSubChannelHypeTrainEndEventData);
     get id(): string;
     get broadcasterId(): string;
@@ -60,8 +60,7 @@ export declare class mockup_EventSubChannelHypeTrainEndEvent {
     get endDate(): Date;
     get cooldownEndDate(): Date;
 }
-declare class EventSubChannelHypeTrainContribution {
-    data: EventSubChannelHypeTrainContributionData;
+declare class EventSubChannelHypeTrainContribution extends DataObject<EventSubChannelHypeTrainContributionData> {
     constructor(data: EventSubChannelHypeTrainContributionData);
     get userId(): string;
     get userName(): string;
@@ -69,8 +68,7 @@ declare class EventSubChannelHypeTrainContribution {
     get type(): EventSubChannelHypeTrainContributionType;
     get total(): number;
 }
-export declare class mockup_EventSubChannelHypeTrainBeginEvent {
-    data: EventSubChannelHypeTrainBeginEventData;
+export declare class mockup_EventSubChannelHypeTrainBeginEvent extends DataObject<EventSubChannelHypeTrainBeginEventData> {
     constructor(data: EventSubChannelHypeTrainBeginEventData);
     get id(): string;
     get broadcasterId(): string;
@@ -85,8 +83,7 @@ export declare class mockup_EventSubChannelHypeTrainBeginEvent {
     get startDate(): Date;
     get expiryDate(): Date;
 }
-export declare class mockup_EventSubChannelHypeTrainProgressEvent {
-    data: EventSubChannelHypeTrainProgressEventData;
+export declare class mockup_EventSubChannelHypeTrainProgressEvent extends DataObject<EventSubChannelHypeTrainProgressEventData> {
     constructor(data: EventSubChannelHypeTrainProgressEventData);
     get id(): string;
     get broadcasterId(): string;

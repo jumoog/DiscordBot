@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
 import { Simulation } from './simulation.js';
+import { getRawData } from '@twurple/common';
 dotenv.config();
 const sleep = (waitTimeInMs) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
 process.on('unhandledRejection', (reason, p) => {
@@ -48,6 +49,7 @@ class Bot {
             this._simulation = true;
         }
         this._discordClient.once(Events.ClientReady, c => {
+            this.sendDebugMessage(`Ready! Logged in as ${c.user.tag}`);
             signale.success(`Ready! Logged in as ${c.user.tag}`);
             if (!this._simulation) {
                 this.startTwitch();
@@ -145,10 +147,22 @@ class Bot {
             }
         }
     }
+    async sendDebugMessage(message) {
+        if (this._discordClient.isReady()) {
+            const channel = this._discordClient.channels.cache.find((channel) => channel.name === "debug");
+            if (channel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
+                channel.send(message);
+            }
+            else {
+                signale.error(`Help! i can't post in this room`);
+            }
+        }
+    }
     timeInSeconds() {
         return Math.floor(this._currentCoolDown / 1000);
     }
     hypeTrainEndEventsHandler(e) {
+        this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
         this.sendMessage(`We reached Level ${e.level}!`);
         this._level = 0;
         this._currentCoolDown = e.cooldownEndDate.getTime();
@@ -158,10 +172,12 @@ class Bot {
         this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
     }
     hypeTrainBeginEventsHandler(e) {
+        this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
         this._level = e.level;
         this.sendMessage(`A Hype Train has started at Level ${e.level}!`);
     }
     hypeTrainProgressEvents(e) {
+        this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
         if (this._level !== e.level) {
             this._level = e.level;
             if (e.lastContribution.type === "subscription") {

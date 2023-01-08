@@ -9,6 +9,7 @@ import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField, T
 import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent } from './mockup.js';
 import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent } from '@twurple/eventsub-base/lib/index.js';
 import { Simulation } from './simulation.js';
+import { getRawData } from '@twurple/common';
 
 dotenv.config()
 
@@ -60,6 +61,7 @@ class Bot {
 		}
 		// discord client
 		this._discordClient.once(Events.ClientReady, c => {
+			this.sendDebugMessage(`Ready! Logged in as ${c.user.tag}`);
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
 			if (!this._simulation) {
 				this.startTwitch();
@@ -203,6 +205,25 @@ class Bot {
 	}
 
 	/**
+	 * helper function to send debug text messages
+	 */
+	async sendDebugMessage(message: string) {
+		// check if client is connected
+		if (this._discordClient.isReady()) {
+			// search right channel
+			const channel = this._discordClient.channels.cache.find(
+				(channel) => (channel as TextChannel).name === "debug",
+			) as TextChannel;
+			// check send Message permission
+			if (channel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
+				channel.send(message);
+			} else {
+				signale.error(`Help! i can't post in this room`);
+			}
+		}
+	}
+
+	/**
 	 * Javascript has UNIX Timestamps in milliseconds.
 	 * Convert to seconds to avoid 52961 years problem
 	 * @returns 
@@ -216,6 +237,7 @@ class Bot {
 	 * @param e 
 	 */
 	hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndEvent | mockup_EventSubChannelHypeTrainEndEvent) {
+		this.sendDebugMessage(JSON.stringify(getRawData(e), null , 4));
 		this.sendMessage(`We reached Level ${e.level}!`);
 		// reset level
 		this._level = 0;
@@ -237,6 +259,7 @@ class Bot {
 	 * @param e 
 	 */
 	hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginEvent | mockup_EventSubChannelHypeTrainBeginEvent) {
+		this.sendDebugMessage(JSON.stringify(getRawData(e), null , 4));
 		this._level = e.level;
 		this.sendMessage(`A Hype Train has started at Level ${e.level}!`);
 	}
@@ -246,11 +269,12 @@ class Bot {
 	 * @param e 
 	 */
 	hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressEvent | mockup_EventSubChannelHypeTrainProgressEvent) {
+		this.sendDebugMessage(JSON.stringify(getRawData(e), null , 4));
 		if (this._level !== e.level) {
 			this._level = e.level;
 			if (e.lastContribution.type === "subscription") {
 				this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`);
-			} 
+			}
 			else if (e.lastContribution.type === "bits") {
 				this.sendMessage(`:coin: ${e.lastContribution.userDisplayName} cheered ${e.lastContribution.total} bits! :coin:`);
 			}
