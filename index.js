@@ -174,7 +174,7 @@ class Bot {
         return Math.floor(this._currentCoolDown / 1000);
     }
     hypeTrainEndEventsHandler(e) {
-        this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
+        signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this.sendMessage(`We reached Level ${e.level}!`);
         this._level = 0;
         this._currentCoolDown = e.cooldownEndDate.getTime();
@@ -184,12 +184,12 @@ class Bot {
         this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
     }
     hypeTrainBeginEventsHandler(e) {
-        this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
+        signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this._level = e.level;
         this.sendMessage(`A Hype Train has started at Level ${e.level}!`);
     }
     hypeTrainProgressEvents(e) {
-        this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
+        signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
         if (this._level !== e.level) {
             this._level = e.level;
             if (e.lastContribution.type === "subscription") {
@@ -200,21 +200,15 @@ class Bot {
             }
             this.sendMessage(`Hype Train reached Level ${this._level}!`);
         }
-        if (this._simulation) {
-            this.sendMessage(`Hype Train points ${e.total}!`);
-        }
+        this.sendDebugMessage(`Hype Train points: ${e.total} Level: ${e.level}`);
     }
     StreamOnlineEventsHandler(e) {
-        if (this._simulation) {
-            this.sendMessage(`${e.broadcasterDisplayName} went online!`);
-        }
-        this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
+        signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
+        this.sendDebugMessage(`${e.broadcasterDisplayName} went online!`);
     }
     StreamOfflineEventsHandler(e) {
-        if (this._simulation) {
-            this.sendMessage(`${e.broadcasterDisplayName} went offline! See you next time!`);
-        }
-        this.sendDebugMessage(JSON.stringify(getRawData(e), null, 4));
+        signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
+        this.sendDebugMessage(`${e.broadcasterDisplayName} went offline! See you next time!`);
     }
 }
 const bot = new Bot();
