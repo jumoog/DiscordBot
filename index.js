@@ -77,21 +77,28 @@ class Bot {
             const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
             const twitchListener = new EventSubWsListener({ apiClient });
             await twitchListener.start();
-            await twitchListener.subscribeToChannelHypeTrainEndEvents(Number(this._userId), e => {
-                this.hypeTrainEndEventsHandler(e);
-            });
-            await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
-                this.hypeTrainBeginEventsHandler(e);
-            });
-            await twitchListener.subscribeToChannelHypeTrainProgressEvents(Number(this._userId), e => {
-                this.hypeTrainProgressEvents(e);
-            });
-            await twitchListener.subscribeToStreamOnlineEvents(Number(this._userId), e => {
-                this.StreamOnlineEventsHandler(e);
-            });
-            await twitchListener.subscribeToStreamOfflineEvents(Number(this._userId), e => {
-                this.StreamOfflineEventsHandler(e);
-            });
+            try {
+                await twitchListener.subscribeToChannelHypeTrainEndEvents(Number(this._userId), e => {
+                    this.hypeTrainEndEventsHandler(e);
+                });
+                await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
+                    this.hypeTrainBeginEventsHandler(e);
+                });
+                await twitchListener.subscribeToChannelHypeTrainProgressEvents(Number(this._userId), e => {
+                    this.hypeTrainProgressEvents(e);
+                });
+                await twitchListener.subscribeToStreamOnlineEvents(Number(this._userId), e => {
+                    this.StreamOnlineEventsHandler(e);
+                });
+                await twitchListener.subscribeToStreamOfflineEvents(Number(this._userId), e => {
+                    this.StreamOfflineEventsHandler(e);
+                });
+            }
+            catch (e) {
+                await twitchListener.stop();
+                signale.fatal('Please reauthorize your broadcaster account to include all necessary scopes!');
+                this.sendDebugMessage('Please reauthorize your broadcaster account to include all necessary scopes!');
+            }
         }
     }
     async startHypeTrainSimulation() {
