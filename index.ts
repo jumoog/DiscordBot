@@ -147,10 +147,14 @@ class Bot {
 				});
 
 				await twitchListener.subscribeToStreamOnlineEvents(Number(this._userId), e => {
+					// needs scope moderator:manage:chat_settings
+					// apiClient.chat.updateSettings(this._userId, this._userId, { emoteOnlyModeEnabled: false });
 					this.StreamOnlineEventsHandler(e);
 				});
 
 				await twitchListener.subscribeToStreamOfflineEvents(Number(this._userId), e => {
+					// needs scope moderator:manage:chat_settings
+					// apiClient.chat.updateSettings(this._userId, this._userId, { emoteOnlyModeEnabled: true });
 					this.StreamOfflineEventsHandler(e);
 				});
 			} catch (e) {
