@@ -118,12 +118,12 @@ class Bot {
 					this.sendDebugMessage(`No Hype Train Event is currently running`);
 					// check if the cool down was less than Cooldown Period (cooldownDate - expiryDate). For annabelstopit = 1h
 					this.setCooldownPeriod(hypetrainEvent);
-					this.sendDebugMessage(`The Cooldown Period is set to ${Math.floor(this._cooldownPeriod / 3600000)} hour(s)!`);
+					this.sendDebugMessage(`The Cooldown Period is set to ${Math.round(this._cooldownPeriod / 3600000)} hour(s)!`);
 					if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < this._cooldownPeriod) {
-						this.sendDebugMessage(`The last Hype Train was less than an ${Math.floor(this._cooldownPeriod / 3600000)} hour(s) ago. Set cool down.`);
+						this.sendDebugMessage(`The last Hype Train was less than an ${Math.round(this._cooldownPeriod / 3600000)} hour(s) ago. Set cool down.`);
 						this.setCooldownEndDate(hypetrainEvent.cooldownDate);
 					} else {
-						this.sendDebugMessage(`The last Hype Train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f> with Level ${hypetrainEvent.level}>`);
+						this.sendDebugMessage(`The last Hype Train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f> with Level ${hypetrainEvent.level}`);
 					}
 				}
 			});
