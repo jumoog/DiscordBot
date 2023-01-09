@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { RefreshingAuthProvider } from '@twurple/auth';
-import { ApiClient } from '@twurple/api';
+import { ApiClient, HelixHypeTrainEvent } from '@twurple/api';
 import { EventSubWsListener } from '@twurple/eventsub-ws';
 import Timer from 'tiny-timer';
 import fs from 'node:fs';
@@ -35,6 +35,7 @@ class Bot {
 	_debugRoomName: string;
 	_currentCoolDownTimer: Timer;
 	_currentCoolDown: number;
+	_cooldownPeriod: number;
 	_discordClient;
 	_timerLeft;
 	_tokenPath;
@@ -49,6 +50,7 @@ class Bot {
 		this._debugRoomName = process.env.DEBUGROOMNAME || 'debug';
 		this._currentCoolDownTimer = new Timer();
 		this._currentCoolDown = 0;
+		this._cooldownPeriod = 0;
 		this._discordClient = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 		this._timerLeft = 0;
 		this._tokenPath = '';
@@ -115,8 +117,10 @@ class Bot {
 				} else {
 					this.sendDebugMessage(`No Hype Train Event is currently running`);
 					// check if the cool down was less than Cooldown Period (cooldownDate - expiryDate). For annabelstopit = 1h
-					if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < (hypetrainEvent.cooldownDate.getTime() - hypetrainEvent.expiryDate.getTime())) {
-						this.sendDebugMessage(`The last Hype Train was less than an hour ago. Set cool down.`);
+					this.setCooldownPeriod(hypetrainEvent);
+					this.sendDebugMessage(`The Cooldown Period is set to ${Math.floor(this._cooldownPeriod / 3600000)} hour(s)!`);
+					if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < this._cooldownPeriod) {
+						this.sendDebugMessage(`The last Hype Train was less than an ${Math.floor(this._cooldownPeriod / 3600000)} hour(s) ago. Set cool down.`);
 						this.setCooldownEndDate(hypetrainEvent.cooldownDate);
 					} else {
 						this.sendDebugMessage(`The last Hype Train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f> with Level ${hypetrainEvent.level}>`);
@@ -342,6 +346,17 @@ class Bot {
 		// R -> Relative (in 2 minutes)
 		// t -> short time (2:19 AM)
 		this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
+	}
+
+	setCooldownPeriod(hypetrainEvent: HelixHypeTrainEvent) {
+		const cooldownDate = hypetrainEvent.cooldownDate;
+		const expiryDate = hypetrainEvent.expiryDate;
+		// remove Milliseconds
+		cooldownDate.setMilliseconds(0);
+		// remove Milliseconds
+		expiryDate.setMilliseconds(0);
+		// with 0 milliseconds the calculation returns extact hours 
+		this._cooldownPeriod = (cooldownDate.getTime() - expiryDate.getTime())
 	}
 }
 

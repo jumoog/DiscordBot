@@ -25,6 +25,7 @@ class Bot {
     _debugRoomName;
     _currentCoolDownTimer;
     _currentCoolDown;
+    _cooldownPeriod;
     _discordClient;
     _timerLeft;
     _tokenPath;
@@ -39,6 +40,7 @@ class Bot {
         this._debugRoomName = process.env.DEBUGROOMNAME || 'debug';
         this._currentCoolDownTimer = new Timer();
         this._currentCoolDown = 0;
+        this._cooldownPeriod = 0;
         this._discordClient = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
         this._timerLeft = 0;
         this._tokenPath = '';
@@ -83,8 +85,10 @@ class Bot {
                 }
                 else {
                     this.sendDebugMessage(`No Hype Train Event is currently running`);
-                    if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < (hypetrainEvent.cooldownDate.getTime() - hypetrainEvent.expiryDate.getTime())) {
-                        this.sendDebugMessage(`The last Hype Train was less than an hour ago. Set cool down.`);
+                    this.setCooldownPeriod(hypetrainEvent);
+                    this.sendDebugMessage(`The Cooldown Period is set to ${Math.floor(this._cooldownPeriod / 3600000)} hour(s)!`);
+                    if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < this._cooldownPeriod) {
+                        this.sendDebugMessage(`The last Hype Train was less than an ${Math.floor(this._cooldownPeriod / 3600000)} hour(s) ago. Set cool down.`);
                         this.setCooldownEndDate(hypetrainEvent.cooldownDate);
                     }
                     else {
@@ -236,6 +240,13 @@ class Bot {
         this._currentCoolDownTimer.stop();
         this._currentCoolDownTimer.start(this._timerLeft);
         this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
+    }
+    setCooldownPeriod(hypetrainEvent) {
+        const cooldownDate = hypetrainEvent.cooldownDate;
+        const expiryDate = hypetrainEvent.expiryDate;
+        cooldownDate.setMilliseconds(0);
+        expiryDate.setMilliseconds(0);
+        this._cooldownPeriod = (cooldownDate.getTime() - expiryDate.getTime());
     }
 }
 const bot = new Bot();
