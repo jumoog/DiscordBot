@@ -10,7 +10,6 @@ import { Simulation } from './simulation.js';
 import { getRawData } from '@twurple/common';
 dotenv.config();
 const sleep = (waitTimeInMs) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
-const OneHour = 60 * 60 * 1000;
 process.on('unhandledRejection', (reason, p) => {
     signale.fatal('caught your junk %s', reason);
     if (reason.stack) {
@@ -84,13 +83,13 @@ class Bot {
                 }
                 else {
                     this.sendDebugMessage(`No Hype Train Event is currently running`);
-                }
-                if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < OneHour) {
-                    this.sendDebugMessage(`The last Hype Train was less than an hour ago. Set cool down.`);
-                    this.setCooldownEndDate(hypetrainEvent.cooldownDate);
-                }
-                else {
-                    this.sendDebugMessage(`The last Hype Train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f with Level ${hypetrainEvent.level}>`);
+                    if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < (hypetrainEvent.cooldownDate.getTime() - hypetrainEvent.expiryDate.getTime())) {
+                        this.sendDebugMessage(`The last Hype Train was less than an hour ago. Set cool down.`);
+                        this.setCooldownEndDate(hypetrainEvent.cooldownDate);
+                    }
+                    else {
+                        this.sendDebugMessage(`The last Hype Train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f> with Level ${hypetrainEvent.level}>`);
+                    }
                 }
             });
             const twitchListener = new EventSubWsListener({ apiClient });

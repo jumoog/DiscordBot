@@ -14,7 +14,6 @@ import { getRawData } from '@twurple/common';
 dotenv.config()
 
 const sleep = (waitTimeInMs: number) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
-const OneHour = 60 * 60 * 1000;
 
 // catch all possible errors and don't crash
 process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
@@ -108,20 +107,20 @@ class Bot {
 
 			// query Twitch API for last hype train
 			const { data: events } = await apiClient.hypeTrain.getHypeTrainEventsForBroadcaster(this._userId);
-			events.forEach( hypetrainEvent => {
+			events.forEach(hypetrainEvent => {
 				signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypetrainEvent), null, 4));
 				// check if hype train is active
 				if (hypetrainEvent.expiryDate.getTime() - new Date().getTime() > 0) {
 					this.sendDebugMessage(`A Hype Train Event is currently running`);
 				} else {
 					this.sendDebugMessage(`No Hype Train Event is currently running`);
-				}
-				// check if the cool down was less than one hour ago
-				if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < OneHour) {
-					this.sendDebugMessage(`The last Hype Train was less than an hour ago. Set cool down.`);
-					this.setCooldownEndDate(hypetrainEvent.cooldownDate);
-				} else {
-					this.sendDebugMessage(`The last Hype Train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f with Level ${hypetrainEvent.level}>`);
+					// check if the cool down was less than Cooldown Period (cooldownDate - expiryDate). For annabelstopit = 1h
+					if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < (hypetrainEvent.cooldownDate.getTime() - hypetrainEvent.expiryDate.getTime())) {
+						this.sendDebugMessage(`The last Hype Train was less than an hour ago. Set cool down.`);
+						this.setCooldownEndDate(hypetrainEvent.cooldownDate);
+					} else {
+						this.sendDebugMessage(`The last Hype Train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f> with Level ${hypetrainEvent.level}>`);
+					}
 				}
 			});
 			// We need the Twitch Events
