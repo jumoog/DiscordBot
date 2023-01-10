@@ -10,8 +10,11 @@ import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTr
 import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent } from '@twurple/eventsub-base/lib/index.js';
 import { Simulation } from './simulation.js';
 import { getRawData } from '@twurple/common';
+import PQueue from 'p-queue';
 
 dotenv.config()
+
+const DiscordMessageQueue = new PQueue({ concurrency: 1 });
 
 const sleep = (waitTimeInMs: number) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
 
@@ -171,33 +174,19 @@ class Bot {
 			this.StreamOnlineEventsHandler(sim.fakeOnline());
 			await sleep(20000);
 			this.hypeTrainBeginEventsHandler(sim.genFakeBeginEvent(2));
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			await sleep(1000);
 			// end hype train at level 10 with 2 minutes cool down
 			this.hypeTrainEndEventsHandler(sim.genFakeEndEvent(2));
 			// wait 3 minutes
@@ -249,6 +238,7 @@ class Bot {
 				signale.error(`Help! i can't post in this room`);
 			}
 		}
+		await sleep(1000);
 	}
 
 	/**
@@ -285,7 +275,7 @@ class Bot {
 	 */
 	hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndEvent | mockup_EventSubChannelHypeTrainEndEvent) {
 		signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
-		this.sendMessage(`We reached Level ${e.level}!`);
+		DiscordMessageQueue.add(() => this.sendMessage(`We reached Level ${e.level}!`));
 		// reset level
 		this._level = 0;
 		// next hype train as UTC
@@ -299,7 +289,7 @@ class Bot {
 	hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginEvent | mockup_EventSubChannelHypeTrainBeginEvent) {
 		signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
 		this._level = e.level;
-		this.sendMessage(`A Hype Train has started at Level ${e.level}!`);
+		DiscordMessageQueue.add(() => this.sendMessage(`A Hype Train has started at Level ${e.level}!`));
 	}
 
 	/**
@@ -311,14 +301,15 @@ class Bot {
 		if (this._level !== e.level) {
 			this._level = e.level;
 			if (e.lastContribution.type === "subscription") {
-				this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`);
+				DiscordMessageQueue.add(() => this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`));
+
 			}
 			else if (e.lastContribution.type === "bits") {
-				this.sendMessage(`:coin: ${e.lastContribution.userDisplayName} cheered ${e.lastContribution.total} bits! :coin:`);
+				DiscordMessageQueue.add(() => this.sendMessage(`:coin: ${e.lastContribution.userDisplayName} cheered ${e.lastContribution.total} bits! :coin:`));
 			}
-			this.sendMessage(`Hype Train reached Level ${this._level}!`);
+			DiscordMessageQueue.add(() => this.sendMessage(`Hype Train reached Level ${this._level}!`));
 		}
-		this.sendDebugMessage(`Hype Train points: ${e.total} Level: ${e.level}`);
+		DiscordMessageQueue.add(() => this.sendDebugMessage(`Hype Train points: ${e.total} Level: ${e.level}`));
 	}
 
 	/**
@@ -327,7 +318,7 @@ class Bot {
 	 */
 	StreamOnlineEventsHandler(e: EventSubStreamOnlineEvent | mockup_EventSubStreamOnlineEvent) {
 		signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-		this.sendMessage(`${e.broadcasterDisplayName} went online!`);
+		DiscordMessageQueue.add(() => this.sendMessage(`${e.broadcasterDisplayName} went online!`));
 	}
 
 	/**
@@ -336,7 +327,7 @@ class Bot {
 	 */
 	StreamOfflineEventsHandler(e: EventSubStreamOfflineEvent | mockup_EventSubStreamOfflineEvent) {
 		signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-		this.sendMessage(`${e.broadcasterDisplayName} went offline!`);
+		DiscordMessageQueue.add(() => this.sendMessage(`${e.broadcasterDisplayName} went offline!`));
 	}
 
 	setCooldownEndDate(cooldownEndDate: Date) {
@@ -349,7 +340,7 @@ class Bot {
 		// inform channel about new cool down
 		// R -> Relative (in 2 minutes)
 		// t -> short time (2:19 AM)
-		this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`);
+		DiscordMessageQueue.add(() => this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`));
 	}
 
 	setCooldownPeriod(hypetrainEvent: HelixHypeTrainEvent) {
