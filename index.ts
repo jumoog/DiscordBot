@@ -258,6 +258,7 @@ class Bot {
 				signale.error(`Help! i can't post in this room`);
 			}
 		}
+		await sleep(1000);
 	}
 
 	/**
