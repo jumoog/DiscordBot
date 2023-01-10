@@ -143,6 +143,27 @@ class Bot {
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             this.hypeTrainEndEventsHandler(sim.genFakeEndEvent(2));
             await sleep(180000);
             this.StreamOfflineEventsHandler(sim.fakeOffline());
@@ -212,7 +233,7 @@ class Bot {
             else if (e.lastContribution.type === "bits") {
                 DiscordMessageQueue.add(() => this.sendMessage(`:coin: ${e.lastContribution.userDisplayName} cheered ${e.lastContribution.total} bits! :coin:`));
             }
-            DiscordMessageQueue.add(() => this.sendMessage(`Hype Train reached Level ${this._level}!`));
+            DiscordMessageQueue.add(() => this.sendMessage(`Hype Train reached Level ${e.level}!`));
         }
         DiscordMessageQueue.add(() => this.sendDebugMessage(`Hype Train points: ${e.total} Level: ${e.level}`));
     }
