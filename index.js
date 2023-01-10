@@ -228,11 +228,11 @@ class Bot {
     }
     StreamOnlineEventsHandler(e) {
         signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-        this.sendDebugMessage(`${e.broadcasterDisplayName} went online!`);
+        this.sendMessage(`${e.broadcasterDisplayName} went online!`);
     }
     StreamOfflineEventsHandler(e) {
         signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-        this.sendDebugMessage(`${e.broadcasterDisplayName} went offline! See you next time!`);
+        this.sendMessage(`${e.broadcasterDisplayName} went offline!`);
     }
     setCooldownEndDate(cooldownEndDate) {
         this._currentCoolDown = cooldownEndDate.getTime();

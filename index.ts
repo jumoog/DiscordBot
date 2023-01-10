@@ -327,7 +327,7 @@ class Bot {
 	 */
 	StreamOnlineEventsHandler(e: EventSubStreamOnlineEvent | mockup_EventSubStreamOnlineEvent) {
 		signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-		this.sendDebugMessage(`${e.broadcasterDisplayName} went online!`);
+		this.sendMessage(`${e.broadcasterDisplayName} went online!`);
 	}
 
 	/**
@@ -336,7 +336,7 @@ class Bot {
 	 */
 	StreamOfflineEventsHandler(e: EventSubStreamOfflineEvent | mockup_EventSubStreamOfflineEvent) {
 		signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-		this.sendDebugMessage(`${e.broadcasterDisplayName} went offline! See you next time!`);
+		this.sendMessage(`${e.broadcasterDisplayName} went offline!`);
 	}
 
 	setCooldownEndDate(cooldownEndDate: Date) {
