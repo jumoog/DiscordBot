@@ -11,7 +11,7 @@ export declare class Simulation {
     last_contribution: EventSubChannelHypeTrainContributionData | null;
     constructor(broadcaster_user_id: string, broadcaster_user_login: string, broadcaster_user_name: string);
     genFakeBeginEvent(level: number): mockup_EventSubChannelHypeTrainBeginEvent;
-    genFakeProgressEvent(): mockup_EventSubChannelHypeTrainProgressEvent;
+    genFakeProgressEvent(double?: boolean): mockup_EventSubChannelHypeTrainProgressEvent;
     genFakeEndEvent(minutes?: number): mockup_EventSubChannelHypeTrainEndEvent;
     randomType(): EventSubChannelHypeTrainContributionType;
     randomTotal(type: EventSubChannelHypeTrainContributionType): number;

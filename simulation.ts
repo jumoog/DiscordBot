@@ -44,7 +44,7 @@ export class Simulation {
         });
     }
 
-    genFakeProgressEvent(): mockup_EventSubChannelHypeTrainProgressEvent {
+    genFakeProgressEvent(double = false): mockup_EventSubChannelHypeTrainProgressEvent {
         return new mockup_EventSubChannelHypeTrainProgressEvent({
             id: "1b0AsbInCHZW2SQFQkCzqN07Ib2",
             broadcaster_user_id: this.broadcaster_user_id,
@@ -55,7 +55,7 @@ export class Simulation {
             progress: this.progress,
             goal: this.goal,
             top_contributions: this.top_contributions,
-            last_contribution: this.fakeLastContribution(),
+            last_contribution: (double ? this.last_contribution! : this.fakeLastContribution()),
             started_at: new Date().toISOString(),
             expires_at: new Date(new Date().getTime() + (8 * 1000)).toISOString()
         });

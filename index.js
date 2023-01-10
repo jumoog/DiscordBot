@@ -32,6 +32,7 @@ class Bot {
     _timerLeft;
     _tokenPath;
     _level;
+    _total;
     _simulation;
     constructor() {
         this._userId = process.env.USERID || 631529415;
@@ -47,6 +48,7 @@ class Bot {
         this._timerLeft = 0;
         this._tokenPath = '';
         this._level = 0;
+        this._total = 0;
         this._simulation = false;
     }
     async main() {
@@ -143,8 +145,8 @@ class Bot {
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent(true));
+            this.hypeTrainProgressEvents(sim.genFakeProgressEvent(true));
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
             this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
@@ -216,6 +218,7 @@ class Bot {
         signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
         DiscordMessageQueue.add(() => this.sendMessage(`We reached Level ${e.level}!`));
         this._level = 0;
+        this._total = 0;
         this.setCooldownEndDate(e.cooldownEndDate);
     }
     hypeTrainBeginEventsHandler(e) {
@@ -224,18 +227,24 @@ class Bot {
         DiscordMessageQueue.add(() => this.sendMessage(`A Hype Train has started at Level ${e.level}!`));
     }
     hypeTrainProgressEvents(e) {
-        signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
-        if (this._level !== e.level) {
-            this._level = e.level;
-            if (e.lastContribution.type === "subscription") {
-                DiscordMessageQueue.add(() => this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`));
+        if (this._total !== e.total) {
+            this._total = e.total;
+            signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
+            if (this._level !== e.level) {
+                this._level = e.level;
+                if (e.lastContribution.type === "subscription") {
+                    DiscordMessageQueue.add(() => this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`));
+                }
+                else if (e.lastContribution.type === "bits") {
+                    DiscordMessageQueue.add(() => this.sendMessage(`:coin: ${e.lastContribution.userDisplayName} cheered ${e.lastContribution.total} bits! :coin:`));
+                }
+                DiscordMessageQueue.add(() => this.sendMessage(`Hype Train reached Level ${e.level}!`));
             }
-            else if (e.lastContribution.type === "bits") {
-                DiscordMessageQueue.add(() => this.sendMessage(`:coin: ${e.lastContribution.userDisplayName} cheered ${e.lastContribution.total} bits! :coin:`));
-            }
-            DiscordMessageQueue.add(() => this.sendMessage(`Hype Train reached Level ${e.level}!`));
+            DiscordMessageQueue.add(() => this.sendDebugMessage(`Hype Train points: ${e.total} Level: ${e.level}`));
         }
-        DiscordMessageQueue.add(() => this.sendDebugMessage(`Hype Train points: ${e.total} Level: ${e.level}`));
+        else {
+            signale.debug('hypeTrainProgressEvents', 'skipping duplicate!');
+        }
     }
     StreamOnlineEventsHandler(e) {
         signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
