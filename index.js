@@ -232,13 +232,13 @@ class Bot {
             signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
             if (this._level !== e.level) {
                 this._level = e.level;
-                if (e.lastContribution.type === "subscription") {
-                    DiscordMessageQueue.add(() => this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`));
-                }
-                else if (e.lastContribution.type === "bits") {
-                    DiscordMessageQueue.add(() => this.sendMessage(`:coin: ${e.lastContribution.userDisplayName} cheered ${e.lastContribution.total} bits! :coin:`));
-                }
                 DiscordMessageQueue.add(() => this.sendMessage(`Hype Train reached Level ${e.level}!`));
+            }
+            if (e.lastContribution.type === "subscription") {
+                DiscordMessageQueue.add(() => this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`));
+            }
+            else if (e.lastContribution.type === "bits") {
+                DiscordMessageQueue.add(() => this.sendMessage(`:coin: ${e.lastContribution.userDisplayName} cheered ${e.lastContribution.total} bits! :coin:`));
             }
             DiscordMessageQueue.add(() => this.sendDebugMessage(`Hype Train points: ${e.total} Level: ${e.level}`));
         }
