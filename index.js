@@ -66,7 +66,7 @@ class Bot {
                 this.startHypeTrainSimulation();
             }
             this._currentCoolDownTimer.on('done', () => {
-                this.sendMessage(`The next Hype Train is ready!`);
+                this.sendMessage(`:index_pointing_at_the_viewer: The next Hype Train is ready!`);
             });
         });
         this._discordClient.login(this._discordToken);
@@ -194,7 +194,7 @@ class Bot {
     }
     hypeTrainEndEventsHandler(e) {
         signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
-        DiscordMessageQueue.add(() => this.sendMessage(`We reached Level ${e.level}!`));
+        DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: Hype Train is over! We reached Level ${e.level}!`));
         this._level = 0;
         this._total = 0;
         this.setCooldownEndDate(e.cooldownEndDate);
@@ -202,7 +202,7 @@ class Bot {
     hypeTrainBeginEventsHandler(e) {
         signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this._level = e.level;
-        DiscordMessageQueue.add(() => this.sendMessage(`A Hype Train has started at Level ${e.level}!`));
+        DiscordMessageQueue.add(() => this.sendMessage(`:partying_face: A Hype Train has started at Level ${e.level}!`));
     }
     hypeTrainProgressEvents(e) {
         if (this._total !== e.total) {
@@ -210,7 +210,7 @@ class Bot {
             signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
             if (this._level !== e.level) {
                 this._level = e.level;
-                DiscordMessageQueue.add(() => this.sendMessage(`Hype Train reached Level ${e.level}!`));
+                DiscordMessageQueue.add(() => this.sendMessage(`:trophy: Hype Train reached Level ${e.level}!`));
             }
             if (e.lastContribution.type === "subscription") {
                 DiscordMessageQueue.add(() => this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`));
@@ -237,7 +237,7 @@ class Bot {
         this._timerLeft = this._currentCoolDown - Date.now();
         this._currentCoolDownTimer.stop();
         this._currentCoolDownTimer.start(this._timerLeft);
-        DiscordMessageQueue.add(() => this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`));
+        DiscordMessageQueue.add(() => this.sendMessage(`:station: Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`));
     }
     setCooldownPeriod(hypetrainEvent) {
         const cooldownDate = hypetrainEvent.cooldownDate;

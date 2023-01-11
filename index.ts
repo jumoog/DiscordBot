@@ -81,7 +81,7 @@ class Bot {
 
 			// time is over event
 			this._currentCoolDownTimer.on('done', () => {
-				this.sendMessage(`The next Hype Train is ready!`);
+				this.sendMessage(`:index_pointing_at_the_viewer: The next Hype Train is ready!`);
 			});
 		});
 		// login
@@ -276,7 +276,7 @@ class Bot {
 	 */
 	hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndEvent | mockup_EventSubChannelHypeTrainEndEvent) {
 		signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
-		DiscordMessageQueue.add(() => this.sendMessage(`We reached Level ${e.level}!`));
+		DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: Hype Train is over! We reached Level ${e.level}!`));
 		// reset level
 		this._level = 0;
 		// reset total
@@ -292,7 +292,7 @@ class Bot {
 	hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginEvent | mockup_EventSubChannelHypeTrainBeginEvent) {
 		signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
 		this._level = e.level;
-		DiscordMessageQueue.add(() => this.sendMessage(`A Hype Train has started at Level ${e.level}!`));
+		DiscordMessageQueue.add(() => this.sendMessage(`:partying_face: A Hype Train has started at Level ${e.level}!`));
 	}
 
 	/**
@@ -305,7 +305,7 @@ class Bot {
 			signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
 			if (this._level !== e.level) {
 				this._level = e.level;
-				DiscordMessageQueue.add(() => this.sendMessage(`Hype Train reached Level ${e.level}!`));
+				DiscordMessageQueue.add(() => this.sendMessage(`:trophy: Hype Train reached Level ${e.level}!`));
 			}
 			if (e.lastContribution.type === "subscription") {
 				DiscordMessageQueue.add(() => this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`));
@@ -348,7 +348,7 @@ class Bot {
 		// inform channel about new cool down
 		// R -> Relative (in 2 minutes)
 		// t -> short time (2:19 AM)
-		DiscordMessageQueue.add(() => this.sendMessage(`Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`));
+		DiscordMessageQueue.add(() => this.sendMessage(`:station: Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`));
 	}
 
 	setCooldownPeriod(hypetrainEvent: HelixHypeTrainEvent) {
