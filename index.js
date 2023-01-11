@@ -6,7 +6,7 @@ import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
-import { Simulation } from './simulation.js';
+import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent, mockup_EventSubStreamOfflineEvent, mockup_EventSubStreamOnlineEvent } from './mockup.js';
 import { getRawData } from '@twurple/common';
 import PQueue from 'p-queue';
 dotenv.config();
@@ -127,49 +127,27 @@ class Bot {
         }
     }
     async startHypeTrainSimulation() {
-        const sim = new Simulation("631529415", "annabelstopit", "annabelstopit");
+        const hypes = JSON.parse(fs.readFileSync(`./10_01_2023.json`, 'utf-8'));
         while (true) {
-            this.StreamOnlineEventsHandler(sim.fakeOnline());
-            await sleep(20000);
-            this.hypeTrainBeginEventsHandler(sim.genFakeBeginEvent(2));
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent(true));
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent(true));
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-            this.hypeTrainEndEventsHandler(sim.genFakeEndEvent(2));
-            await sleep(180000);
-            this.StreamOfflineEventsHandler(sim.fakeOffline());
-            await sleep(10000);
+            for (let index = 0; index < hypes.length; index++) {
+                const hypetrainEvent = hypes[index];
+                if (hypetrainEvent?.StreamOnlineEventsHandler) {
+                    this.StreamOnlineEventsHandler(new mockup_EventSubStreamOnlineEvent(hypetrainEvent.StreamOnlineEventsHandler));
+                }
+                if (hypetrainEvent?.StreamOfflineEventsHandler) {
+                    this.StreamOfflineEventsHandler(new mockup_EventSubStreamOfflineEvent(hypetrainEvent.StreamOfflineEventsHandler));
+                }
+                if (hypetrainEvent?.hypeTrainBeginEventsHandler) {
+                    this.hypeTrainBeginEventsHandler(new mockup_EventSubChannelHypeTrainBeginEvent(hypetrainEvent.hypeTrainBeginEventsHandler));
+                }
+                if (hypetrainEvent?.hypeTrainProgressEvents) {
+                    this.hypeTrainProgressEvents(new mockup_EventSubChannelHypeTrainProgressEvent(hypetrainEvent.hypeTrainProgressEvents));
+                }
+                if (hypetrainEvent?.hypeTrainEndEventsHandler) {
+                    this.hypeTrainEndEventsHandler(new mockup_EventSubChannelHypeTrainEndEvent(hypetrainEvent.hypeTrainEndEventsHandler));
+                }
+            }
+            await sleep(100000);
         }
     }
     async sendHypeTrainMessage() {

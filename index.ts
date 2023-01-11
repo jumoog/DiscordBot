@@ -30,6 +30,7 @@ process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
  * Bot class
  */
 class Bot {
+	[x: string]: any;
 	_userId: number | string;
 	_roomName: string;
 	_clientId: string;
@@ -171,51 +172,27 @@ class Bot {
 	}
 
 	async startHypeTrainSimulation() {
-		const sim = new Simulation("631529415", "annabelstopit", "annabelstopit");
+		const hypes: any[] = JSON.parse(fs.readFileSync(`./10_01_2023.json`, 'utf-8'));
 		while (true) {
-			this.StreamOnlineEventsHandler(sim.fakeOnline());
-			await sleep(20000);
-			this.hypeTrainBeginEventsHandler(sim.genFakeBeginEvent(2));
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent(true));
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent(true));
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			this.hypeTrainProgressEvents(sim.genFakeProgressEvent());
-			// end hype train at level 10 with 2 minutes cool down
-			this.hypeTrainEndEventsHandler(sim.genFakeEndEvent(2));
-			// wait 3 minutes
-			await sleep(180000);
-			this.StreamOfflineEventsHandler(sim.fakeOffline());
-			await sleep(10000);
+			for (let index = 0; index < hypes.length; index++) {
+				const hypetrainEvent = hypes[index];
+				if (hypetrainEvent?.StreamOnlineEventsHandler) {
+					this.StreamOnlineEventsHandler(new mockup_EventSubStreamOnlineEvent(hypetrainEvent.StreamOnlineEventsHandler));
+				}
+				if (hypetrainEvent?.StreamOfflineEventsHandler) {
+					this.StreamOfflineEventsHandler(new mockup_EventSubStreamOfflineEvent(hypetrainEvent.StreamOfflineEventsHandler));
+				}
+				if (hypetrainEvent?.hypeTrainBeginEventsHandler) {
+					this.hypeTrainBeginEventsHandler(new mockup_EventSubChannelHypeTrainBeginEvent(hypetrainEvent.hypeTrainBeginEventsHandler));
+				}
+				if (hypetrainEvent?.hypeTrainProgressEvents) {
+					this.hypeTrainProgressEvents(new mockup_EventSubChannelHypeTrainProgressEvent(hypetrainEvent.hypeTrainProgressEvents));
+				}
+				if (hypetrainEvent?.hypeTrainEndEventsHandler) {
+					this.hypeTrainEndEventsHandler(new mockup_EventSubChannelHypeTrainEndEvent(hypetrainEvent.hypeTrainEndEventsHandler));
+				}
+			}
+			await sleep(100000);
 		}
 	}
 

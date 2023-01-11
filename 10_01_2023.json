@@ -1,0 +1,1321 @@
+[
+    {
+        "StreamOnlineEventsHandler": {
+            "id": "46490412780",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "type": "live",
+            "started_at": "2023-01-10T17:20:01Z"
+        }
+    },
+    {
+        "hypeTrainBeginEventsHandler": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 2000,
+            "top_contributions": [
+                {
+                    "user_id": "166613452",
+                    "user_login": "itsmegauthamg",
+                    "user_name": "ItsmeGauthamG",
+                    "type": "subscription",
+                    "total": 500
+                },
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1000
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "31378319",
+                "user_login": "kilian_de",
+                "user_name": "kilian_de",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 2,
+            "goal": 1800,
+            "progress": 400,
+            "expires_at": "2023-01-10T18:23:01.865359437Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 2000,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1000
+                },
+                {
+                    "user_id": "31378319",
+                    "user_login": "kilian_de",
+                    "user_name": "kilian_de",
+                    "type": "subscription",
+                    "total": 500
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "31378319",
+                "user_login": "kilian_de",
+                "user_name": "kilian_de",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 2,
+            "goal": 1800,
+            "progress": 400,
+            "expires_at": "2023-01-10T18:23:01.865359437Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 2000,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1000
+                },
+                {
+                    "user_id": "31378319",
+                    "user_login": "kilian_de",
+                    "user_name": "kilian_de",
+                    "type": "subscription",
+                    "total": 500
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "31378319",
+                "user_login": "kilian_de",
+                "user_name": "kilian_de",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 2,
+            "goal": 1800,
+            "progress": 400,
+            "expires_at": "2023-01-10T18:23:01.865359437Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 2000,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1000
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "31378319",
+                "user_login": "kilian_de",
+                "user_name": "kilian_de",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 2,
+            "goal": 1800,
+            "progress": 400,
+            "expires_at": "2023-01-10T18:23:01.865359437Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 4500,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1000
+                },
+                {
+                    "user_id": "46438920",
+                    "user_login": "terriblekaos",
+                    "user_name": "TerribleKaos",
+                    "type": "subscription",
+                    "total": 2500
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "46438920",
+                "user_login": "terriblekaos",
+                "user_name": "TerribleKaos",
+                "type": "subscription",
+                "total": 2500
+            },
+            "level": 3,
+            "goal": 2100,
+            "progress": 1100,
+            "expires_at": "2023-01-10T18:23:38.174079443Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 5000,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1000
+                },
+                {
+                    "user_id": "46438920",
+                    "user_login": "terriblekaos",
+                    "user_name": "TerribleKaos",
+                    "type": "subscription",
+                    "total": 2500
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "31378319",
+                "user_login": "kilian_de",
+                "user_name": "kilian_de",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 3,
+            "goal": 2100,
+            "progress": 1600,
+            "expires_at": "2023-01-10T18:23:38.174079443Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 6000,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1000
+                },
+                {
+                    "user_id": "46438920",
+                    "user_login": "terriblekaos",
+                    "user_name": "TerribleKaos",
+                    "type": "subscription",
+                    "total": 2500
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "31378319",
+                "user_login": "kilian_de",
+                "user_name": "kilian_de",
+                "type": "subscription",
+                "total": 1000
+            },
+            "level": 4,
+            "goal": 2300,
+            "progress": 500,
+            "expires_at": "2023-01-10T18:24:42.080002374Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 6500,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1000
+                },
+                {
+                    "user_id": "46438920",
+                    "user_login": "terriblekaos",
+                    "user_name": "TerribleKaos",
+                    "type": "subscription",
+                    "total": 2500
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "174208804",
+                "user_login": "icemage99",
+                "user_name": "icemage99",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 4,
+            "goal": 2300,
+            "progress": 1000,
+            "expires_at": "2023-01-10T18:24:42.080002374Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 7098,
+            "top_contributions": [
+                {
+                    "user_id": "46438920",
+                    "user_login": "terriblekaos",
+                    "user_name": "TerribleKaos",
+                    "type": "subscription",
+                    "total": 2500
+                },
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1598
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "174208804",
+                "user_login": "icemage99",
+                "user_name": "icemage99",
+                "type": "bits",
+                "total": 598
+            },
+            "level": 4,
+            "goal": 2300,
+            "progress": 1598,
+            "expires_at": "2023-01-10T18:24:42.080002374Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 7198,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1598
+                },
+                {
+                    "user_id": "46438920",
+                    "user_login": "terriblekaos",
+                    "user_name": "TerribleKaos",
+                    "type": "subscription",
+                    "total": 2500
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "511023697",
+                "user_login": "ajbeanthedj",
+                "user_name": "AjBeantheDj",
+                "type": "bits",
+                "total": 100
+            },
+            "level": 4,
+            "goal": 2300,
+            "progress": 1698,
+            "expires_at": "2023-01-10T18:24:42.080002374Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 9698,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1598
+                },
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "subscription",
+                    "total": 3000
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "174208804",
+                "user_login": "icemage99",
+                "user_name": "icemage99",
+                "type": "subscription",
+                "total": 2500
+            },
+            "level": 5,
+            "goal": 3000,
+            "progress": 1898,
+            "expires_at": "2023-01-10T18:28:21.220101937Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 9878,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1778
+                },
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "subscription",
+                    "total": 3000
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "174208804",
+                "user_login": "icemage99",
+                "user_name": "icemage99",
+                "type": "bits",
+                "total": 180
+            },
+            "level": 5,
+            "goal": 3000,
+            "progress": 2078,
+            "expires_at": "2023-01-10T18:28:21.220101937Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 10378,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1778
+                },
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "subscription",
+                    "total": 3000
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "31378319",
+                "user_login": "kilian_de",
+                "user_name": "kilian_de",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 5,
+            "goal": 3000,
+            "progress": 2578,
+            "expires_at": "2023-01-10T18:28:21.220101937Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 11878,
+            "top_contributions": [
+                {
+                    "user_id": "31378319",
+                    "user_login": "kilian_de",
+                    "user_name": "kilian_de",
+                    "type": "subscription",
+                    "total": 4000
+                },
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1778
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "31378319",
+                "user_login": "kilian_de",
+                "user_name": "kilian_de",
+                "type": "subscription",
+                "total": 1500
+            },
+            "level": 6,
+            "goal": 3700,
+            "progress": 1078,
+            "expires_at": "2023-01-10T18:30:31.37806478Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 13878,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1778
+                },
+                {
+                    "user_id": "31378319",
+                    "user_login": "kilian_de",
+                    "user_name": "kilian_de",
+                    "type": "subscription",
+                    "total": 6000
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "31378319",
+                "user_login": "kilian_de",
+                "user_name": "kilian_de",
+                "type": "subscription",
+                "total": 2000
+            },
+            "level": 6,
+            "goal": 3700,
+            "progress": 3078,
+            "expires_at": "2023-01-10T18:30:31.37806478Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 15378,
+            "top_contributions": [
+                {
+                    "user_id": "31378319",
+                    "user_login": "kilian_de",
+                    "user_name": "kilian_de",
+                    "type": "subscription",
+                    "total": 7500
+                },
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1778
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "last_contribution": {
+                "user_id": "31378319",
+                "user_login": "kilian_de",
+                "user_name": "kilian_de",
+                "type": "subscription",
+                "total": 1500
+            },
+            "level": 7,
+            "goal": 4700,
+            "progress": 878,
+            "expires_at": "2023-01-10T18:34:53.976421241Z"
+        }
+    },
+    {
+        "hypeTrainEndEventsHandler": {
+            "id": "2634cef4-fae7-469f-917d-f64ca6294e9b",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 15378,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1778
+                },
+                {
+                    "user_id": "31378319",
+                    "user_login": "kilian_de",
+                    "user_name": "kilian_de",
+                    "type": "subscription",
+                    "total": 7500
+                }
+            ],
+            "started_at": "2023-01-10T18:18:01.865359437Z",
+            "level": 7,
+            "ended_at": "2023-01-10T18:34:54.248363899Z",
+            "cooldown_ends_at": "2023-01-10T19:34:54.248363899Z"
+        }
+    },
+    {
+        "hypeTrainBeginEventsHandler": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 1100,
+            "top_contributions": [
+                {
+                    "user_id": "52359572",
+                    "user_login": "dieks77",
+                    "user_name": "Dieks77",
+                    "type": "subscription",
+                    "total": 500
+                },
+                {
+                    "user_id": "630271650",
+                    "user_login": "ronlehmer",
+                    "user_name": "RonLehmer",
+                    "type": "bits",
+                    "total": 100
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "52359572",
+                "user_login": "dieks77",
+                "user_name": "Dieks77",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 1,
+            "goal": 1600,
+            "progress": 1100,
+            "expires_at": "2023-01-10T19:47:35.728885417Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 1100,
+            "top_contributions": [
+                {
+                    "user_id": "630271650",
+                    "user_login": "ronlehmer",
+                    "user_name": "RonLehmer",
+                    "type": "bits",
+                    "total": 100
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "52359572",
+                "user_login": "dieks77",
+                "user_name": "Dieks77",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 1,
+            "goal": 1600,
+            "progress": 1100,
+            "expires_at": "2023-01-10T19:47:35.728885417Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 1100,
+            "top_contributions": [
+                {
+                    "user_id": "630271650",
+                    "user_login": "ronlehmer",
+                    "user_name": "RonLehmer",
+                    "type": "bits",
+                    "total": 100
+                },
+                {
+                    "user_id": "31378319",
+                    "user_login": "kilian_de",
+                    "user_name": "kilian_de",
+                    "type": "subscription",
+                    "total": 500
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "52359572",
+                "user_login": "dieks77",
+                "user_name": "Dieks77",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 1,
+            "goal": 1600,
+            "progress": 1100,
+            "expires_at": "2023-01-10T19:47:35.728885417Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 1100,
+            "top_contributions": [
+                {
+                    "user_id": "630271650",
+                    "user_login": "ronlehmer",
+                    "user_name": "RonLehmer",
+                    "type": "bits",
+                    "total": 100
+                },
+                {
+                    "user_id": "31378319",
+                    "user_login": "kilian_de",
+                    "user_name": "kilian_de",
+                    "type": "subscription",
+                    "total": 500
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "52359572",
+                "user_login": "dieks77",
+                "user_name": "Dieks77",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 1,
+            "goal": 1600,
+            "progress": 1100,
+            "expires_at": "2023-01-10T19:47:35.728885417Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 1200,
+            "top_contributions": [
+                {
+                    "user_id": "31378319",
+                    "user_login": "kilian_de",
+                    "user_name": "kilian_de",
+                    "type": "subscription",
+                    "total": 500
+                },
+                {
+                    "user_id": "630271650",
+                    "user_login": "ronlehmer",
+                    "user_name": "RonLehmer",
+                    "type": "bits",
+                    "total": 100
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "789793022",
+                "user_login": "zabmanic",
+                "user_name": "zabmanic",
+                "type": "bits",
+                "total": 100
+            },
+            "level": 1,
+            "goal": 1600,
+            "progress": 1200,
+            "expires_at": "2023-01-10T19:47:35.728885417Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 2200,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1000
+                },
+                {
+                    "user_id": "31378319",
+                    "user_login": "kilian_de",
+                    "user_name": "kilian_de",
+                    "type": "subscription",
+                    "total": 500
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "174208804",
+                "user_login": "icemage99",
+                "user_name": "icemage99",
+                "type": "bits",
+                "total": 1000
+            },
+            "level": 2,
+            "goal": 1800,
+            "progress": 600,
+            "expires_at": "2023-01-10T19:48:45.101607712Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 4700,
+            "top_contributions": [
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 2500
+                },
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "789793022",
+                "user_login": "zabmanic",
+                "user_name": "zabmanic",
+                "type": "subscription",
+                "total": 2500
+            },
+            "level": 3,
+            "goal": 2100,
+            "progress": 1300,
+            "expires_at": "2023-01-10T19:49:48.452936431Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 4847,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1147
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 2500
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "174208804",
+                "user_login": "icemage99",
+                "user_name": "icemage99",
+                "type": "bits",
+                "total": 147
+            },
+            "level": 3,
+            "goal": 2100,
+            "progress": 1447,
+            "expires_at": "2023-01-10T19:49:48.452936431Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 7347,
+            "top_contributions": [
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 2500
+                },
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1147
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "174208804",
+                "user_login": "icemage99",
+                "user_name": "icemage99",
+                "type": "subscription",
+                "total": 2500
+            },
+            "level": 4,
+            "goal": 2300,
+            "progress": 1847,
+            "expires_at": "2023-01-10T19:52:03.799127383Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 7847,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1147
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 3000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "789793022",
+                "user_login": "zabmanic",
+                "user_name": "zabmanic",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 5,
+            "goal": 3000,
+            "progress": 47,
+            "expires_at": "2023-01-10T19:53:45.265819361Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 9847,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1147
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 5000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "789793022",
+                "user_login": "zabmanic",
+                "user_name": "zabmanic",
+                "type": "subscription",
+                "total": 2000
+            },
+            "level": 5,
+            "goal": 3000,
+            "progress": 2047,
+            "expires_at": "2023-01-10T19:53:45.265819361Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 9947,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1247
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 5000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "174208804",
+                "user_login": "icemage99",
+                "user_name": "icemage99",
+                "type": "bits",
+                "total": 100
+            },
+            "level": 5,
+            "goal": 3000,
+            "progress": 2147,
+            "expires_at": "2023-01-10T19:53:45.265819361Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 12447,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1247
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 5000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "630271650",
+                "user_login": "ronlehmer",
+                "user_name": "RonLehmer",
+                "type": "subscription",
+                "total": 2500
+            },
+            "level": 6,
+            "goal": 3700,
+            "progress": 1647,
+            "expires_at": "2023-01-10T19:57:54.968609881Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 12947,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1247
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 5000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "74821111",
+                "user_login": "solegs100",
+                "user_name": "solegs100",
+                "type": "subscription",
+                "total": 500
+            },
+            "level": 6,
+            "goal": 3700,
+            "progress": 2147,
+            "expires_at": "2023-01-10T19:57:54.968609881Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 13354,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 1654
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 5000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "174208804",
+                "user_login": "icemage99",
+                "user_name": "icemage99",
+                "type": "bits",
+                "total": 407
+            },
+            "level": 6,
+            "goal": 3700,
+            "progress": 2554,
+            "expires_at": "2023-01-10T19:57:54.968609881Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 14354,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 2654
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 5000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "174208804",
+                "user_login": "icemage99",
+                "user_name": "icemage99",
+                "type": "bits",
+                "total": 1000
+            },
+            "level": 6,
+            "goal": 3700,
+            "progress": 3554,
+            "expires_at": "2023-01-10T19:57:54.968609881Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 14454,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 2654
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 5000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "39478565",
+                "user_login": "bo0ha",
+                "user_name": "bo0ha",
+                "type": "bits",
+                "total": 100
+            },
+            "level": 6,
+            "goal": 3700,
+            "progress": 3654,
+            "expires_at": "2023-01-10T19:57:54.968609881Z"
+        }
+    },
+    {
+        "hypeTrainProgressEvents": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 14654,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 2654
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 5000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "last_contribution": {
+                "user_id": "789793022",
+                "user_login": "zabmanic",
+                "user_name": "zabmanic",
+                "type": "bits",
+                "total": 200
+            },
+            "level": 7,
+            "goal": 4700,
+            "progress": 154,
+            "expires_at": "2023-01-10T20:02:48.518607916Z"
+        }
+    },
+    {
+        "hypeTrainEndEventsHandler": {
+            "id": "f1a59da7-cb2f-4c8a-b0df-49e20c4e8a59",
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit",
+            "total": 14654,
+            "top_contributions": [
+                {
+                    "user_id": "174208804",
+                    "user_login": "icemage99",
+                    "user_name": "icemage99",
+                    "type": "bits",
+                    "total": 2654
+                },
+                {
+                    "user_id": "789793022",
+                    "user_login": "zabmanic",
+                    "user_name": "zabmanic",
+                    "type": "subscription",
+                    "total": 5000
+                }
+            ],
+            "started_at": "2023-01-10T19:42:35.728885417Z",
+            "level": 7,
+            "ended_at": "2023-01-10T20:02:49.271839055Z",
+            "cooldown_ends_at": "2023-01-10T21:02:49.271839055Z"
+        }
+    },
+    {
+        "StreamOfflineEventsHandler": {
+            "broadcaster_user_id": "631529415",
+            "broadcaster_user_login": "annabelstopit",
+            "broadcaster_user_name": "annabelstopit"
+        }
+    }
+]
