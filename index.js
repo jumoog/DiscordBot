@@ -34,6 +34,7 @@ class Bot {
     _level;
     _total;
     _simulation;
+    _onlineTimer;
     constructor() {
         this._userId = process.env.USERID || 631529415;
         this._roomName = process.env.ROOMNAME || '';
@@ -50,6 +51,7 @@ class Bot {
         this._level = 0;
         this._total = 0;
         this._simulation = false;
+        this._onlineTimer = new Timer();
     }
     async main() {
         this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json';
@@ -67,6 +69,9 @@ class Bot {
             }
             this._currentCoolDownTimer.on('done', () => {
                 this.sendMessage(`:index_pointing_at_the_viewer: The next Hype Train is ready!`);
+            });
+            this._onlineTimer.on('done', () => {
+                this.sendMessage(`5 minutes waiting time over! annabelstopit is online!`);
             });
         });
         this._discordClient.login(this._discordToken);
@@ -226,11 +231,13 @@ class Bot {
     }
     StreamOnlineEventsHandler(e) {
         signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-        DiscordMessageQueue.add(() => this.sendMessage(`${e.broadcasterDisplayName} went online!`));
+        this._onlineTimer.start(300000);
+        DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} went online!`));
     }
     StreamOfflineEventsHandler(e) {
         signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-        DiscordMessageQueue.add(() => this.sendMessage(`${e.broadcasterDisplayName} went offline!`));
+        this._onlineTimer.stop();
+        DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} went offline!`));
     }
     setCooldownEndDate(cooldownEndDate) {
         this._currentCoolDown = cooldownEndDate.getTime();

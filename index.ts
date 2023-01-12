@@ -8,7 +8,6 @@ import signale from "signale";
 import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField, TextChannel } from 'discord.js';
 import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent, mockup_EventSubStreamOfflineEvent, mockup_EventSubStreamOnlineEvent } from './mockup.js';
 import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent } from '@twurple/eventsub-base/lib/index.js';
-import { Simulation } from './simulation.js';
 import { getRawData } from '@twurple/common';
 import PQueue from 'p-queue';
 
@@ -30,7 +29,6 @@ process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
  * Bot class
  */
 class Bot {
-	[x: string]: any;
 	_userId: number | string;
 	_roomName: string;
 	_clientId: string;
@@ -46,6 +44,7 @@ class Bot {
 	_level;
 	_total;
 	_simulation;
+	_onlineTimer;
 	constructor() {
 		this._userId = process.env.USERID || 631529415; // annabelstopit
 		this._roomName = process.env.ROOMNAME || '';
@@ -62,6 +61,7 @@ class Bot {
 		this._level = 0;
 		this._total = 0;
 		this._simulation = false;
+		this._onlineTimer = new Timer();
 	}
 
 	async main() {
@@ -82,6 +82,10 @@ class Bot {
 			// time is over event
 			this._currentCoolDownTimer.on('done', () => {
 				this.sendMessage(`:index_pointing_at_the_viewer: The next Hype Train is ready!`);
+			});
+
+			this._onlineTimer.on('done', () => {
+				this.sendMessage(`5 minutes waiting time over! annabelstopit is online!`);
 			});
 		});
 		// login
@@ -326,7 +330,8 @@ class Bot {
 	 */
 	StreamOnlineEventsHandler(e: EventSubStreamOnlineEvent | mockup_EventSubStreamOnlineEvent) {
 		signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-		DiscordMessageQueue.add(() => this.sendMessage(`${e.broadcasterDisplayName} went online!`));
+		this._onlineTimer.start(300_000);
+		DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} went online!`));
 	}
 
 	/**
@@ -335,7 +340,8 @@ class Bot {
 	 */
 	StreamOfflineEventsHandler(e: EventSubStreamOfflineEvent | mockup_EventSubStreamOfflineEvent) {
 		signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-		DiscordMessageQueue.add(() => this.sendMessage(`${e.broadcasterDisplayName} went offline!`));
+		this._onlineTimer.stop();
+		DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} went offline!`));
 	}
 
 	setCooldownEndDate(cooldownEndDate: Date) {
@@ -358,7 +364,7 @@ class Bot {
 		cooldownDate.setMilliseconds(0);
 		// remove Milliseconds
 		expiryDate.setMilliseconds(0);
-		// with 0 milliseconds the calculation returns extact hours 
+		// with 0 milliseconds the calculation returns extract hours 
 		this._cooldownPeriod = (cooldownDate.getTime() - expiryDate.getTime())
 	}
 }
