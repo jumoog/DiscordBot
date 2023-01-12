@@ -194,7 +194,7 @@ class Bot {
     }
     hypeTrainEndEventsHandler(e) {
         signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
-        DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: Hype Train is over! We reached Level ${e.level}!`));
+        DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: Hype Train is over! We reached Level **${e.level}**!`));
         this._level = 0;
         this._total = 0;
         this.setCooldownEndDate(e.cooldownEndDate);
@@ -202,7 +202,7 @@ class Bot {
     hypeTrainBeginEventsHandler(e) {
         signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this._level = e.level;
-        DiscordMessageQueue.add(() => this.sendMessage(`:partying_face: A Hype Train has started at Level ${e.level}!`));
+        DiscordMessageQueue.add(() => this.sendMessage(`:partying_face: A Hype Train has started at Level **${e.level}**!`));
     }
     hypeTrainProgressEvents(e) {
         if (this._total !== e.total) {
@@ -210,15 +210,15 @@ class Bot {
             signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
             if (this._level !== e.level) {
                 this._level = e.level;
-                DiscordMessageQueue.add(() => this.sendMessage(`:trophy: Hype Train reached Level ${e.level}!`));
+                DiscordMessageQueue.add(() => this.sendMessage(`:trophy: Hype Train reached Level **${e.level}**!`));
             }
             if (e.lastContribution.type === "subscription") {
-                DiscordMessageQueue.add(() => this.sendMessage(`:gift: ${e.lastContribution.userDisplayName} gifted ${e.lastContribution.total / 500} subs! :gift:`));
+                DiscordMessageQueue.add(() => this.sendMessage(`:gift: **${e.lastContribution.userDisplayName}** gifted **${e.lastContribution.total / 500}** subs!`));
             }
             else if (e.lastContribution.type === "bits") {
-                DiscordMessageQueue.add(() => this.sendMessage(`:coin: ${e.lastContribution.userDisplayName} cheered ${e.lastContribution.total} bits! :coin:`));
+                DiscordMessageQueue.add(() => this.sendMessage(`:coin: **${e.lastContribution.userDisplayName}** cheered **${e.lastContribution.total}** bits!`));
             }
-            DiscordMessageQueue.add(() => this.sendDebugMessage(`Hype Train points: ${e.total} Level: ${e.level}`));
+            DiscordMessageQueue.add(() => this.sendDebugMessage(`Hype Train points: ${e.total} Level: **${e.level}**`));
         }
         else {
             signale.debug('hypeTrainProgressEvents', 'skipping duplicate!');
