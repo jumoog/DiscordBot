@@ -15,7 +15,7 @@
   },
   "homepage": "https://github.com/jumoog/HypetrainDiscordBot#readme",
   "dependencies": {
-    "@twurple/api": "^5.3.1",
+    "@twurple/api": "^5.3.2",
     "@twurple/auth": "^5.3.1",
     "@twurple/common": "^5.3.1",
     "@twurple/eventsub-ws": "^5.3.1",
