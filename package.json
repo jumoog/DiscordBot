@@ -17,7 +17,7 @@
   "dependencies": {
     "@twurple/api": "^5.3.2",
     "@twurple/auth": "^5.3.2",
-    "@twurple/common": "^5.3.2",
+    "@twurple/common": "^5.3.3",
     "@twurple/eventsub-ws": "^5.3.2",
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
