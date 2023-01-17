@@ -35,6 +35,7 @@ class Bot {
     _total;
     _simulation;
     _onlineTimer;
+    _lastMessage;
     constructor() {
         this._userId = process.env.USERID || 631529415;
         this._roomName = process.env.ROOMNAME || '';
@@ -52,6 +53,7 @@ class Bot {
         this._total = 0;
         this._simulation = false;
         this._onlineTimer = new Timer();
+        this._lastMessage = {};
     }
     async main() {
         this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json';
@@ -68,6 +70,7 @@ class Bot {
                 this.startHypeTrainSimulation();
             }
             this._currentCoolDownTimer.on('done', () => {
+                this.deletLastMessage();
                 this.sendMessage(`:index_pointing_at_the_viewer: The next hype train is ready!`);
             });
             this._onlineTimer.on('done', () => {
@@ -152,7 +155,7 @@ class Bot {
                     this.hypeTrainEndEventsHandler(new mockup_EventSubChannelHypeTrainEndEvent(hypetrainEvent.hypeTrainEndEventsHandler));
                 }
             }
-            await sleep(100000);
+            await sleep(1000000);
         }
     }
     async sendHypeTrainMessage() {
@@ -174,13 +177,13 @@ class Bot {
         if (this._discordClient.isReady()) {
             const channel = this._discordClient.channels.cache.find((channel) => channel.name === this._roomName);
             if (channel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
-                channel.send(message);
+                this._lastMessage = await channel.send(message);
             }
             else {
                 signale.error(`Help! i can't post in this room`);
             }
         }
-        await sleep(1000);
+        await sleep(750);
     }
     async sendDebugMessage(message) {
         if (this._discordClient.isReady()) {
@@ -252,6 +255,11 @@ class Bot {
         cooldownDate.setMilliseconds(0);
         expiryDate.setMilliseconds(0);
         this._cooldownPeriod = (cooldownDate.getTime() - expiryDate.getTime());
+    }
+    deletLastMessage() {
+        if (this._discordClient.isReady()) {
+            this._lastMessage.delete();
+        }
     }
 }
 const bot = new Bot();

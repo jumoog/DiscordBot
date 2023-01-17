@@ -5,7 +5,7 @@ import { EventSubWsListener } from '@twurple/eventsub-ws';
 import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
-import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField, TextChannel } from 'discord.js';
+import { Client, EmbedBuilder, Events, GatewayIntentBits, Message, PermissionsBitField, TextChannel } from 'discord.js';
 import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent, mockup_EventSubStreamOfflineEvent, mockup_EventSubStreamOnlineEvent } from './mockup.js';
 import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent } from '@twurple/eventsub-base/lib/index.js';
 import { getRawData } from '@twurple/common';
@@ -45,6 +45,7 @@ class Bot {
 	_total;
 	_simulation;
 	_onlineTimer;
+	_lastMessage: Message;
 	constructor() {
 		this._userId = process.env.USERID || 631529415; // annabelstopit
 		this._roomName = process.env.ROOMNAME || '';
@@ -62,6 +63,8 @@ class Bot {
 		this._total = 0;
 		this._simulation = false;
 		this._onlineTimer = new Timer();
+		//@ts-ignore
+		this._lastMessage = {};
 	}
 
 	async main() {
@@ -81,6 +84,7 @@ class Bot {
 
 			// time is over event
 			this._currentCoolDownTimer.on('done', () => {
+				this.deletLastMessage();
 				this.sendMessage(`:index_pointing_at_the_viewer: The next hype train is ready!`);
 			});
 
@@ -196,7 +200,7 @@ class Bot {
 					this.hypeTrainEndEventsHandler(new mockup_EventSubChannelHypeTrainEndEvent(hypetrainEvent.hypeTrainEndEventsHandler));
 				}
 			}
-			await sleep(100000);
+			await sleep(1000000);
 		}
 	}
 
@@ -237,12 +241,12 @@ class Bot {
 			) as TextChannel;
 			// check send Message permission
 			if (channel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
-				channel.send(message);
+				this._lastMessage = await channel.send(message);
 			} else {
 				signale.error(`Help! i can't post in this room`);
 			}
 		}
-		await sleep(1000);
+		await sleep(750);
 	}
 
 	/**
@@ -366,6 +370,12 @@ class Bot {
 		expiryDate.setMilliseconds(0);
 		// with 0 milliseconds the calculation returns extract hours 
 		this._cooldownPeriod = (cooldownDate.getTime() - expiryDate.getTime())
+	}
+
+	deletLastMessage() {
+		if (this._discordClient.isReady()) {
+			this._lastMessage.delete();
+		}
 	}
 }
 
