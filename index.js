@@ -218,10 +218,10 @@ class Bot {
                 DiscordMessageQueue.add(() => this.sendMessage(`:trophy: Hype Train reached Level **${e.level}**!`));
             }
             if (e.lastContribution.type === "subscription") {
-                DiscordMessageQueue.add(() => this.sendMessage(`:gift: **${e.lastContribution.userDisplayName}** gifted **${e.lastContribution.total / 500}** subs!`));
+                DiscordMessageQueue.add(() => this.sendMessage(":gift: `" + e.lastContribution.userDisplayName + "` gifted **" + (e.lastContribution.total / 500) + "** subs!"));
             }
             else if (e.lastContribution.type === "bits") {
-                DiscordMessageQueue.add(() => this.sendMessage(`:coin: **${e.lastContribution.userDisplayName}** cheered **${e.lastContribution.total}** bits!`));
+                DiscordMessageQueue.add(() => this.sendMessage(":coin: `" + e.lastContribution.userDisplayName + "` cheered **" + (e.lastContribution.total / 500) + "** bits!"));
             }
             DiscordMessageQueue.add(() => this.sendDebugMessage(`Hype Train points: ${e.total} Level: **${e.level}**`));
         }
