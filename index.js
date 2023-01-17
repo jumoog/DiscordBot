@@ -244,7 +244,7 @@ class Bot {
         this._timerLeft = this._currentCoolDown - Date.now();
         this._currentCoolDownTimer.stop();
         this._currentCoolDownTimer.start(this._timerLeft);
-        DiscordMessageQueue.add(() => this.sendMessage(`:station: Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`));
+        DiscordMessageQueue.add(() => this.sendMessage(`:station: The Hype Train cooldown ends in <t:${this.timeInSeconds()}:R>.`));
     }
     setCooldownPeriod(hypetrainEvent) {
         const cooldownDate = hypetrainEvent.cooldownDate;

@@ -1,5 +1,5 @@
 import { DataObject } from "@twurple/common";
-export declare type EventSubChannelHypeTrainContributionType = 'bits' | 'subscription' | 'other';
+export type EventSubChannelHypeTrainContributionType = 'bits' | 'subscription' | 'other';
 interface EventSubChannelHypeTrainEndEventData {
     id: string;
     broadcaster_user_id: string;
@@ -107,7 +107,7 @@ export declare class mockup_EventSubStreamOnlineEvent extends DataObject<EventSu
     get type(): EventSubStreamOnlineEventStreamType;
     get startDate(): Date;
 }
-declare type EventSubStreamOnlineEventStreamType = 'live' | 'playlist' | 'watch_party' | 'premiere' | 'rerun';
+type EventSubStreamOnlineEventStreamType = 'live' | 'playlist' | 'watch_party' | 'premiere' | 'rerun';
 interface EventSubStreamOnlineEventData {
     id: string;
     broadcaster_user_id: string;

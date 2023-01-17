@@ -354,7 +354,7 @@ class Bot {
 		// inform channel about new cool down
 		// R -> Relative (in 2 minutes)
 		// t -> short time (2:19 AM)
-		DiscordMessageQueue.add(() => this.sendMessage(`:station: Next Hype Train is <t:${this.timeInSeconds()}:R> at <t:${this.timeInSeconds()}:t> possible`));
+		DiscordMessageQueue.add(() => this.sendMessage(`:station: The Hype Train cooldown ends in <t:${this.timeInSeconds()}:R>.`));
 	}
 
 	setCooldownPeriod(hypetrainEvent: HelixHypeTrainEvent) {
