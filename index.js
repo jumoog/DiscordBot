@@ -68,7 +68,7 @@ class Bot {
                 this.startHypeTrainSimulation();
             }
             this._currentCoolDownTimer.on('done', () => {
-                this.sendMessage(`:index_pointing_at_the_viewer: The next Hype Train is ready!`);
+                this.sendMessage(`:index_pointing_at_the_viewer: The next hype train is ready!`);
             });
             this._onlineTimer.on('done', () => {
                 this.sendMessage(`5 minutes waiting time over! annabelstopit is online!`);
@@ -90,18 +90,18 @@ class Bot {
             events.forEach(hypetrainEvent => {
                 signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypetrainEvent), null, 4));
                 if (hypetrainEvent.expiryDate.getTime() - new Date().getTime() > 0) {
-                    this.sendDebugMessage(`A Hype Train Event is currently running`);
+                    this.sendDebugMessage(`A hype train Event is currently running`);
                 }
                 else {
-                    this.sendDebugMessage(`No Hype Train Event is currently running`);
+                    this.sendDebugMessage(`No hype train Event is currently running`);
                     this.setCooldownPeriod(hypetrainEvent);
                     this.sendDebugMessage(`The Cooldown Period is set to ${Math.round(this._cooldownPeriod / 3600000)} hour(s)!`);
                     if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < this._cooldownPeriod) {
-                        this.sendDebugMessage(`The last Hype Train was less than an ${Math.round(this._cooldownPeriod / 3600000)} hour(s) ago. Set cool down.`);
+                        this.sendDebugMessage(`The last hype train was less than an ${Math.round(this._cooldownPeriod / 3600000)} hour(s) ago. Set cool down.`);
                         this.setCooldownEndDate(hypetrainEvent.cooldownDate);
                     }
                     else {
-                        this.sendDebugMessage(`The last Hype Train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f> with Level ${hypetrainEvent.level}`);
+                        this.sendDebugMessage(`The last hype train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f> with Level ${hypetrainEvent.level}`);
                     }
                 }
             });
@@ -199,7 +199,7 @@ class Bot {
     }
     hypeTrainEndEventsHandler(e) {
         signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
-        DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: Hype Train is over! We reached Level **${e.level}**!`));
+        DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: hype train is over! We reached Level **${e.level}**!`));
         this._level = 0;
         this._total = 0;
         this.setCooldownEndDate(e.cooldownEndDate);
@@ -207,7 +207,7 @@ class Bot {
     hypeTrainBeginEventsHandler(e) {
         signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this._level = e.level;
-        DiscordMessageQueue.add(() => this.sendMessage(`:partying_face: A Hype Train has started at Level **${e.level}**!`));
+        DiscordMessageQueue.add(() => this.sendMessage(`:partying_face: A hype train has started at Level **${e.level}**!`));
     }
     hypeTrainProgressEvents(e) {
         if (this._total !== e.total) {
@@ -215,15 +215,15 @@ class Bot {
             signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
             if (this._level !== e.level) {
                 this._level = e.level;
-                DiscordMessageQueue.add(() => this.sendMessage(`:trophy: Hype Train reached Level **${e.level}**!`));
+                DiscordMessageQueue.add(() => this.sendMessage(`:trophy: The hype train reached Level **${e.level}**!`));
             }
             if (e.lastContribution.type === "subscription") {
                 DiscordMessageQueue.add(() => this.sendMessage(":gift: `" + e.lastContribution.userDisplayName + "` gifted **" + (e.lastContribution.total / 500) + "** subs!"));
             }
             else if (e.lastContribution.type === "bits") {
-                DiscordMessageQueue.add(() => this.sendMessage(":coin: `" + e.lastContribution.userDisplayName + "` cheered **" + (e.lastContribution.total / 500) + "** bits!"));
+                DiscordMessageQueue.add(() => this.sendMessage(":coin: `" + e.lastContribution.userDisplayName + "` cheered **" + (e.lastContribution.total) + "** bits!"));
             }
-            DiscordMessageQueue.add(() => this.sendDebugMessage(`Hype Train points: ${e.total} Level: **${e.level}**`));
+            DiscordMessageQueue.add(() => this.sendDebugMessage(`The hype train points: ${e.total} Level: **${e.level}**`));
         }
         else {
             signale.debug('hypeTrainProgressEvents', 'skipping duplicate!');
@@ -244,7 +244,7 @@ class Bot {
         this._timerLeft = this._currentCoolDown - Date.now();
         this._currentCoolDownTimer.stop();
         this._currentCoolDownTimer.start(this._timerLeft);
-        DiscordMessageQueue.add(() => this.sendMessage(`:station: The Hype Train cooldown ends in <t:${this.timeInSeconds()}:R>.`));
+        DiscordMessageQueue.add(() => this.sendMessage(`:station: The hype train cooldown ends <t:${this.timeInSeconds()}:R>.`));
     }
     setCooldownPeriod(hypetrainEvent) {
         const cooldownDate = hypetrainEvent.cooldownDate;
