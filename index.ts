@@ -133,7 +133,7 @@ class Bot {
 					// check if the cool down was less than Cooldown Period (cooldownDate - expiryDate). For annabelstopit = 1h
 					this.setCooldownPeriod(hypetrainEvent);
 					this.sendDebugMessage(`The Cooldown Period is set to ${Math.round(this._cooldownPeriod / 3600000)} hour(s)!`);
-					if (new Date().getTime() - hypetrainEvent.cooldownDate.getTime() < this._cooldownPeriod) {
+					if (new Date().getTime() - hypetrainEvent.expiryDate.getTime() < this._cooldownPeriod) {
 						this.sendDebugMessage(`The last hype train was less than an ${Math.round(this._cooldownPeriod / 3600000)} hour(s) ago. Set cool down.`);
 						this.setCooldownEndDate(hypetrainEvent.cooldownDate);
 					} else {
