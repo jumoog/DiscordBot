@@ -202,7 +202,7 @@ class Bot {
     }
     hypeTrainEndEventsHandler(e) {
         signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
-        DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: hype train is over! We reached Level **${e.level}**!`));
+        DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: The hype train is over! We reached Level **${e.level}**!`));
         this._level = 0;
         this._total = 0;
         this.setCooldownEndDate(e.cooldownEndDate);

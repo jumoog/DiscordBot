@@ -284,7 +284,7 @@ class Bot {
 	 */
 	hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndEvent | mockup_EventSubChannelHypeTrainEndEvent) {
 		signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
-		DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: hype train is over! We reached Level **${e.level}**!`));
+		DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: The hype train is over! We reached Level **${e.level}**!`));
 		// reset level
 		this._level = 0;
 		// reset total
