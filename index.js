@@ -5,7 +5,7 @@ import { EventSubWsListener } from '@twurple/eventsub-ws';
 import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
-import { Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
+import { Client, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
 import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent, mockup_EventSubStreamOfflineEvent, mockup_EventSubStreamOnlineEvent } from './mockup.js';
 import { getRawData } from '@twurple/common';
 import PQueue from 'p-queue';
@@ -27,7 +27,6 @@ class Bot {
     _debugRoomName;
     _currentCoolDownTimer;
     _currentCoolDown;
-    _cooldownPeriod;
     _discordClient;
     _timerLeft;
     _tokenPath;
@@ -45,7 +44,6 @@ class Bot {
         this._debugRoomName = process.env.DEBUGROOMNAME || 'debug';
         this._currentCoolDownTimer = new Timer();
         this._currentCoolDown = 0;
-        this._cooldownPeriod = 0;
         this._discordClient = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
         this._timerLeft = 0;
         this._tokenPath = '';
@@ -90,21 +88,19 @@ class Bot {
             }, tokenDataHypeTrain);
             const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
             const { data: events } = await apiClient.hypeTrain.getHypeTrainEventsForBroadcaster(this._userId);
-            events.forEach(hypetrainEvent => {
-                signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypetrainEvent), null, 4));
-                if (hypetrainEvent.expiryDate.getTime() - new Date().getTime() > 0) {
+            events.forEach(hypeTrainEvent => {
+                signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypeTrainEvent), null, 4));
+                if (hypeTrainEvent.expiryDate.getTime() - new Date().getTime() > 0) {
                     this.sendDebugMessage(`A hype train Event is currently running`);
                 }
                 else {
                     this.sendDebugMessage(`No hype train Event is currently running`);
-                    this.setCooldownPeriod(hypetrainEvent);
-                    this.sendDebugMessage(`The Cooldown Period is set to ${Math.round(this._cooldownPeriod / 3600000)} hour(s)!`);
-                    if (new Date().getTime() - hypetrainEvent.expiryDate.getTime() < this._cooldownPeriod) {
-                        this.sendDebugMessage(`The last hype train was less than an ${Math.round(this._cooldownPeriod / 3600000)} hour(s) ago. Set cool down.`);
-                        this.setCooldownEndDate(hypetrainEvent.cooldownDate);
+                    if (hypeTrainEvent.cooldownDate.getTime() - new Date().getTime() > 0) {
+                        this.sendDebugMessage(`Cool down is still active`);
+                        this.setCoolDownEndDate(hypeTrainEvent.cooldownDate);
                     }
                     else {
-                        this.sendDebugMessage(`The last hype train started at <t:${this.timeInSeconds(hypetrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypetrainEvent.expiryDate.getTime())}:f> with Level ${hypetrainEvent.level}`);
+                        this.sendDebugMessage(`The last hype train started at <t:${this.timeInSeconds(hypeTrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypeTrainEvent.expiryDate.getTime())}:f> with Level ${hypeTrainEvent.level}`);
                     }
                 }
             });
@@ -138,46 +134,36 @@ class Bot {
         const hypes = JSON.parse(fs.readFileSync(`./10_01_2023.json`, 'utf-8'));
         while (true) {
             for (let index = 0; index < hypes.length; index++) {
-                const hypetrainEvent = hypes[index];
-                if (hypetrainEvent?.StreamOnlineEventsHandler) {
-                    this.StreamOnlineEventsHandler(new mockup_EventSubStreamOnlineEvent(hypetrainEvent.StreamOnlineEventsHandler));
+                const hypeTrainEvent = hypes[index];
+                if (hypeTrainEvent?.StreamOnlineEventsHandler) {
+                    this.StreamOnlineEventsHandler(new mockup_EventSubStreamOnlineEvent(hypeTrainEvent.StreamOnlineEventsHandler));
                 }
-                if (hypetrainEvent?.StreamOfflineEventsHandler) {
-                    this.StreamOfflineEventsHandler(new mockup_EventSubStreamOfflineEvent(hypetrainEvent.StreamOfflineEventsHandler));
+                if (hypeTrainEvent?.StreamOfflineEventsHandler) {
+                    this.StreamOfflineEventsHandler(new mockup_EventSubStreamOfflineEvent(hypeTrainEvent.StreamOfflineEventsHandler));
                 }
-                if (hypetrainEvent?.hypeTrainBeginEventsHandler) {
-                    this.hypeTrainBeginEventsHandler(new mockup_EventSubChannelHypeTrainBeginEvent(hypetrainEvent.hypeTrainBeginEventsHandler));
+                if (hypeTrainEvent?.hypeTrainBeginEventsHandler) {
+                    this.hypeTrainBeginEventsHandler(new mockup_EventSubChannelHypeTrainBeginEvent(hypeTrainEvent.hypeTrainBeginEventsHandler));
                 }
-                if (hypetrainEvent?.hypeTrainProgressEvents) {
-                    this.hypeTrainProgressEvents(new mockup_EventSubChannelHypeTrainProgressEvent(hypetrainEvent.hypeTrainProgressEvents));
+                if (hypeTrainEvent?.hypeTrainProgressEvents) {
+                    this.hypeTrainProgressEvents(new mockup_EventSubChannelHypeTrainProgressEvent(hypeTrainEvent.hypeTrainProgressEvents));
                 }
-                if (hypetrainEvent?.hypeTrainEndEventsHandler) {
-                    this.hypeTrainEndEventsHandler(new mockup_EventSubChannelHypeTrainEndEvent(hypetrainEvent.hypeTrainEndEventsHandler));
+                if (hypeTrainEvent?.hypeTrainEndEventsHandler) {
+                    this.hypeTrainEndEventsHandler(new mockup_EventSubChannelHypeTrainEndEvent(hypeTrainEvent.hypeTrainEndEventsHandler));
                 }
             }
             await sleep(1000000);
         }
     }
-    async sendHypeTrainMessage() {
+    async sendMessage(message, room = this._roomName) {
         if (this._discordClient.isReady()) {
-            const targetChannel = this._discordClient.channels.cache.find((channel) => channel.name === this._roomName);
-            if (targetChannel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
-                const exampleEmbed = new EmbedBuilder()
-                    .setColor(0x0099FF)
-                    .setTitle('Hypetrain Time!')
-                    .setTimestamp();
-                targetChannel.send({ embeds: [exampleEmbed] });
-            }
-            else {
-                signale.error(`Help! i can't post in this room`);
-            }
-        }
-    }
-    async sendMessage(message) {
-        if (this._discordClient.isReady()) {
-            const channel = this._discordClient.channels.cache.find((channel) => channel.name === this._roomName);
+            const channel = this._discordClient.channels.cache.find((channel) => channel.name === room);
             if (channel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
-                this._lastMessage = await channel.send(message);
+                if (room === this._debugRoomName) {
+                    await channel.send(message);
+                }
+                else {
+                    this._lastMessage = await channel.send(message);
+                }
             }
             else {
                 signale.error(`Help! i can't post in this room`);
@@ -186,16 +172,7 @@ class Bot {
         await sleep(750);
     }
     async sendDebugMessage(message) {
-        if (this._discordClient.isReady()) {
-            const channel = this._discordClient.channels.cache.find((channel) => channel.name === this._debugRoomName);
-            if (channel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
-                channel.send(message);
-            }
-            else {
-                signale.error(`Help! i can't post in this room`);
-            }
-        }
-        await sleep(1000);
+        await this.sendMessage(message, this._debugRoomName);
     }
     timeInSeconds(date = this._currentCoolDown) {
         return Math.floor(date / 1000);
@@ -205,7 +182,7 @@ class Bot {
         DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: The hype train is over! We reached Level **${e.level}**!`));
         this._level = 0;
         this._total = 0;
-        this.setCooldownEndDate(e.cooldownEndDate);
+        this.setCoolDownEndDate(e.cooldownEndDate);
     }
     hypeTrainBeginEventsHandler(e) {
         signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
@@ -243,19 +220,12 @@ class Bot {
         this._onlineTimer.stop();
         DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} went offline!`));
     }
-    setCooldownEndDate(cooldownEndDate) {
-        this._currentCoolDown = cooldownEndDate.getTime();
+    setCoolDownEndDate(coolDownEndDate) {
+        this._currentCoolDown = coolDownEndDate.getTime();
         this._timerLeft = this._currentCoolDown - Date.now();
         this._currentCoolDownTimer.stop();
         this._currentCoolDownTimer.start(this._timerLeft);
-        DiscordMessageQueue.add(() => this.sendMessage(`:station: The hype train cooldown ends <t:${this.timeInSeconds()}:R>.`));
-    }
-    setCooldownPeriod(hypetrainEvent) {
-        const cooldownDate = hypetrainEvent.cooldownDate;
-        const expiryDate = hypetrainEvent.expiryDate;
-        cooldownDate.setMilliseconds(0);
-        expiryDate.setMilliseconds(0);
-        this._cooldownPeriod = (cooldownDate.getTime() - expiryDate.getTime());
+        DiscordMessageQueue.add(() => this.sendMessage(`:station: The hype train cool down ends <t:${this.timeInSeconds()}:R>.`));
     }
     deleteLastMessage() {
         if (this._discordClient.isReady()) {
