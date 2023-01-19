@@ -84,12 +84,12 @@ class Bot {
 
 			// time is over event
 			this._currentCoolDownTimer.on('done', () => {
-				this.deletLastMessage();
+				this.deleteLastMessage();
 				this.sendMessage(`:index_pointing_at_the_viewer: The next hype train is ready!`);
 			});
 
 			this._onlineTimer.on('done', () => {
-				this.sendMessage(`5 minutes waiting time over! annabelstopit is online!`);
+				this.sendDebugMessage(`5 minutes waiting time over! annabelstopit is online!`);
 			});
 		});
 		// login
@@ -372,7 +372,7 @@ class Bot {
 		this._cooldownPeriod = (cooldownDate.getTime() - expiryDate.getTime())
 	}
 
-	deletLastMessage() {
+	deleteLastMessage() {
 		if (this._discordClient.isReady()) {
 			this._lastMessage.delete();
 		}
