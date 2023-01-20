@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import signale from "signale";
 import { Client, Events, GatewayIntentBits, Message, PermissionsBitField, TextChannel } from 'discord.js';
 import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent, mockup_EventSubStreamOfflineEvent, mockup_EventSubStreamOnlineEvent } from './mockup.js';
-import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent } from '@twurple/eventsub-base/lib/index.js';
+import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent } from '@twurple/eventsub-base/lib/index.js';
 import { getRawData } from '@twurple/common';
 import PQueue from 'p-queue';
 
@@ -167,6 +167,11 @@ class Bot {
 					// apiClient.chat.updateSettings(this._userId, this._userId, { emoteOnlyModeEnabled: true });
 					this.StreamOfflineEventsHandler(e);
 				});
+
+				await twitchListener.subscribeToChannelUpdateEvents(Number(this._userId), e => {
+					this.ChannelUpdateEvents(e);
+
+				});
 			} catch (e) {
 				await twitchListener.stop();
 				signale.fatal('Please reauthorize your broadcaster account to include all necessary scopes!');
@@ -316,6 +321,14 @@ class Bot {
 		signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
 		this._onlineTimer.stop();
 		DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} went offline!`));
+	}
+
+	/**
+	 * handle Channel UpdateEvents
+	 */
+	ChannelUpdateEvents(e: EventSubChannelUpdateEvent) {
+		signale.debug('ChannelUpdateEvents', JSON.stringify(getRawData(e), null, 4));
+		DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} changed title to <${e.streamTitle}>`));
 	}
 
 	/**

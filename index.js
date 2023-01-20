@@ -122,6 +122,9 @@ class Bot {
                 await twitchListener.subscribeToStreamOfflineEvents(Number(this._userId), e => {
                     this.StreamOfflineEventsHandler(e);
                 });
+                await twitchListener.subscribeToChannelUpdateEvents(Number(this._userId), e => {
+                    this.ChannelUpdateEvents(e);
+                });
             }
             catch (e) {
                 await twitchListener.stop();
@@ -219,6 +222,10 @@ class Bot {
         signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this._onlineTimer.stop();
         DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} went offline!`));
+    }
+    ChannelUpdateEvents(e) {
+        signale.debug('ChannelUpdateEvents', JSON.stringify(getRawData(e), null, 4));
+        DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} changed title to <${e.streamTitle}>`));
     }
     setCoolDownEndDate(coolDownEndDate) {
         this._currentCoolDown = coolDownEndDate.getTime();
