@@ -225,7 +225,7 @@ class Bot {
     }
     ChannelUpdateEvents(e) {
         signale.debug('ChannelUpdateEvents', JSON.stringify(getRawData(e), null, 4));
-        DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} changed title to <${e.streamTitle}>`));
+        DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} changed title to <${e.streamTitle}> and category to <${e.categoryName}>`));
     }
     setCoolDownEndDate(coolDownEndDate) {
         this._currentCoolDown = coolDownEndDate.getTime();
