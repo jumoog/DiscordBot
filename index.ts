@@ -113,9 +113,9 @@ class Bot {
 					clientSecret: this._clientSecret,
 					onRefresh: async newTokenData => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8')
 				},
-				tokenDataHypeTrain
+				
 			);
-
+			authProviderHypeTrain.addUser(this._userId, tokenDataHypeTrain);
 			// Twitch API
 			const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
 
@@ -140,40 +140,40 @@ class Bot {
 			// We need the Twitch Events
 			// https://dev.twitch.tv/docs/eventsub/handling-webhook-events
 			const twitchListener = new EventSubWsListener({ apiClient });
-			await twitchListener.start();
+			twitchListener.start();
 
 			try {
 				// https://twurple.js.org/reference/eventsub-ws/classes/EventSubWsListener.html#subscribeToChannelHypeTrainEndEvents
-				await twitchListener.subscribeToChannelHypeTrainEndEvents(Number(this._userId), e => {
+				twitchListener.onChannelHypeTrainEnd(Number(this._userId), e => {
 					this.hypeTrainEndEventsHandler(e);
 				});
 
-				await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
+				twitchListener.onChannelHypeTrainBegin(Number(this._userId), e => {
 					this.hypeTrainBeginEventsHandler(e);
 				});
 
-				await twitchListener.subscribeToChannelHypeTrainProgressEvents(Number(this._userId), e => {
+				twitchListener.onChannelHypeTrainProgress(Number(this._userId), e => {
 					this.hypeTrainProgressEvents(e);
 				});
 
-				await twitchListener.subscribeToStreamOnlineEvents(Number(this._userId), e => {
+				twitchListener.onStreamOnline(Number(this._userId), e => {
 					// needs scope moderator:manage:chat_settings
 					// apiClient.chat.updateSettings(this._userId, this._userId, { emoteOnlyModeEnabled: false });
 					this.StreamOnlineEventsHandler(e);
 				});
 
-				await twitchListener.subscribeToStreamOfflineEvents(Number(this._userId), e => {
+				twitchListener.onStreamOffline(Number(this._userId), e => {
 					// needs scope moderator:manage:chat_settings
 					// apiClient.chat.updateSettings(this._userId, this._userId, { emoteOnlyModeEnabled: true });
 					this.StreamOfflineEventsHandler(e);
 				});
 
-				await twitchListener.subscribeToChannelUpdateEvents(Number(this._userId), e => {
+				twitchListener.onChannelUpdate(Number(this._userId), e => {
 					this.ChannelUpdateEvents(e);
 
 				});
 			} catch (e) {
-				await twitchListener.stop();
+				twitchListener.stop();
 				signale.fatal('Please reauthorize your broadcaster account to include all necessary scopes!');
 				this.sendDebugMessage('Please reauthorize your broadcaster account to include all necessary scopes!');
 			}

@@ -85,7 +85,8 @@ class Bot {
                 clientId: this._clientId,
                 clientSecret: this._clientSecret,
                 onRefresh: async (newTokenData) => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8')
-            }, tokenDataHypeTrain);
+            });
+            authProviderHypeTrain.addUser(this._userId, tokenDataHypeTrain);
             const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
             const { data: events } = await apiClient.hypeTrain.getHypeTrainEventsForBroadcaster(this._userId);
             events.forEach(hypeTrainEvent => {
@@ -105,29 +106,29 @@ class Bot {
                 }
             });
             const twitchListener = new EventSubWsListener({ apiClient });
-            await twitchListener.start();
+            twitchListener.start();
             try {
-                await twitchListener.subscribeToChannelHypeTrainEndEvents(Number(this._userId), e => {
+                twitchListener.onChannelHypeTrainEnd(Number(this._userId), e => {
                     this.hypeTrainEndEventsHandler(e);
                 });
-                await twitchListener.subscribeToChannelHypeTrainBeginEvents(Number(this._userId), e => {
+                twitchListener.onChannelHypeTrainBegin(Number(this._userId), e => {
                     this.hypeTrainBeginEventsHandler(e);
                 });
-                await twitchListener.subscribeToChannelHypeTrainProgressEvents(Number(this._userId), e => {
+                twitchListener.onChannelHypeTrainProgress(Number(this._userId), e => {
                     this.hypeTrainProgressEvents(e);
                 });
-                await twitchListener.subscribeToStreamOnlineEvents(Number(this._userId), e => {
+                twitchListener.onStreamOnline(Number(this._userId), e => {
                     this.StreamOnlineEventsHandler(e);
                 });
-                await twitchListener.subscribeToStreamOfflineEvents(Number(this._userId), e => {
+                twitchListener.onStreamOffline(Number(this._userId), e => {
                     this.StreamOfflineEventsHandler(e);
                 });
-                await twitchListener.subscribeToChannelUpdateEvents(Number(this._userId), e => {
+                twitchListener.onChannelUpdate(Number(this._userId), e => {
                     this.ChannelUpdateEvents(e);
                 });
             }
             catch (e) {
-                await twitchListener.stop();
+                twitchListener.stop();
                 signale.fatal('Please reauthorize your broadcaster account to include all necessary scopes!');
                 this.sendDebugMessage('Please reauthorize your broadcaster account to include all necessary scopes!');
             }
