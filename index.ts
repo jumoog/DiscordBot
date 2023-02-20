@@ -111,9 +111,9 @@ class Bot {
 				{
 					clientId: this._clientId,
 					clientSecret: this._clientSecret,
-					onRefresh: async newTokenData => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8')
+					onRefresh: async (_userId, newTokenData) => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8')
 				},
-				
+
 			);
 			authProviderHypeTrain.addUser(this._userId, tokenDataHypeTrain);
 			// Twitch API
