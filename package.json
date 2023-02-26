@@ -15,10 +15,10 @@
   },
   "homepage": "https://github.com/jumoog/HypetrainDiscordBot#readme",
   "dependencies": {
-    "@twurple/api": "^6.0.4",
-    "@twurple/auth": "^6.0.4",
-    "@twurple/common": "^6.0.4",
-    "@twurple/eventsub-ws": "^6.0.4",
+    "@twurple/api": "^6.0.5",
+    "@twurple/auth": "^6.0.5",
+    "@twurple/common": "^6.0.5",
+    "@twurple/eventsub-ws": "^6.0.5",
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
     "p-queue": "^7.3.4",
@@ -26,7 +26,7 @@
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
-    "@types/node": "^18.14.1",
+    "@types/node": "^18.14.2",
     "@types/signale": "^1.4.4"
   }
 }
