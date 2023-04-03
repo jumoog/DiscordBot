@@ -216,7 +216,7 @@ class Bot {
 				(channel) => (channel as TextChannel).name === room,
 			) as TextChannel;
 			// check send Message permission
-			if (channel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
+			if (channel.permissionsFor(this._discordClient.user!)?.has(PermissionsBitField.Flags.SendMessages)) {
 				if (room === this._debugRoomName) {
 					await channel.send(message);
 				} else {
