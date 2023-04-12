@@ -77,7 +77,6 @@ class Bot {
 			this._hypeTrainRoom = this.getChannel(process.env.ROOMNAME || '🚀┃hypetrain');
 			this._debugRoom = this.getChannel(process.env.DEBUGROOMNAME || 'debug_prod');
 			this._shoutOut = this.getChannel(process.env.SHOUTOUTROOMNAME || 'shoutout');
-			this.testPermission(this._shoutOut);
 			this.sendDebugMessage(`Ready! Logged in as ${c.user.tag}`);
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
 			if (!this._simulation) {
@@ -93,7 +92,7 @@ class Bot {
 			});
 
 			this._onlineTimer.on('done', () => {
-				this.sendDebugMessage(`5 minutes waiting time over! annabelstopit is online!`);
+				this.sendMessage(`@everyone Λ N N Λ B E L is live now\nhttps://www.twitch.tv/annabelstopit`, this._shoutOut);
 			});
 		});
 		// login
