@@ -20,11 +20,11 @@ process.on('unhandledRejection', (reason, p) => {
 });
 class Bot {
     _userId;
-    _roomName;
+    _hypeTrainRoom;
     _clientId;
     _clientSecret;
     _discordToken;
-    _debugRoomName;
+    _debugRoom;
     _currentCoolDownTimer;
     _currentCoolDown;
     _discordClient;
@@ -35,13 +35,15 @@ class Bot {
     _simulation;
     _onlineTimer;
     _lastMessage;
+    _shoutOut;
     constructor() {
         this._userId = process.env.USERID || 631529415;
-        this._roomName = process.env.ROOMNAME || '';
+        this._hypeTrainRoom = this.getChannel(process.env.ROOMNAME || '🚀┃hypetrain');
+        this._debugRoom = this.getChannel(process.env.DEBUGROOMNAME || 'debug_prod');
+        this._shoutOut = this.getChannel(process.env.SHOUTOUTROOMNAME || 'shoutout');
         this._clientId = process.env.CLIENTID || '';
         this._clientSecret = process.env.CLIENTSECRET || '';
         this._discordToken = process.env.DISCORDTOKEN || '';
-        this._debugRoomName = process.env.DEBUGROOMNAME || 'debug';
         this._currentCoolDownTimer = new Timer();
         this._currentCoolDown = 0;
         this._discordClient = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
@@ -158,15 +160,17 @@ class Bot {
             await sleep(1000000);
         }
     }
-    async sendMessage(message, room = this._roomName) {
+    getChannel(room) {
+        return this._discordClient.channels.cache.find((channel) => channel.name === room);
+    }
+    async sendMessage(message, room = this._hypeTrainRoom) {
         if (this._discordClient.isReady()) {
-            const channel = this._discordClient.channels.cache.find((channel) => channel.name === room);
-            if (channel.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
-                if (room === this._debugRoomName) {
-                    await channel.send(message);
+            if (room.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
+                if (room === this._debugRoom) {
+                    await room.send(message);
                 }
                 else {
-                    this._lastMessage = await channel.send(message);
+                    this._lastMessage = await room.send(message);
                 }
             }
             else {
@@ -176,7 +180,7 @@ class Bot {
         await sleep(750);
     }
     async sendDebugMessage(message) {
-        await this.sendMessage(message, this._debugRoomName);
+        await this.sendMessage(message, this._debugRoom);
     }
     timeInSeconds(date = this._currentCoolDown) {
         return Math.floor(date / 1000);

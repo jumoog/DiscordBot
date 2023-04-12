@@ -30,11 +30,11 @@ process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
  */
 class Bot {
 	_userId: number | string;
-	_roomName: string;
+	_hypeTrainRoom: TextChannel;
 	_clientId: string;
 	_clientSecret: string;
 	_discordToken: string;
-	_debugRoomName: string;
+	_debugRoom: TextChannel;
 	_currentCoolDownTimer: Timer;
 	_currentCoolDown: number;
 	_discordClient;
@@ -45,13 +45,15 @@ class Bot {
 	_simulation;
 	_onlineTimer;
 	_lastMessage: Message;
+	_shoutOut: TextChannel;
 	constructor() {
 		this._userId = process.env.USERID || 631529415; // annabelstopit
-		this._roomName = process.env.ROOMNAME || '';
+		this._hypeTrainRoom = this.getChannel(process.env.ROOMNAME || '🚀┃hypetrain');
+		this._debugRoom = this.getChannel(process.env.DEBUGROOMNAME || 'debug_prod');
+		this._shoutOut = this.getChannel(process.env.SHOUTOUTROOMNAME || 'shoutout');
 		this._clientId = process.env.CLIENTID || '';
 		this._clientSecret = process.env.CLIENTSECRET || '';
 		this._discordToken = process.env.DISCORDTOKEN || '';
-		this._debugRoomName = process.env.DEBUGROOMNAME || 'debug';
 		this._currentCoolDownTimer = new Timer();
 		this._currentCoolDown = 0;
 		this._discordClient = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
@@ -205,22 +207,24 @@ class Bot {
 		}
 	}
 
+	getChannel(room: string) {
+		return this._discordClient.channels.cache.find(
+			(channel) => (channel as TextChannel).name === room,
+		) as TextChannel;
+	}
+
 	/**
 	 * helper function to send normal text messages
 	 */
-	async sendMessage(message: string, room = this._roomName) {
+	async sendMessage(message: string, room = this._hypeTrainRoom) {
 		// check if client is connected
 		if (this._discordClient.isReady()) {
-			// search right channel
-			const channel = this._discordClient.channels.cache.find(
-				(channel) => (channel as TextChannel).name === room,
-			) as TextChannel;
 			// check send Message permission
-			if (channel.permissionsFor(this._discordClient.user!)?.has(PermissionsBitField.Flags.SendMessages)) {
-				if (room === this._debugRoomName) {
-					await channel.send(message);
+			if (room.permissionsFor(this._discordClient.user!)?.has(PermissionsBitField.Flags.SendMessages)) {
+				if (room === this._debugRoom) {
+					await room.send(message);
 				} else {
-					this._lastMessage = await channel.send(message);
+					this._lastMessage = await room.send(message);
 				}
 			} else {
 				signale.error(`Help! i can't post in this room`);
@@ -233,7 +237,7 @@ class Bot {
 	 * helper function to send debug text messages
 	 */
 	async sendDebugMessage(message: string) {
-		await this.sendMessage(message, this._debugRoomName);
+		await this.sendMessage(message, this._debugRoom);
 	}
 
 	/**
