@@ -77,6 +77,7 @@ class Bot {
 			this._hypeTrainRoom = this.getChannel(process.env.ROOMNAME || '🚀┃hypetrain');
 			this._debugRoom = this.getChannel(process.env.DEBUGROOMNAME || 'debug_prod');
 			this._shoutOut = this.getChannel(process.env.SHOUTOUTROOMNAME || 'shoutout');
+			this.testPermission(this._shoutOut);
 			this.sendDebugMessage(`Ready! Logged in as ${c.user.tag}`);
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
 			if (!this._simulation) {
@@ -234,6 +235,18 @@ class Bot {
 			}
 		}
 		await sleep(750);
+	}
+
+	async testPermission(room: TextChannel) {
+		if (this._discordClient.isReady()) {
+			// check send Message permission
+			if (room?.permissionsFor(this._discordClient.user!)?.has(PermissionsBitField.Flags.SendMessages)) {
+				this.sendDebugMessage(`I can post in <${room.name}>`);
+			} else {
+				this.sendDebugMessage(`Help! i can't post in <${room.name}>`);
+			}
+			await sleep(750);
+		}
 	}
 
 	/**
