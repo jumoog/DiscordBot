@@ -30,11 +30,11 @@ process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
  */
 class Bot {
 	_userId: number | string;
-	_hypeTrainRoom: TextChannel;
+	_hypeTrainRoom: TextChannel | undefined;
 	_clientId: string;
 	_clientSecret: string;
 	_discordToken: string;
-	_debugRoom: TextChannel;
+	_debugRoom: TextChannel | undefined;
 	_currentCoolDownTimer: Timer;
 	_currentCoolDown: number;
 	_discordClient;
@@ -45,12 +45,12 @@ class Bot {
 	_simulation;
 	_onlineTimer;
 	_lastMessage: Message;
-	_shoutOut: TextChannel;
+	_shoutOut: TextChannel | undefined;
 	constructor() {
 		this._userId = process.env.USERID || 631529415; // annabelstopit
-		this._hypeTrainRoom = this.getChannel(process.env.ROOMNAME || '🚀┃hypetrain');
-		this._debugRoom = this.getChannel(process.env.DEBUGROOMNAME || 'debug_prod');
-		this._shoutOut = this.getChannel(process.env.SHOUTOUTROOMNAME || 'shoutout');
+		this._hypeTrainRoom = undefined;
+		this._debugRoom = undefined;
+		this._shoutOut = undefined;
 		this._clientId = process.env.CLIENTID || '';
 		this._clientSecret = process.env.CLIENTSECRET || '';
 		this._discordToken = process.env.DISCORDTOKEN || '';
@@ -74,6 +74,9 @@ class Bot {
 		}
 		// discord client
 		this._discordClient.once(Events.ClientReady, c => {
+			this._hypeTrainRoom = this.getChannel(process.env.ROOMNAME || '🚀┃hypetrain');
+			this._debugRoom = this.getChannel(process.env.DEBUGROOMNAME || 'debug_prod');
+			this._shoutOut = this.getChannel(process.env.SHOUTOUTROOMNAME || 'shoutout');
 			this.sendDebugMessage(`Ready! Logged in as ${c.user.tag}`);
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
 			if (!this._simulation) {
@@ -220,7 +223,7 @@ class Bot {
 		// check if client is connected
 		if (this._discordClient.isReady()) {
 			// check send Message permission
-			if (room.permissionsFor(this._discordClient.user!)?.has(PermissionsBitField.Flags.SendMessages)) {
+			if (room?.permissionsFor(this._discordClient.user!)?.has(PermissionsBitField.Flags.SendMessages)) {
 				if (room === this._debugRoom) {
 					await room.send(message);
 				} else {

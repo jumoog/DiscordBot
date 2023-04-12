@@ -38,9 +38,9 @@ class Bot {
     _shoutOut;
     constructor() {
         this._userId = process.env.USERID || 631529415;
-        this._hypeTrainRoom = this.getChannel(process.env.ROOMNAME || '🚀┃hypetrain');
-        this._debugRoom = this.getChannel(process.env.DEBUGROOMNAME || 'debug_prod');
-        this._shoutOut = this.getChannel(process.env.SHOUTOUTROOMNAME || 'shoutout');
+        this._hypeTrainRoom = undefined;
+        this._debugRoom = undefined;
+        this._shoutOut = undefined;
         this._clientId = process.env.CLIENTID || '';
         this._clientSecret = process.env.CLIENTSECRET || '';
         this._discordToken = process.env.DISCORDTOKEN || '';
@@ -61,6 +61,9 @@ class Bot {
             this._simulation = true;
         }
         this._discordClient.once(Events.ClientReady, c => {
+            this._hypeTrainRoom = this.getChannel(process.env.ROOMNAME || '🚀┃hypetrain');
+            this._debugRoom = this.getChannel(process.env.DEBUGROOMNAME || 'debug_prod');
+            this._shoutOut = this.getChannel(process.env.SHOUTOUTROOMNAME || 'shoutout');
             this.sendDebugMessage(`Ready! Logged in as ${c.user.tag}`);
             signale.success(`Ready! Logged in as ${c.user.tag}`);
             if (!this._simulation) {
@@ -165,7 +168,7 @@ class Bot {
     }
     async sendMessage(message, room = this._hypeTrainRoom) {
         if (this._discordClient.isReady()) {
-            if (room.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
+            if (room?.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
                 if (room === this._debugRoom) {
                     await room.send(message);
                 }
