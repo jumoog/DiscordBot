@@ -1,4 +1,4 @@
-FROM node:19.9.0-bullseye-slim
+FROM node:20.0.0-bullseye-slim
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /HypetrainDiscordBot
 COPY . .
