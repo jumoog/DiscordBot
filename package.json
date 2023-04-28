@@ -26,7 +26,7 @@
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
-    "@types/node": "^18.16.1",
+    "@types/node": "^18.16.2",
     "@types/signale": "^1.4.4"
   }
 }
