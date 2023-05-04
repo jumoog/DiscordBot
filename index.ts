@@ -121,8 +121,13 @@ class Bot {
 
 			);
 			authProviderHypeTrain.addUser(this._userId, tokenDataHypeTrain);
+			let debugLevel = process.env.TWURPLEDEBUG || 'warning';
 			// Twitch API
-			const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
+			const apiClient = new ApiClient({
+				authProvider: authProviderHypeTrain, logger: {
+					minLevel: debugLevel
+				}
+			});
 
 			// query Twitch API for last hype train
 			const { data: events } = await apiClient.hypeTrain.getHypeTrainEventsForBroadcaster(this._userId);
@@ -147,6 +152,10 @@ class Bot {
 			const twitchListener = new EventSubWsListener({ apiClient });
 			twitchListener.start();
 
+			twitchListener.onUserSocketDisconnect(async (_, err) => {
+
+				err?.name
+			});
 			try {
 				// https://twurple.js.org/reference/eventsub-ws/classes/EventSubWsListener.html#subscribeToChannelHypeTrainEndEvents
 				twitchListener.onChannelHypeTrainEnd(Number(this._userId), e => {
