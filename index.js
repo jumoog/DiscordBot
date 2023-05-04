@@ -92,12 +92,7 @@ class Bot {
                 onRefresh: async (_userId, newTokenData) => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8')
             });
             authProviderHypeTrain.addUser(this._userId, tokenDataHypeTrain);
-            let debugLevel = process.env.TWURPLEDEBUG || 'warning';
-            const apiClient = new ApiClient({
-                authProvider: authProviderHypeTrain, logger: {
-                    minLevel: debugLevel
-                }
-            });
+            const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
             const { data: events } = await apiClient.hypeTrain.getHypeTrainEventsForBroadcaster(this._userId);
             events.forEach(hypeTrainEvent => {
                 signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypeTrainEvent), null, 4));
@@ -117,9 +112,6 @@ class Bot {
             });
             const twitchListener = new EventSubWsListener({ apiClient });
             twitchListener.start();
-            twitchListener.onUserSocketDisconnect(async (_, err) => {
-                err?.name;
-            });
             try {
                 twitchListener.onChannelHypeTrainEnd(Number(this._userId), e => {
                     this.hypeTrainEndEventsHandler(e);
