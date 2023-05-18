@@ -29,23 +29,24 @@ process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
  * Bot class
  */
 class Bot {
-	_userId: number | string;
-	_hypeTrainRoom: TextChannel | undefined;
-	_clientId: string;
-	_clientSecret: string;
-	_discordToken: string;
-	_debugRoom: TextChannel | undefined;
-	_currentCoolDownTimer: Timer;
-	_currentCoolDown: number;
-	_discordClient;
-	_timerLeft;
-	_tokenPath;
-	_level;
-	_total;
-	_simulation;
-	_onlineTimer;
-	_lastMessage: Message;
-	_shoutOut: TextChannel | undefined;
+	private _userId: number | string;
+	private _hypeTrainRoom: TextChannel | undefined;
+	private _clientId: string;
+	private _clientSecret: string;
+	private _discordToken: string;
+	private _debugRoom: TextChannel | undefined;
+	private _currentCoolDownTimer: Timer;
+	private _currentCoolDown: number;
+	private _discordClient;
+	private _timerLeft;
+	private _tokenPath;
+	private _level;
+	private _total;
+	private _simulation;
+	private _onlineTimer: Timer;
+	private _lastMessage: Message | undefined;
+	private _shoutOut: TextChannel | undefined;
+	private _streamStartTimer: Timer;
 	constructor() {
 		this._userId = process.env.USERID || 631529415; // annabelstopit
 		this._hypeTrainRoom = undefined;
@@ -63,8 +64,8 @@ class Bot {
 		this._total = 0;
 		this._simulation = false;
 		this._onlineTimer = new Timer();
-		//@ts-ignore
-		this._lastMessage = {};
+		this._streamStartTimer = new Timer();
+		this._lastMessage = undefined;
 	}
 
 	async main() {
@@ -92,7 +93,12 @@ class Bot {
 			});
 
 			this._onlineTimer.on('done', () => {
-				this.sendMessage(`@everyone Λ N N Λ B E L is live now\nhttps://www.twitch.tv/annabelstopit`, this._shoutOut);
+				// only do a shoutout at start or every 30 mins
+				if (this._streamStartTimer.status === 'stopped') {
+					this.sendMessage(`@everyone Λ N N Λ B E L is live now\nhttps://www.twitch.tv/annabelstopit`, this._shoutOut);
+					// start 30 min timer
+					this._streamStartTimer.start(1_800_000);
+				}
 			});
 		});
 		// login
@@ -102,7 +108,7 @@ class Bot {
 	/***
 	 * starts the Twitch Bots
 	 */
-	async startTwitch() {
+	private async startTwitch() {
 		// check if it runs in Docker or local
 		// /tokens/tokens.json is the location in Docker
 
@@ -201,7 +207,7 @@ class Bot {
 		}
 	}
 
-	async startHypeTrainSimulation() {
+	private async startHypeTrainSimulation() {
 		const hypes: any[] = JSON.parse(fs.readFileSync(`./10_01_2023.json`, 'utf-8'));
 		while (true) {
 			for (let index = 0; index < hypes.length; index++) {
@@ -226,7 +232,7 @@ class Bot {
 		}
 	}
 
-	getChannel(room: string) {
+	private getChannel(room: string) {
 		return this._discordClient.channels.cache.find(
 			(channel) => (channel as TextChannel).name === room,
 		) as TextChannel;
@@ -235,7 +241,7 @@ class Bot {
 	/**
 	 * helper function to send normal text messages
 	 */
-	async sendMessage(message: string, room = this._hypeTrainRoom) {
+	private async sendMessage(message: string, room = this._hypeTrainRoom) {
 		// check if client is connected
 		if (this._discordClient.isReady()) {
 			// check send Message permission
@@ -252,7 +258,7 @@ class Bot {
 		await sleep(750);
 	}
 
-	async testPermission(room: TextChannel) {
+	private async testPermission(room: TextChannel) {
 		if (this._discordClient.isReady()) {
 			// check send Message permission
 			if (room?.permissionsFor(this._discordClient.user!)?.has(PermissionsBitField.Flags.SendMessages)) {
@@ -267,7 +273,7 @@ class Bot {
 	/**
 	 * helper function to send debug text messages
 	 */
-	async sendDebugMessage(message: string) {
+	private async sendDebugMessage(message: string) {
 		await this.sendMessage(message, this._debugRoom);
 	}
 
@@ -276,7 +282,7 @@ class Bot {
 	 * Convert to seconds to avoid 52961 years problem
 	 * @returns 
 	 */
-	timeInSeconds(date = this._currentCoolDown): number {
+	private timeInSeconds(date = this._currentCoolDown): number {
 		return Math.floor(date / 1_000);
 	}
 
@@ -284,7 +290,7 @@ class Bot {
 	 * handle hype train EndEvents (fake and real)
 	 * @param e 
 	 */
-	hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndEvent | mockup_EventSubChannelHypeTrainEndEvent) {
+	private hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndEvent | mockup_EventSubChannelHypeTrainEndEvent) {
 		signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
 		DiscordMessageQueue.add(() => this.sendMessage(`:checkered_flag: The hype train is over! We reached Level **${e.level}**!`));
 		// reset level
@@ -299,7 +305,7 @@ class Bot {
 	 * handle hype train BeginEvents (fake and real)
 	 * @param e 
 	 */
-	hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginEvent | mockup_EventSubChannelHypeTrainBeginEvent) {
+	private hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginEvent | mockup_EventSubChannelHypeTrainBeginEvent) {
 		signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
 		this._level = e.level;
 		DiscordMessageQueue.add(() => this.sendMessage(`:partying_face: A hype train has started at Level **${e.level}**!`));
@@ -309,7 +315,7 @@ class Bot {
 	 * handle hype train ProgressEvents (fake and real)
 	 * @param e 
 	 */
-	hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressEvent | mockup_EventSubChannelHypeTrainProgressEvent) {
+	private hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressEvent | mockup_EventSubChannelHypeTrainProgressEvent) {
 		// filter duplicates out
 		if (this._total !== e.total) {
 			this._total = e.total;
@@ -342,7 +348,7 @@ class Bot {
 	 * handle Stream OnlineEvents (fake and real)
 	 * @param e 
 	 */
-	StreamOnlineEventsHandler(e: EventSubStreamOnlineEvent | mockup_EventSubStreamOnlineEvent) {
+	private StreamOnlineEventsHandler(e: EventSubStreamOnlineEvent | mockup_EventSubStreamOnlineEvent) {
 		signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
 		this._onlineTimer.start(300_000);
 		DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} went online!`));
@@ -352,7 +358,7 @@ class Bot {
 	 * handle Stream OfflineEvents (fake and real)
 	 * @param e 
 	 */
-	StreamOfflineEventsHandler(e: EventSubStreamOfflineEvent | mockup_EventSubStreamOfflineEvent) {
+	private StreamOfflineEventsHandler(e: EventSubStreamOfflineEvent | mockup_EventSubStreamOfflineEvent) {
 		signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
 		this._onlineTimer.stop();
 		DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} went offline!`));
@@ -361,7 +367,7 @@ class Bot {
 	/**
 	 * handle Channel UpdateEvents
 	 */
-	ChannelUpdateEvents(e: EventSubChannelUpdateEvent) {
+	private ChannelUpdateEvents(e: EventSubChannelUpdateEvent) {
 		signale.debug('ChannelUpdateEvents', JSON.stringify(getRawData(e), null, 4));
 		DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} changed title to <${e.streamTitle}> and category to <${e.categoryName}>`));
 	}
@@ -369,7 +375,7 @@ class Bot {
 	/**
 	 * set cool down stop watch
 	 */
-	setCoolDownEndDate(coolDownEndDate: Date) {
+	private setCoolDownEndDate(coolDownEndDate: Date) {
 		this._currentCoolDown = coolDownEndDate.getTime();
 		this._timerLeft = this._currentCoolDown - Date.now();
 		// stop timer just to be sure
@@ -385,9 +391,9 @@ class Bot {
 	/**
 	 * delete last send message
 	 */
-	deleteLastMessage() {
+	private deleteLastMessage() {
 		if (this._discordClient.isReady()) {
-			this._lastMessage.delete();
+			this._lastMessage?.delete();
 		}
 	}
 }

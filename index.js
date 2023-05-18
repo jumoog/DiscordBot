@@ -36,6 +36,7 @@ class Bot {
     _onlineTimer;
     _lastMessage;
     _shoutOut;
+    _streamStartTimer;
     constructor() {
         this._userId = process.env.USERID || 631529415;
         this._hypeTrainRoom = undefined;
@@ -53,7 +54,8 @@ class Bot {
         this._total = 0;
         this._simulation = false;
         this._onlineTimer = new Timer();
-        this._lastMessage = {};
+        this._streamStartTimer = new Timer();
+        this._lastMessage = undefined;
     }
     async main() {
         this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json';
@@ -77,7 +79,10 @@ class Bot {
                 this.sendMessage(`:index_pointing_at_the_viewer: The next hype train is ready!`);
             });
             this._onlineTimer.on('done', () => {
-                this.sendMessage(`@everyone Λ N N Λ B E L is live now\nhttps://www.twitch.tv/annabelstopit`, this._shoutOut);
+                if (this._streamStartTimer.status === 'stopped') {
+                    this.sendMessage(`@everyone Λ N N Λ B E L is live now\nhttps://www.twitch.tv/annabelstopit`, this._shoutOut);
+                    this._streamStartTimer.start(1800000);
+                }
             });
         });
         this._discordClient.login(this._discordToken);
@@ -267,7 +272,7 @@ class Bot {
     }
     deleteLastMessage() {
         if (this._discordClient.isReady()) {
-            this._lastMessage.delete();
+            this._lastMessage?.delete();
         }
     }
 }
