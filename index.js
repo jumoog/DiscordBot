@@ -131,6 +131,18 @@ class Bot {
                 twitchListener.onChannelUpdate(Number(this._userId), e => {
                     this.ChannelUpdateEvents(e);
                 });
+                process.on('SIGINT', async () => {
+                    signale.success('shutting down!');
+                    await this.sendDebugMessage('shutting down!');
+                    twitchListener.stop();
+                    process.exit(0);
+                });
+                process.on('SIGTERM', async () => {
+                    signale.success('shutting down!');
+                    await this.sendDebugMessage('shutting down!');
+                    twitchListener.stop();
+                    process.exit(0);
+                });
             }
             catch (e) {
                 twitchListener.stop();

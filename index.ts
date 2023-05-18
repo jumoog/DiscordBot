@@ -177,6 +177,22 @@ class Bot {
 					this.ChannelUpdateEvents(e);
 
 				});
+				// tell Twitch that we no longer listen
+				// otherwise it will try to send events to a down app
+				// normal CTRL + C
+				process.on('SIGINT', async () => {
+					signale.success('shutting down!');
+					await this.sendDebugMessage('shutting down!');
+					twitchListener.stop();
+					process.exit(0);
+				});
+				// DOCKER
+				process.on('SIGTERM', async () => {
+					signale.success('shutting down!');
+					await this.sendDebugMessage('shutting down!');
+					twitchListener.stop();
+					process.exit(0);
+				});
 			} catch (e) {
 				twitchListener.stop();
 				signale.fatal('Please reauthorize your broadcaster account to include all necessary scopes!');
