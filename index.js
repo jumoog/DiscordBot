@@ -251,7 +251,7 @@ class Bot {
     }
     StreamOnlineEventsHandler(e) {
         signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
-        this._onlineTimer.start(300000);
+        this._onlineTimer.start(120000);
         DiscordMessageQueue.add(() => this.sendDebugMessage(`${e.broadcasterDisplayName} went online!`));
     }
     StreamOfflineEventsHandler(e) {
