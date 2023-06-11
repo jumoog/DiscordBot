@@ -122,11 +122,14 @@ class Bot {
 				{
 					clientId: this._clientId,
 					clientSecret: this._clientSecret,
-					onRefresh: async (_userId, newTokenData) => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8')
 				},
-
 			);
 			authProviderHypeTrain.addUser(this._userId, tokenDataHypeTrain);
+			authProviderHypeTrain.onRefresh((_userId, newTokenData) => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8'));
+			authProviderHypeTrain.onRefreshFailure(_userId => {
+				this.sendDebugMessage(`user token refresh failed!`);
+				signale.fatal(`user token refresh failed!`);
+			})
 			// Twitch API
 			const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
 
