@@ -20,7 +20,7 @@
     "@twurple/common": "^7.0.0-pre.3",
     "@twurple/eventsub-ws": "^7.0.0-pre.3",
     "discord.js": "^14.11.0",
-    "dotenv": "^16.2.0",
+    "dotenv": "^16.3.1",
     "p-queue": "^7.3.4",
     "signale": "^1.4.0",
     "tiny-timer": "^1.6.0"
