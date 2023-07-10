@@ -5,7 +5,7 @@ import { EventSubWsListener } from '@twurple/eventsub-ws';
 import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
-import { Client, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
+import { AttachmentBuilder, Client, EmbedBuilder, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
 import { mockup_EventSubChannelHypeTrainBeginEvent, mockup_EventSubChannelHypeTrainEndEvent, mockup_EventSubChannelHypeTrainProgressEvent, mockup_EventSubStreamOfflineEvent, mockup_EventSubStreamOnlineEvent } from './mockup.js';
 import { getRawData } from '@twurple/common';
 import PQueue from 'p-queue';
@@ -36,12 +36,19 @@ class Bot {
     _onlineTimer;
     _lastMessage;
     _shoutOut;
+    _socials;
     _streamStartTimer;
+    _IgTokens;
+    _IgLastTimeStamp;
+    _IgAccessToken;
+    _IgCurrentUserId;
+    _IgCurrentUserName;
     constructor() {
         this._userId = process.env.USERID || 631529415;
         this._hypeTrainRoom = undefined;
         this._debugRoom = undefined;
         this._shoutOut = undefined;
+        this._socials = undefined;
         this._clientId = process.env.CLIENTID || '';
         this._clientSecret = process.env.CLIENTSECRET || '';
         this._discordToken = process.env.DISCORDTOKEN || '';
@@ -56,6 +63,11 @@ class Bot {
         this._onlineTimer = new Timer();
         this._streamStartTimer = new Timer();
         this._lastMessage = undefined;
+        this._IgTokens = JSON.parse(fs.readFileSync('/tokens/ig_token.json', 'utf8'));
+        this._IgLastTimeStamp = JSON.parse(fs.readFileSync('/tokens/lastTimeStamp.json', 'utf8')).timestamp;
+        this._IgAccessToken = this._IgTokens.accessToken;
+        this._IgCurrentUserId = 0;
+        this._IgCurrentUserName = "";
     }
     async main() {
         this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json';
@@ -66,10 +78,12 @@ class Bot {
             this._hypeTrainRoom = this.getChannel(process.env.ROOMNAME || '🚀┃hypetrain');
             this._debugRoom = this.getChannel(process.env.DEBUGROOMNAME || 'debug_prod');
             this._shoutOut = this.getChannel(process.env.SHOUTOUTROOMNAME || 'shoutout');
+            this._socials = this.getChannel(process.env.SOCIALSROOMNAME || '📸┃socials');
             this.sendDebugMessage(`Ready! Logged in as ${c.user.tag}`);
             signale.success(`Ready! Logged in as ${c.user.tag}`);
             if (!this._simulation) {
                 this.startTwitch();
+                this.startInstagram();
             }
             else {
                 this.startHypeTrainSimulation();
@@ -86,6 +100,11 @@ class Bot {
             });
         });
         this._discordClient.login(this._discordToken);
+    }
+    async startInstagram() {
+        await this.checkTokens();
+        await this.getUserId();
+        this.checkForNewPosts();
     }
     async startTwitch() {
         if (fs.existsSync(this._tokenPath)) {
@@ -278,6 +297,70 @@ class Bot {
         if (this._discordClient.isReady()) {
             this._lastMessage?.delete();
         }
+    }
+    async sendMessageIG(element) {
+        const url = this.hasProp(element, "thumbnail_url") ? element.thumbnail_url : element.media_url;
+        const blob = await fetch(url).then((r) => r.blob());
+        const arrayBuffer = await blob.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const file = new AttachmentBuilder(buffer, { name: 'preview.jpg' });
+        const embed = new EmbedBuilder()
+            .setTitle(element.permalink?.includes('/reel/') ? 'a new reel!' : 'a new post!')
+            .setURL(element.permalink)
+            .setDescription(this.hasProp(element, "caption") ? element.caption : null)
+            .setImage('attachment://preview.jpg')
+            .setColor("#D300C5")
+            .setFooter({
+            text: 'Instagram',
+        })
+            .setTimestamp();
+        this._socials?.send({ embeds: [embed], files: [file] });
+    }
+    hasProp(obj, prop) {
+        return Object.prototype.hasOwnProperty.call(obj, prop);
+    }
+    async checkForNewPosts() {
+        const epoch = new Date(this._IgLastTimeStamp).valueOf() / 1000;
+        const res = await fetch(`https://graph.instagram.com/${this._IgCurrentUserId}/media/?fields=id,media_type,caption,media_url,thumbnail_url,timestamp,permalink&access_token=${this._IgAccessToken}&since=${epoch}`);
+        const json = await res.json();
+        const data = json.data;
+        for (let index = 0; index < data.length; index++) {
+            this.sendMessageIG(data[index]);
+        }
+        if (data.length > 0) {
+            this.writeLastTimeStamp(data[0].timestamp);
+        }
+        signale.complete(this._IgLastTimeStamp, 'done');
+        setTimeout(() => this.checkForNewPosts(), 30 * 1000);
+    }
+    async writeLastTimeStamp(time) {
+        this._IgLastTimeStamp = time;
+        fs.writeFileSync('/tokens/lastTimeStamp.json', JSON.stringify({ timestamp: time }, null, 4));
+    }
+    async checkTokens() {
+        const now = Math.floor(Date.now() / 1000);
+        const res = await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${this._IgAccessToken}`);
+        const json = await res.json();
+        let numDays = Math.floor(json.expires_in / 60 / 60 / 24);
+        if (numDays <= 0) {
+            signale.info(`refresh token!`);
+            this._IgAccessToken = json.access_token;
+            const newFile = { accessToken: json.access_token, expiresIn: json.expires_in, obtainmentTimestamp: now };
+            fs.writeFileSync('/tokens/ig_token.json', JSON.stringify(newFile, null, 4));
+        }
+        else {
+            signale.info(`current token is still valid for <${numDays}> days`);
+            const newFile = { accessToken: this._IgAccessToken, expiresIn: json.expires_in, obtainmentTimestamp: now };
+            fs.writeFileSync('/tokens/ig_token.json', JSON.stringify(newFile, null, 4));
+        }
+        setTimeout(() => this.checkTokens(), 30 * 60 * 1000);
+    }
+    async getUserId() {
+        const res = await fetch(`https://graph.instagram.com/me/?access_token=${this._IgAccessToken}&fields=username,account_type`);
+        const json = await res.json();
+        signale.success(`username <${json.username}> id <${json.id}>`);
+        this._IgCurrentUserId = json.id;
+        this._IgCurrentUserName = json.username;
     }
 }
 const bot = new Bot();

@@ -105,3 +105,6 @@ dist
 
 # Twitch token
 tokens.json
+# IG
+lastTimeStamp.json
+ig_token.json
