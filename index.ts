@@ -485,7 +485,7 @@ class Bot {
 		const res = await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${this._IgAccessToken}`);
 		const json = await res.json();
 		let numDays = Math.floor(json.expires_in / 60 / 60 / 24);
-		if (numDays <= 0) {
+		if (numDays <= 2) {
 			signale.info(`refresh token!`)
 			this._IgAccessToken = json.access_token;
 			const newFile: InstagramToken = { accessToken: json.access_token, expiresIn: json.expires_in, obtainmentTimestamp: now }
