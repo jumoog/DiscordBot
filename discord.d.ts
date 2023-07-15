@@ -19,4 +19,5 @@ export declare class DiscordBot extends EventEmitter {
     deleteCoolDown(): void;
     sendIgPost(element: InstagramMediaItem): Promise<void>;
     private hasProp;
+    extractMentions(text: string): string;
 }

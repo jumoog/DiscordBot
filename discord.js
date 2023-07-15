@@ -77,7 +77,7 @@ export class DiscordBot extends EventEmitter {
             const embed = new EmbedBuilder()
                 .setTitle(element.permalink?.includes('/reel/') ? 'a new reel!' : 'a new post!')
                 .setURL(element.permalink)
-                .setDescription(this.hasProp(element, "caption") ? element.caption : null)
+                .setDescription(this.hasProp(element, "caption") ? this.extractMentions(element.caption) : null)
                 .setImage('attachment://preview.jpg')
                 .setColor("#D300C5")
                 .setFooter({
@@ -90,5 +90,12 @@ export class DiscordBot extends EventEmitter {
     }
     hasProp(obj, prop) {
         return Object.prototype.hasOwnProperty.call(obj, prop);
+    }
+    extractMentions(text) {
+        const resourceRegex = /@\w+/gm;
+        for (let match of text.matchAll(resourceRegex)) {
+            text = text.replace(match[0], `[${match[0]}](https://www.instagram.com/${match[0].slice(1)}/)`);
+        }
+        return text;
     }
 }

@@ -108,7 +108,7 @@ export class DiscordBot extends EventEmitter {
 	 * download Instagram Picture and create a Embed
 	 * @param element 
 	 */
-	async sendIgPost(element: InstagramMediaItem) {
+	async sendIgPost(element: InstagramMediaItem): Promise<void> {
 		if (this._discordClient.isReady()) {
 			const url = this.hasProp(element, "thumbnail_url") ? element.thumbnail_url : element.media_url
 			const blob = await fetch(url!).then((r) => r.blob());
@@ -118,7 +118,7 @@ export class DiscordBot extends EventEmitter {
 			const embed = new EmbedBuilder()
 				.setTitle(element.permalink?.includes('/reel/') ? 'a new reel!' : 'a new post!')
 				.setURL(element.permalink)
-				.setDescription(this.hasProp(element, "caption") ? element.caption! : null)
+				.setDescription(this.hasProp(element, "caption") ? this.extractMentions(element.caption!) : null)
 				.setImage('attachment://preview.jpg')
 				.setColor("#D300C5")
 				.setFooter({
@@ -132,5 +132,13 @@ export class DiscordBot extends EventEmitter {
 
 	private hasProp(obj: unknown, prop: string): boolean {
 		return Object.prototype.hasOwnProperty.call(obj, prop);
+	}
+
+	extractMentions(text: string): string {
+		const resourceRegex = /@\w+/gm
+		for (let match of text.matchAll(resourceRegex)) {
+			text = text.replace(match[0], `[${match[0]}](https://www.instagram.com/${match[0].slice(1)}/)`)
+		}
+		return text;
 	}
 }
