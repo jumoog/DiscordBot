@@ -9,6 +9,7 @@ export class Instagram extends EventEmitter {
     _IgCurrentUserName;
     _IgTokenPath;
     _IgLastTimeStampPath;
+    _IgLastIds;
     constructor() {
         super();
         this._IgTokenPath = fs.existsSync('/tokens/') ? '/tokens/ig_token.json' : './ig_token.json';
@@ -19,6 +20,7 @@ export class Instagram extends EventEmitter {
         this._IgCurrentUserId = 0;
         this._IgCurrentUserName = "";
         this._IgCurrentUserName = "";
+        this._IgLastIds = [];
     }
     async main() {
         if (fs.existsSync(this._IgTokenPath) && fs.existsSync(this._IgLastTimeStampPath)) {
@@ -36,12 +38,15 @@ export class Instagram extends EventEmitter {
         const res = await fetch(`https://graph.instagram.com/${this._IgCurrentUserId}/media/?fields=id,media_type,caption,media_url,thumbnail_url,timestamp,permalink&access_token=${this._IgAccessToken}&since=${epoch}`);
         const json = await res.json();
         const data = json.data;
-        for (let index = 0; index < data.length; index++) {
-            this.emit('message', data[index]);
-        }
         if (data.length > 0) {
             this._IgLastTimeStamp = data[0].timestamp;
             fs.writeFileSync(this._IgLastTimeStampPath, JSON.stringify({ timestamp: this._IgLastTimeStamp }, null, 4));
+        }
+        for (let index = 0; index < data.length; index++) {
+            if (!this._IgLastIds.includes(data[index].id)) {
+                this._IgLastIds.push(data[index].id);
+                this.emit('message', data[index]);
+            }
         }
         signale.complete(this._IgLastTimeStamp, 'done');
         setTimeout(() => this.checkForNewIgPosts(), 30 * 1000);
