@@ -75,7 +75,7 @@ export class DiscordBot extends EventEmitter {
             const buffer = Buffer.from(arrayBuffer);
             const file = new AttachmentBuilder(buffer, { name: 'preview.jpg' });
             const embed = new EmbedBuilder()
-                .setTitle(element.permalink?.includes('/reel/') ? 'a new reel!' : 'a new post!')
+                .setTitle(element.permalink?.includes('/reel/') ? 'Annabel shared a new reel!' : 'Annabel shared a new post!')
                 .setURL(element.permalink)
                 .setDescription(this.hasProp(element, "caption") ? this.extractMentions(element.caption) : null)
                 .setImage('attachment://preview.jpg')
@@ -93,6 +93,10 @@ export class DiscordBot extends EventEmitter {
     }
     extractMentions(text) {
         const resourceRegex = /@\w+/gm;
+        const maxChars = 100;
+        if (text.length > maxChars) {
+            text = text.slice(0, maxChars).split(' ').slice(0, -1).join(' ') + ' ...';
+        }
         for (let match of text.matchAll(resourceRegex)) {
             text = text.replace(match[0], `[${match[0]}](https://www.instagram.com/${match[0].slice(1)}/)`);
         }
