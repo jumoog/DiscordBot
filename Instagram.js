@@ -36,7 +36,7 @@ export class Instagram extends EventEmitter {
     async checkForNewIgPosts() {
         const epoch = new Date(this._IgLastTimeStamp).valueOf() / 1000;
         const res = await fetch(`https://graph.instagram.com/${this._IgCurrentUserId}/media/?fields=id,media_type,caption,media_url,thumbnail_url,timestamp,permalink&access_token=${this._IgAccessToken}&since=${epoch}`);
-        if (res.status === 200) {
+        if (res.ok) {
             const json = await res.json();
             const data = json.data;
             if (data.length > 0) {
@@ -60,7 +60,7 @@ export class Instagram extends EventEmitter {
     async checkIgToken() {
         const now = Math.floor(Date.now() / 1000);
         const res = await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${this._IgAccessToken}`);
-        if (res.status === 200) {
+        if (res.ok) {
             const json = await res.json();
             const numDays = Math.floor(json.expires_in / 60 / 60 / 24);
             if (numDays <= 2) {
