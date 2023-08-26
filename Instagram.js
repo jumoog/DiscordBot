@@ -43,24 +43,25 @@ export class Instagram extends EventEmitter {
             fs.writeFileSync(this._IgLastTimeStampPath, JSON.stringify({ timestamp: this._IgLastTimeStamp }, null, 4));
         }
         for (let index = 0; index < data.length; index++) {
+            signale.debug(JSON.stringify(data[index], null, 4));
             if (!this._IgLastIds.includes(data[index].id)) {
                 this._IgLastIds.push(data[index].id);
                 this.emit('message', data[index]);
             }
         }
-        signale.complete(this._IgLastTimeStamp, 'done');
+        signale.complete(`done! <${data.length}> new Posts <${this._IgLastTimeStamp}>`);
         setTimeout(() => this.checkForNewIgPosts(), 30 * 1000);
     }
     async checkIgToken() {
         const now = Math.floor(Date.now() / 1000);
         const res = await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${this._IgAccessToken}`);
         const json = await res.json();
-        let numDays = Math.floor(json.expires_in / 60 / 60 / 24);
+        const numDays = Math.floor(json.expires_in / 60 / 60 / 24);
         if (numDays <= 2) {
             signale.info(`refresh token!`);
             this._IgAccessToken = json.access_token;
         }
-        signale.info(`current token is still valid for <${numDays}> days`);
+        signale.info(`current token is still valid for <${this.formatTime(json.expires_in)}>`);
         const newFile = { accessToken: this._IgAccessToken, expiresIn: json.expires_in, obtainmentTimestamp: now };
         fs.writeFileSync(this._IgTokenPath, JSON.stringify(newFile, null, 4));
         setTimeout(() => this.checkIgToken(), 30 * 60 * 1000);
@@ -71,5 +72,13 @@ export class Instagram extends EventEmitter {
         this._IgCurrentUserId = json.id;
         this._IgCurrentUserName = json.username;
         signale.success(`Hello username <${this._IgCurrentUserName}> id <${this._IgCurrentUserId}>`);
+    }
+    formatTime(time) {
+        let days = time / (24 * 60 * 60);
+        let hours = (days % 1) * 24;
+        let minutes = (hours % 1) * 60;
+        let secs = (minutes % 1) * 60;
+        [days, hours, minutes, secs] = [Math.floor(days), Math.floor(hours), Math.floor(minutes), Math.floor(secs)];
+        return `${days}d ${hours}h ${minutes}m ${secs}s`;
     }
 }

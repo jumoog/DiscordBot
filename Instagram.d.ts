@@ -27,4 +27,5 @@ export declare class Instagram extends EventEmitter {
     private checkForNewIgPosts;
     private checkIgToken;
     private getIgUseId;
+    private formatTime;
 }
