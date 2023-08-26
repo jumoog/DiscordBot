@@ -61,23 +61,27 @@ export class Instagram extends EventEmitter {
 		// use the last post time stamp as parameter
 		const epoch = new Date(this._IgLastTimeStamp).valueOf() / 1000;
 		const res = await fetch(`https://graph.instagram.com/${this._IgCurrentUserId}/media/?fields=id,media_type,caption,media_url,thumbnail_url,timestamp,permalink&access_token=${this._IgAccessToken}&since=${epoch}`);
-		const json = await res.json();
-		// extract data
-		const data: InstagramMediaItem[] = json.data;
-		// set last timestamp
-		if (data.length > 0) {
-			this._IgLastTimeStamp = data[0].timestamp;
-			fs.writeFileSync(this._IgLastTimeStampPath, JSON.stringify({ timestamp: this._IgLastTimeStamp }, null, 4));
-		}
-		for (let index = 0; index < data.length; index++) {
-			signale.debug(JSON.stringify(data[index], null, 4));
-			// check if ID already exists
-			if (!this._IgLastIds.includes(data[index].id)) {
-				this._IgLastIds.push(data[index].id);
-				this.emit('message', data[index]);
+		if (res.status === 200) {
+			const json = await res.json();
+			// extract data
+			const data: InstagramMediaItem[] = json.data;
+			// set last timestamp
+			if (data.length > 0) {
+				this._IgLastTimeStamp = data[0].timestamp;
+				fs.writeFileSync(this._IgLastTimeStampPath, JSON.stringify({ timestamp: this._IgLastTimeStamp }, null, 4));
 			}
+			for (let index = 0; index < data.length; index++) {
+				signale.debug(JSON.stringify(data[index], null, 4));
+				// check if ID already exists
+				if (!this._IgLastIds.includes(data[index].id)) {
+					this._IgLastIds.push(data[index].id);
+					this.emit('message', data[index]);
+				}
+			}
+			signale.complete(`done! <${data.length}> new Posts <${this._IgLastTimeStamp}>`);
+		} else {
+			signale.fatal(`status <${res.status}> statusText: <${res.statusText}>`);
 		}
-		signale.complete(`done! <${data.length}> new Posts <${this._IgLastTimeStamp}>`);
 		// retrigger every 30 seconds
 		setTimeout(() => this.checkForNewIgPosts(), 30 * 1000);
 	}
@@ -88,15 +92,19 @@ export class Instagram extends EventEmitter {
 	private async checkIgToken() {
 		const now = Math.floor(Date.now() / 1000);
 		const res = await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${this._IgAccessToken}`);
-		const json = await res.json();
-		const numDays = Math.floor(json.expires_in / 60 / 60 / 24);
-		if (numDays <= 2) {
-			signale.info(`refresh token!`)
-			this._IgAccessToken = json.access_token;
+		if (res.status === 200) {
+			const json = await res.json();
+			const numDays = Math.floor(json.expires_in / 60 / 60 / 24);
+			if (numDays <= 2) {
+				signale.info(`refresh token!`)
+				this._IgAccessToken = json.access_token;
+			}
+			signale.info(`current token is still valid for <${this.formatTime(json.expires_in)}>`)
+			const newFile: InstagramToken = { accessToken: this._IgAccessToken, expiresIn: json.expires_in, obtainmentTimestamp: now }
+			fs.writeFileSync(this._IgTokenPath, JSON.stringify(newFile, null, 4));
+		} else {
+			signale.fatal(`status <${res.status}> statusText: <${res.statusText}>`);
 		}
-		signale.info(`current token is still valid for <${this.formatTime(json.expires_in)}>`)
-		const newFile: InstagramToken = { accessToken: this._IgAccessToken, expiresIn: json.expires_in, obtainmentTimestamp: now }
-		fs.writeFileSync(this._IgTokenPath, JSON.stringify(newFile, null, 4));
 		// check every 30 minutes
 		setTimeout(() => this.checkIgToken(), 30 * 60 * 1000);
 	}
