@@ -10,7 +10,7 @@ export interface InstagramMediaItem {
 }
 export interface InstagramToken {
     accessToken: string;
-    expiresIn: number;
+    expiresOn: number;
     obtainmentTimestamp: number;
 }
 export declare class Instagram extends EventEmitter {

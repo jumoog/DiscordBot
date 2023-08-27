@@ -59,21 +59,23 @@ export class Instagram extends EventEmitter {
     }
     async checkIgToken() {
         const now = Math.floor(Date.now() / 1000);
-        const res = await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${this._IgAccessToken}`);
-        if (res.ok) {
-            const json = await res.json();
-            const numDays = Math.floor(json.expires_in / 60 / 60 / 24);
-            if (numDays <= 2) {
+        let expiresIn = this._IgToken.expiresOn - now;
+        const numDays = expiresIn / 60 / 60 / 24;
+        if (numDays <= 2) {
+            const res = await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${this._IgAccessToken}`);
+            if (res.ok) {
+                const json = await res.json();
+                const expiresOn = Math.floor(Date.now() / 1000) + json.expires_in - 60;
                 signale.info(`refresh token!`);
                 this._IgAccessToken = json.access_token;
+                this._IgToken = { accessToken: this._IgAccessToken, expiresOn, obtainmentTimestamp: now };
+                fs.writeFileSync(this._IgTokenPath, JSON.stringify(this._IgToken, null, 4));
             }
-            signale.info(`current token is still valid for <${this.formatTime(json.expires_in)}>`);
-            const newFile = { accessToken: this._IgAccessToken, expiresIn: json.expires_in, obtainmentTimestamp: now };
-            fs.writeFileSync(this._IgTokenPath, JSON.stringify(newFile, null, 4));
+            else {
+                signale.fatal(`status <${res.status}> statusText: <${res.statusText}>`);
+            }
         }
-        else {
-            signale.fatal(`status <${res.status}> statusText: <${res.statusText}>`);
-        }
+        signale.info(`current token is still valid for <${this.formatTime(expiresIn)}>`);
         setTimeout(() => this.checkIgToken(), 30 * 60 * 1000);
     }
     async getIgUseId() {
