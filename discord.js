@@ -92,7 +92,7 @@ export class DiscordBot extends EventEmitter {
         return Object.prototype.hasOwnProperty.call(obj, prop);
     }
     extractMentions(text) {
-        const resourceRegex = /@\w+/gm;
+        const resourceRegex = /\@(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}/gm;
         const maxChars = 100;
         if (text.length > maxChars) {
             text = text.slice(0, maxChars).split(' ').slice(0, -1).join(' ') + ' ...';
