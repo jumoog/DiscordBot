@@ -52,7 +52,7 @@ export class Instagram extends EventEmitter {
 				this.checkForNewIgPosts();
 			} else {
 				signale.fatal(`user id is 0`);
-				process.exit();
+				process.exit(1);
 			}
 		} else {
 			signale.fatal(`can't find ig_token.json or lastTimeStamp.json!`);

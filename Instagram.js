@@ -32,7 +32,7 @@ export class Instagram extends EventEmitter {
             }
             else {
                 signale.fatal(`user id is 0`);
-                this.checkForNewIgPosts();
+                process.exit(1);
             }
         }
         else {
