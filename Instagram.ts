@@ -26,7 +26,6 @@ export class Instagram extends EventEmitter {
 	private _IgCurrentUserName: string;
 	private _IgTokenPath: string;
 	private _IgLastTimeStampPath: string;
-	private _IgLastIds: string[];
 	constructor() {
 		super()
 		this._IgTokenPath = fs.existsSync('/tokens/') ? '/tokens/ig_token.json' : './ig_token.json'
@@ -37,7 +36,6 @@ export class Instagram extends EventEmitter {
 		this._IgCurrentUserId = 0;
 		this._IgCurrentUserName = "";
 		this._IgCurrentUserName = "";
-		this._IgLastIds = [];
 	}
 
 	/**
@@ -78,11 +76,7 @@ export class Instagram extends EventEmitter {
 					}
 					for (let index = 0; index < data.length; index++) {
 						signale.debug(JSON.stringify(data[index], null, 4));
-						// check if ID already exists
-						if (!this._IgLastIds.includes(data[index].id)) {
-							this._IgLastIds.push(data[index].id);
-							this.emit('message', data[index]);
-						}
+						this.emit('message', data[index]);
 					}
 					signale.complete(`done! <${data.length}> new Posts <${this._IgLastTimeStamp}>`);
 				} else {
@@ -90,6 +84,7 @@ export class Instagram extends EventEmitter {
 				}
 			})
 			.catch((error) => signale.fatal(`checkForNewIgPosts: ${error}`));
+
 		// retrigger every 30 seconds
 		setTimeout(() => this.checkForNewIgPosts(), 30 * 1000);
 	}

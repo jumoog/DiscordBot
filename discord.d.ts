@@ -1,4 +1,5 @@
 import EventEmitter from 'events';
+import { MessageCreateOptions, MessagePayload } from 'discord.js';
 import { InstagramMediaItem } from './Instagram.js';
 export declare enum rooms {
     hypetrain = "HYPETRAIN",
@@ -14,7 +15,7 @@ export declare class DiscordBot extends EventEmitter {
     constructor();
     main(): Promise<void>;
     private getChannel;
-    sendMessage(message: string, room: rooms): Promise<void>;
+    sendMessage(message: string | MessagePayload | MessageCreateOptions, room: rooms): Promise<void>;
     private messageQueue;
     deleteCoolDown(): void;
     sendIgPost(element: InstagramMediaItem): Promise<void>;

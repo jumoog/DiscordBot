@@ -21,7 +21,6 @@ export declare class Instagram extends EventEmitter {
     private _IgCurrentUserName;
     private _IgTokenPath;
     private _IgLastTimeStampPath;
-    private _IgLastIds;
     constructor();
     main(): Promise<void>;
     private checkForNewIgPosts;

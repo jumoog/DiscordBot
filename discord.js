@@ -49,8 +49,13 @@ export class DiscordBot extends EventEmitter {
         if (this._discordClient.isReady()) {
             const target = this._rooms.get(room);
             if (target?.permissionsFor(this._discordClient.user)?.has(PermissionsBitField.Flags.SendMessages)) {
-                if (message.includes('The hype train cool down ends')) {
-                    this._lastCoolDownMessage = await target.send(message);
+                if (typeof message === "string") {
+                    if (message.includes('The hype train cool down ends')) {
+                        this._lastCoolDownMessage = await target.send(message);
+                    }
+                    else {
+                        await target.send(message);
+                    }
                 }
                 else {
                     await target.send(message);
@@ -68,25 +73,22 @@ export class DiscordBot extends EventEmitter {
         }
     }
     async sendIgPost(element) {
-        if (this._discordClient.isReady()) {
-            const url = this.hasProp(element, "thumbnail_url") ? element.thumbnail_url : element.media_url;
-            const blob = await fetch(url).then((r) => r.blob());
-            const arrayBuffer = await blob.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            const file = new AttachmentBuilder(buffer, { name: 'preview.jpg' });
-            const embed = new EmbedBuilder()
-                .setTitle(element.permalink?.includes('/reel/') ? 'Annabel shared a new reel!' : 'Annabel shared a new post!')
-                .setURL(element.permalink)
-                .setDescription(this.hasProp(element, "caption") ? this.extractMentions(element.caption) : null)
-                .setImage('attachment://preview.jpg')
-                .setColor("#D300C5")
-                .setFooter({
-                text: 'Instagram',
-            })
-                .setTimestamp();
-            const room = this._rooms.get(rooms.socials);
-            room?.send({ embeds: [embed], files: [file] });
-        }
+        const url = this.hasProp(element, "thumbnail_url") ? element.thumbnail_url : element.media_url;
+        const blob = await fetch(url).then((r) => r.blob());
+        const arrayBuffer = await blob.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const file = new AttachmentBuilder(buffer, { name: 'preview.jpg' });
+        const embed = new EmbedBuilder()
+            .setTitle(element.permalink?.includes('/reel/') ? 'Annabel shared a new reel!' : 'Annabel shared a new post!')
+            .setURL(element.permalink)
+            .setDescription(this.hasProp(element, "caption") ? this.extractMentions(element.caption) : null)
+            .setImage('attachment://preview.jpg')
+            .setColor("#D300C5")
+            .setFooter({
+            text: 'Instagram',
+        })
+            .setTimestamp();
+        this.sendMessage({ embeds: [embed], files: [file] }, rooms.socials);
     }
     hasProp(obj, prop) {
         return Object.prototype.hasOwnProperty.call(obj, prop);

@@ -9,7 +9,6 @@ export class Instagram extends EventEmitter {
     _IgCurrentUserName;
     _IgTokenPath;
     _IgLastTimeStampPath;
-    _IgLastIds;
     constructor() {
         super();
         this._IgTokenPath = fs.existsSync('/tokens/') ? '/tokens/ig_token.json' : './ig_token.json';
@@ -20,7 +19,6 @@ export class Instagram extends EventEmitter {
         this._IgCurrentUserId = 0;
         this._IgCurrentUserName = "";
         this._IgCurrentUserName = "";
-        this._IgLastIds = [];
     }
     async main() {
         if (fs.existsSync(this._IgTokenPath) && fs.existsSync(this._IgLastTimeStampPath)) {
@@ -52,10 +50,7 @@ export class Instagram extends EventEmitter {
                 }
                 for (let index = 0; index < data.length; index++) {
                     signale.debug(JSON.stringify(data[index], null, 4));
-                    if (!this._IgLastIds.includes(data[index].id)) {
-                        this._IgLastIds.push(data[index].id);
-                        this.emit('message', data[index]);
-                    }
+                    this.emit('message', data[index]);
                 }
                 signale.complete(`done! <${data.length}> new Posts <${this._IgLastTimeStamp}>`);
             }
