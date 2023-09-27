@@ -11,8 +11,8 @@ process.on('unhandledRejection', (reason, p) => {
 const discord = new DiscordBot();
 const twitch = new Twitch();
 const instagram = new Instagram();
-instagram.on('message', (message) => {
-    discord.sendIgPost(message);
+instagram.on('post', async (message) => {
+    await discord.sendIgPost(message);
 });
 twitch.on('sendMessage', (message, room) => {
     discord.sendMessage(message, room);
