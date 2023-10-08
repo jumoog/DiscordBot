@@ -88,7 +88,7 @@ export class DiscordBot extends EventEmitter {
             text: 'Instagram',
         })
             .setTimestamp();
-        this.sendMessage({ embeds: [embed], files: [file] }, rooms.socials);
+        this.sendMessage({ content: '<@&953017309369344031>', embeds: [embed], files: [file] }, rooms.socials);
     }
     hasProp(obj, prop) {
         return Object.prototype.hasOwnProperty.call(obj, prop);

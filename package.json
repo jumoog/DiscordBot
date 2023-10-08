@@ -1,19 +1,19 @@
 {
-  "name": "hypetraindiscordbot",
+  "name": "discordbot",
   "version": "1.0.0",
-  "description": "Get infos about Twitch Hypetrain",
+  "description": "Get infos about Twitch and IG",
   "type": "module",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jumoog/HypetrainDiscordBot.git"
+    "url": "git+https://github.com/annabelstopit/DiscordBot.git"
   },
   "author": "DevKaos,jumoog",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/jumoog/HypetrainDiscordBot/issues"
+    "url": "https://github.com/annabelstopit/DiscordBot/issues"
   },
-  "homepage": "https://github.com/jumoog/HypetrainDiscordBot#readme",
+  "homepage": "https://github.com/annabelstopit/DiscordBot#readme",
   "dependencies": {
     "@twurple/api": "^7.0.3",
     "@twurple/auth": "^7.0.3",
