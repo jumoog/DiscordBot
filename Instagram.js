@@ -52,7 +52,7 @@ export class Instagram extends EventEmitter {
                     signale.debug(JSON.stringify(data[index], null, 4));
                     this.emit('post', data[index]);
                 }
-                signale.complete(`done! <${data.length}> new Posts <${this._IgLastTimeStamp}>`);
+                this.debug(`done! <${data.length}> new Posts <${this._IgLastTimeStamp}>`);
             }
             else {
                 signale.fatal(`status <${res.status}> statusText: <${res.statusText}>`);
@@ -82,7 +82,7 @@ export class Instagram extends EventEmitter {
             })
                 .catch((error) => signale.fatal(`checkIgToken: ${error}`));
         }
-        signale.info(`current token is still valid for <${this.formatTime(expiresIn)}>`);
+        this.debug(`current token is still valid for <${this.formatTime(expiresIn)}>`);
         setTimeout(() => this.checkIgToken(), 30 * 60 * 1000);
     }
     async getIgUseId() {
@@ -104,5 +104,9 @@ export class Instagram extends EventEmitter {
         let secs = (minutes % 1) * 60;
         [days, hours, minutes, secs] = [Math.floor(days), Math.floor(hours), Math.floor(minutes), Math.floor(secs)];
         return `${days}d ${hours}h ${minutes}m ${secs}s`;
+    }
+    debug(message) {
+        if (process.env.DEBUG)
+            signale.debug(message);
     }
 }
