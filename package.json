@@ -27,6 +27,6 @@
   },
   "devDependencies": {
     "@types/node": "^20.9.0",
-    "@types/signale": "^1.4.6"
+    "@types/signale": "^1.4.7"
   }
 }
