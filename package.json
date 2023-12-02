@@ -23,6 +23,7 @@
     "dotenv": "^16.3.1",
     "p-queue": "^7.4.1",
     "signale": "^1.4.0",
+    "tiktok-live-connector": "^1.0.5",
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {

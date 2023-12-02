@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import EventEmitter from 'events';
 import { MessageCreateOptions, MessagePayload } from 'discord.js';
 import { InstagramMediaItem } from './Instagram.js';

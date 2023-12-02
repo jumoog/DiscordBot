@@ -2,6 +2,7 @@ import signale from "signale";
 import { Instagram } from "./Instagram.js";
 import { DiscordBot } from "./discord.js";
 import { Twitch } from "./twitch.js";
+import { TikTok } from "./tiktok.js";
 process.on('unhandledRejection', (reason, p) => {
     signale.fatal('caught your junk %s', reason);
     if (reason.stack) {
@@ -11,8 +12,12 @@ process.on('unhandledRejection', (reason, p) => {
 const discord = new DiscordBot();
 const twitch = new Twitch();
 const instagram = new Instagram();
+const tiktok = new TikTok();
 instagram.on('post', async (message) => {
     await discord.sendIgPost(message);
+});
+tiktok.on('sendMessage', (message, room) => {
+    discord.sendMessage(message, room);
 });
 twitch.on('sendMessage', (message, room) => {
     discord.sendMessage(message, room);
@@ -23,3 +28,4 @@ twitch.on('deleteCoolDown', () => {
 await discord.main();
 await twitch.main();
 await instagram.main();
+await tiktok.checkLive();

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import EventEmitter from 'events';
 export declare class Twitch extends EventEmitter {
     private _userId;
