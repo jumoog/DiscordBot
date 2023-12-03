@@ -28,4 +28,3 @@ twitch.on('deleteCoolDown', () => {
 await discord.main();
 await twitch.main();
 await instagram.main();
-await tiktok.checkLive();
