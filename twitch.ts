@@ -27,6 +27,7 @@ export class Twitch extends EventEmitter {
     private _currentCoolDown: number;
     private _onlineTimer: Timer;
     private _streamStartTimer: Timer;
+    private _keepAlive: Timer;
     constructor() {
         super();
         this._userId = process.env.USERID || 631529415; // annabelstopit
@@ -40,6 +41,7 @@ export class Twitch extends EventEmitter {
         this._total = 0;
         this._onlineTimer = new Timer();
         this._streamStartTimer = new Timer();
+        this._keepAlive = new Timer({interval: 60_000});
     }
 
     /**
@@ -67,6 +69,11 @@ export class Twitch extends EventEmitter {
                 // start 30 min timer
                 this._streamStartTimer.start(1_800_000);
             }
+        });
+
+        this._keepAlive.on('done', () => {
+            // die die die
+            process.exit(0);
         });
     }
 
@@ -115,7 +122,18 @@ export class Twitch extends EventEmitter {
             });
             // We need the Twitch Events
             // https://dev.twitch.tv/docs/eventsub/handling-webhook-events
-            const twitchListener = new EventSubWsListener({ apiClient });
+            const twitchListener = new EventSubWsListener({
+                apiClient,
+                logger: {
+                    minLevel: 'trace',
+                    custom: (level, message) => {
+                        // ghetto repair
+                        this._keepAlive.stop()
+                        this._keepAlive.start(60_000);
+                    },
+                },
+            });
+            
             twitchListener.start();
 
             try {
