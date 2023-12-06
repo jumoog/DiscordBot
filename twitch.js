@@ -21,7 +21,6 @@ export class Twitch extends EventEmitter {
     _currentCoolDown;
     _onlineTimer;
     _streamStartTimer;
-    _keepAlive;
     constructor() {
         super();
         this._userId = process.env.USERID || 631529415;
@@ -35,7 +34,6 @@ export class Twitch extends EventEmitter {
         this._total = 0;
         this._onlineTimer = new Timer();
         this._streamStartTimer = new Timer();
-        this._keepAlive = new Timer({ interval: 60000 });
     }
     async main() {
         this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json';
@@ -54,9 +52,6 @@ export class Twitch extends EventEmitter {
                 this.sendMessage(`@everyone Λ N N Λ B E L is live now\nhttps://www.twitch.tv/annabelstopit`, rooms.shoutout);
                 this._streamStartTimer.start(1800000);
             }
-        });
-        this._keepAlive.on('done', () => {
-            process.exit(0);
         });
     }
     async twurpleStart() {
@@ -96,8 +91,7 @@ export class Twitch extends EventEmitter {
                 logger: {
                     minLevel: 'trace',
                     custom: (level, message) => {
-                        this._keepAlive.stop();
-                        this._keepAlive.start(60000);
+                        fs.writeFileSync(`/tokens/HEALTH`, message);
                     },
                 },
             });

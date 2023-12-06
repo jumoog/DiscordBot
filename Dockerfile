@@ -16,5 +16,6 @@ RUN apt-get clean && apt-get update && apt-get upgrade -y &&\
     npm ci --only=production &&\
     npm cache clean --force &&\
     chmod +x /bin/dumb-init
+HEALTHCHECK --interval=60s --timeout=12s --start-period=30s CMD node healthcheck.js
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "index.js"]

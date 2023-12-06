@@ -12,7 +12,6 @@ export declare class Twitch extends EventEmitter {
     private _currentCoolDown;
     private _onlineTimer;
     private _streamStartTimer;
-    private _keepAlive;
     constructor();
     main(): Promise<void>;
     private twurpleStart;
