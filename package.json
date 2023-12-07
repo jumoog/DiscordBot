@@ -21,13 +21,13 @@
     "@twurple/eventsub-ws": "^7.0.6",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1",
-    "p-queue": "^7.4.1",
+    "p-queue": "^8.0.0",
     "signale": "^1.4.0",
     "tiktok-live-connector": "^1.0.5",
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
+    "@types/node": "^20.10.4",
     "@types/signale": "^1.4.7"
   }
 }
