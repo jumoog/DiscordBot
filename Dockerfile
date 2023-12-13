@@ -1,4 +1,4 @@
-FROM oven/bun:1.0.17
+FROM oven/bun:1.0.17-alpine
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /HypetrainDiscordBot
 COPY . .
@@ -9,10 +9,8 @@ ENV USERID= \
 	DISCORDTOKEN= \ 
 	DEBUGROOMNAME=
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64 /bin/dumb-init
-RUN apt-get clean && apt-get update && apt-get upgrade -y &&\
-    apt-get autoremove -y && apt-get autoclean -y &&\
-    rm -rf /var/lib/apt/lists/* &&\
-    bun install --production &&\
+RUN bun install --production --ignore-scripts &&\
     chmod +x /bin/dumb-init
+HEALTHCHECK --interval=60s --timeout=12s --start-period=30s CMD bun run healthcheck.ts
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["bun", "index.ts"]
