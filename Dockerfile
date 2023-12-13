@@ -1,8 +1,7 @@
-FROM node:21.4.0-bullseye-slim
+FROM oven/bun:1.0.17
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /HypetrainDiscordBot
 COPY . .
-ENV NODE_ENV production
 ENV USERID= \
 	ROOMNAME= \
 	CLIENTID= \
@@ -13,9 +12,7 @@ ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x
 RUN apt-get clean && apt-get update && apt-get upgrade -y &&\
     apt-get autoremove -y && apt-get autoclean -y &&\
     rm -rf /var/lib/apt/lists/* &&\
-    npm ci --only=production &&\
-    npm cache clean --force &&\
+    bun install --production &&\
     chmod +x /bin/dumb-init
-HEALTHCHECK --interval=60s --timeout=12s --start-period=30s CMD node healthcheck.js
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "index.js"]
+CMD ["bun", "index.ts"]

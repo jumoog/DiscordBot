@@ -1,5 +1,4 @@
 import EventEmitter from 'events';
-import dotenv from 'dotenv';
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api';
 import { EventSubWsListener } from '@twurple/eventsub-ws';
@@ -9,8 +8,6 @@ import signale from "signale";
 import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent } from '@twurple/eventsub-base/lib/index.js';
 import { getRawData } from '@twurple/common';
 import { rooms } from './discord.js';
-
-dotenv.config()
 
 /**
  * Bot class
@@ -87,8 +84,8 @@ export class Twitch extends EventEmitter {
                 },
             );
             authProviderHypeTrain.addUser(this._userId, tokenDataHypeTrain);
-            authProviderHypeTrain.onRefresh((_userId, newTokenData) => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8'));
-            authProviderHypeTrain.onRefreshFailure(_userId => {
+            authProviderHypeTrain.onRefresh((_userId: any, newTokenData: any) => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8'));
+            authProviderHypeTrain.onRefreshFailure((_userId: any) => {
                 this.sendDebugMessage(`user token refresh failed!`);
                 signale.fatal(`user token refresh failed!`);
             })

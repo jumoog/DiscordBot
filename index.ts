@@ -1,8 +1,8 @@
 import signale from "signale";
-import { Instagram } from "./Instagram.js";
+import { Instagram } from "./Instagram.ts";
 import { DiscordBot, rooms } from "./discord.js";
-import { Twitch } from "./twitch.js";
-import { TikTok } from "./tiktok.js";
+import { Twitch } from "./twitch.ts";
+import { TikTok } from "./tiktok.ts";
 
 // catch all possible errors and don't crash
 process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {

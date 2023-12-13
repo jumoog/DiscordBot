@@ -1,11 +1,8 @@
 import EventEmitter from 'events';
-import dotenv from 'dotenv';
 import signale from "signale";
 import { AttachmentBuilder, Client, EmbedBuilder, Events, GatewayIntentBits, Message, MessageCreateOptions, MessagePayload, PermissionsBitField, TextChannel } from 'discord.js';
 import PQueue from 'p-queue';
-import { InstagramMediaItem } from './Instagram.js';
-
-dotenv.config()
+import { InstagramMediaItem } from './Instagram.ts';
 
 const DiscordMessageQueue = new PQueue({ concurrency: 1 });
 const sleep = (waitTimeInMs: number) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
