@@ -24,7 +24,7 @@ export class DiscordBot extends EventEmitter {
 	private _rooms: Map<string, TextChannel>;
 	constructor() {
 		super();
-		this._discordToken = process.env.DISCORDTOKEN || '';
+		this._discordToken = process.env.DISCORDTOKEN ?? '';
 		this._discordClient = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 		this._lastCoolDownMessage = undefined;
 		this._rooms = new Map();
@@ -36,10 +36,10 @@ export class DiscordBot extends EventEmitter {
 	async main() {
 		// discord client
 		this._discordClient.once(Events.ClientReady, c => {
-			this._rooms.set(rooms.hypetrain, this.getChannel(process.env.ROOMNAME || '🚀┃hypetrain'));
-			this._rooms.set(rooms.debug, this.getChannel(process.env.DEBUGROOMNAME || 'debug_prod'));
-			this._rooms.set(rooms.shoutout, this.getChannel(process.env.SHOUTOUTROOMNAME || 'shoutout'));
-			this._rooms.set(rooms.socials, this.getChannel(process.env.SOCIALSROOMNAME || '📸┃socials'));
+			this._rooms.set(rooms.hypetrain, this.getChannel(process.env.ROOMNAME ?? '🚀┃hypetrain'));
+			this._rooms.set(rooms.debug, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
+			this._rooms.set(rooms.shoutout, this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
+			this._rooms.set(rooms.socials, this.getChannel(process.env.SOCIALSROOMNAME ?? '📸┃socials'));
 			this.sendMessage(`Ready! Logged in as ${c.user.tag}`, rooms.debug);
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
 		});

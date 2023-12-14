@@ -5,7 +5,7 @@ import { EventSubWsListener } from '@twurple/eventsub-ws';
 import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
-import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent } from '@twurple/eventsub-base/lib/index.js';
+import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent } from '@twurple/eventsub-base';
 import { getRawData } from '@twurple/common';
 import { rooms } from './discord.js';
 
@@ -26,9 +26,9 @@ export class Twitch extends EventEmitter {
     private _streamStartTimer: Timer;
     constructor() {
         super();
-        this._userId = process.env.USERID || 631529415; // annabelstopit
-        this._clientId = process.env.CLIENTID || '';
-        this._clientSecret = process.env.CLIENTSECRET || '';
+        this._userId = process.env.USERID ?? 631529415; // annabelstopit
+        this._clientId = process.env.CLIENTID ?? '';
+        this._clientSecret = process.env.CLIENTSECRET ?? '';
         this._timerLeft = 0;
         this._tokenPath = '';
         this._currentCoolDownTimer = new Timer();
