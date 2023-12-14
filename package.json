@@ -20,16 +20,16 @@
     "@twurple/common": "^7.0.6",
     "@twurple/eventsub-ws": "^7.0.6",
     "discord.js": "^14.14.1",
-    "p-queue": "^8.0.0",
+    "p-queue": "^8.0.1",
     "signale": "^1.4.0",
     "tiktok-live-connector": "^1.0.5",
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
     "@types/signale": "^1.4.7",
-    "bun-types": "^1.0.17"
+    "bun-types": "^1.0.18"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.3.3"
   }
 }
