@@ -1,11 +1,14 @@
 import EventEmitter from 'events';
 import signale from "signale";
-import { AttachmentBuilder, Client, EmbedBuilder, Events, GatewayIntentBits, Message, MessageCreateOptions, MessagePayload, PermissionsBitField, TextChannel } from 'discord.js';
+import { AttachmentBuilder, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, PermissionsBitField, TextChannel } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
+import { Cron } from "croner";
 
 const DiscordMessageQueue = new PQueue({ concurrency: 1 });
 const sleep = (waitTimeInMs: number) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
+const AnnabelDC = "821708215216635904";
+const StatsRoom = "1189573435710521345";
 
 export enum rooms {
 	hypetrain = "HYPETRAIN",
@@ -22,12 +25,20 @@ export class DiscordBot extends EventEmitter {
 	private _lastCoolDownMessage: Message | undefined;
 	private _discordClient;
 	private _rooms: Map<string, TextChannel>;
+	private _memberCount: number;
 	constructor() {
 		super();
 		this._discordToken = process.env.DISCORDTOKEN ?? '';
-		this._discordClient = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
+		this._discordClient = new Client({
+			intents: [
+				GatewayIntentBits.Guilds,
+				GatewayIntentBits.GuildMessages,
+				GatewayIntentBits.GuildMembers,
+				GatewayIntentBits.GuildPresences],
+		});
 		this._lastCoolDownMessage = undefined;
 		this._rooms = new Map();
+		this._memberCount = 0;
 	}
 
 	/**
@@ -40,8 +51,25 @@ export class DiscordBot extends EventEmitter {
 			this._rooms.set(rooms.debug, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
 			this._rooms.set(rooms.shoutout, this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
 			this._rooms.set(rooms.socials, this.getChannel(process.env.SOCIALSROOMNAME ?? '📸┃socials'));
+			this._memberCount = (this._discordClient.guilds.cache.get(AnnabelDC) as Guild).memberCount;
 			this.sendMessage(`Ready! Logged in as ${c.user.tag}`, rooms.debug);
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
+		});
+
+		this._discordClient.on('guildMemberAdd', member => {
+			signale.info("guildMemberAdd", member.guild.name, member.guild.id, member.guild.memberCount, this._memberCount);
+			if (member.guild.id === AnnabelDC) {
+				this._memberCount = member.guild.memberCount;
+				signale.info('guildMemberRemove', this._memberCount);
+			}
+		});
+
+		this._discordClient.on('guildMemberRemove', member => {
+			signale.info("guildMemberRemove", member.guild.name, member.guild.id, member.guild.memberCount, this._memberCount);
+			if (member.guild.id === AnnabelDC) {
+				this._memberCount = member.guild.memberCount;
+				signale.info('guildMemberRemove', this._memberCount);
+			}
 		});
 
 		// login discord
@@ -51,6 +79,14 @@ export class DiscordBot extends EventEmitter {
 		while (!this._discordClient.isReady()) {
 			await sleep(100);
 		}
+
+		// every 10 minutes
+		Cron('*/10 * * * *', async () => {
+			if (this._discordClient.isReady()) {
+				signale.info(`cron`, this._memberCount, `A-Team: ${this._memberCount} members`);
+				(this._discordClient.channels.cache.get(StatsRoom) as TextChannel).setName(`A-Team: ${this._memberCount} members`);
+			}
+		})
 	}
 
 	/**
