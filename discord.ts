@@ -61,18 +61,14 @@ export class DiscordBot extends EventEmitter {
 		});
 
 		this._discordClient.on('guildMemberAdd', member => {
-			signale.info("guildMemberAdd", member.guild.name, member.guild.id, member.guild.memberCount, this._memberCount);
 			if (member.guild.id === AnnabelDC) {
 				this._memberCount = member.guild.memberCount;
-				signale.info('guildMemberRemove', this._memberCount);
 			}
 		});
 
 		this._discordClient.on('guildMemberRemove', member => {
-			signale.info("guildMemberRemove", member.guild.name, member.guild.id, member.guild.memberCount, this._memberCount);
 			if (member.guild.id === AnnabelDC) {
 				this._memberCount = member.guild.memberCount;
-				signale.info('guildMemberRemove', this._memberCount);
 			}
 		});
 
