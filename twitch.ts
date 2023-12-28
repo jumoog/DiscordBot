@@ -98,15 +98,15 @@ export class Twitch extends EventEmitter {
                 signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypeTrainEvent), null, 4));
                 // check if hype train is active
                 if (hypeTrainEvent.expiryDate.getTime() - new Date().getTime() > 0) {
-                    this.sendDebugMessage(`A hype train Event is currently running`);
+                    this.sendSpamMessage(`A hype train Event is currently running`);
                 } else {
-                    this.sendDebugMessage(`No hype train Event is currently running`);
+                    this.sendSpamMessage(`No hype train Event is currently running`);
                     // check if the cool down is still active
                     if (hypeTrainEvent.cooldownDate.getTime() - new Date().getTime() > 0) {
-                        this.sendDebugMessage(`Cool down is still active`);
+                        this.sendSpamMessage(`Cool down is still active`);
                         this.setCoolDownEndDate(hypeTrainEvent.cooldownDate);
                     } else {
-                        this.sendDebugMessage(`The last hype train started at <t:${this.timeInSeconds(hypeTrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypeTrainEvent.expiryDate.getTime())}:f> with Level ${hypeTrainEvent.level}`);
+                        this.sendSpamMessage(`The last hype train started at <t:${this.timeInSeconds(hypeTrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypeTrainEvent.expiryDate.getTime())}:f> with Level ${hypeTrainEvent.level}`);
                     }
                 }
             });
@@ -159,14 +159,14 @@ export class Twitch extends EventEmitter {
                 // normal CTRL + C
                 process.on('SIGINT', async () => {
                     signale.success('shutting down!');
-                    await this.sendDebugMessage('shutting down!');
+                    await this.sendSpamMessage('shutting down!');
                     twitchListener.stop();
                     process.exit(0);
                 });
                 // DOCKER
                 process.on('SIGTERM', async () => {
                     signale.success('shutting down!');
-                    await this.sendDebugMessage('shutting down!');
+                    await this.sendSpamMessage('shutting down!');
                     twitchListener.stop();
                     process.exit(0);
                 });
@@ -191,6 +191,14 @@ export class Twitch extends EventEmitter {
     private async sendDebugMessage(message: string) {
         this.sendMessage(message, rooms.debug);
     }
+
+        /**
+     * helper function to send debug text messages
+     */
+        private async sendSpamMessage(message: string) {
+            this.sendMessage(message, rooms.spam);
+        }
+    
 
     /**
      * Javascript has UNIX Timestamps in milliseconds.
