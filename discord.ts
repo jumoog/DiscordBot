@@ -1,12 +1,13 @@
 import EventEmitter from 'events';
 import signale from "signale";
-import { AttachmentBuilder, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, PermissionsBitField, TextChannel } from 'discord.js';
+import { AttachmentBuilder, Channel, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, PermissionsBitField, TextChannel, VoiceChannel } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
 import { Cron } from "croner";
+import { sleep } from 'bun';
 
 const DiscordMessageQueue = new PQueue({ concurrency: 1 });
-const sleep = (waitTimeInMs: number) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
+
 const AnnabelDC = "821708215216635904";
 const StatsRoom = "1189573435710521345";
 const ContentRole = "953017309369344031";
@@ -15,7 +16,8 @@ export enum rooms {
 	hypetrain = "HYPETRAIN",
 	debug = "DEBUG",
 	shoutout = "SHOUTOUT",
-	socials = "SOCIALS"
+	socials = "SOCIALS",
+	stats = "STATS"
 }
 
 /**
@@ -25,7 +27,7 @@ export class DiscordBot extends EventEmitter {
 	private _discordToken: string;
 	private _lastCoolDownMessage: Message | undefined;
 	private _discordClient;
-	private _rooms: Map<string, TextChannel>;
+	private _rooms: Map<string, TextChannel | VoiceChannel | null>;
 	private _memberCount: number;
 	constructor() {
 		super();
@@ -52,6 +54,7 @@ export class DiscordBot extends EventEmitter {
 			this._rooms.set(rooms.debug, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
 			this._rooms.set(rooms.shoutout, this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
 			this._rooms.set(rooms.socials, this.getChannel(process.env.SOCIALSROOMNAME ?? '📸┃socials'));
+			this._rooms.set(rooms.stats, (this._discordClient.channels.cache.get(StatsRoom) as TextChannel));
 			this._memberCount = (this._discordClient.guilds.cache.get(AnnabelDC) as Guild).memberCount;
 			this.sendMessage(`Ready! Logged in as ${c.user.tag}`, rooms.debug);
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
@@ -84,8 +87,13 @@ export class DiscordBot extends EventEmitter {
 		// every 10 minutes
 		Cron('*/10 * * * *', async () => {
 			if (this._discordClient.isReady()) {
+				const room = this._rooms.get(rooms.stats)!;
 				signale.info(`cron`, this._memberCount, `A-Team: ${this._memberCount} members`);
-				(this._discordClient.channels.cache.get(StatsRoom) as TextChannel).setName(`A-Team: ${this._memberCount} members`);
+				if (this.botHasPermission(room, PermissionsBitField.Flags.ManageChannels)) {
+					room.setName(`A-Team: ${this._memberCount} members`);
+				} else {
+					this.sendMessage(`Help! i can't set name of <${room}>`, rooms.debug);
+				}
 			}
 		})
 	}
@@ -98,7 +106,7 @@ export class DiscordBot extends EventEmitter {
 	private getChannel(room: string) {
 		return this._discordClient.channels.cache.find(
 			(channel) => (channel as TextChannel).name === room,
-		) as TextChannel;
+		) as TextChannel | VoiceChannel | null;
 	}
 
 	/**
@@ -116,18 +124,19 @@ export class DiscordBot extends EventEmitter {
 		if (this._discordClient.isReady()) {
 			const target = this._rooms.get(room);
 			// check send Message permission
-			if (target?.permissionsFor(this._discordClient.user!)?.has(PermissionsBitField.Flags.SendMessages)) {
+			if (this.botHasPermission(target!, PermissionsBitField.Flags.SendMessages)) {
 				if (typeof message === "string") {
 					if (message.includes('The hype train cool down ends')) {
-						this._lastCoolDownMessage = await target.send(message);
+						this._lastCoolDownMessage = await target?.send(message);
 					} else {
-						await target.send(message);
+						await target?.send(message);
 					}
 				} else {
-					await target.send(message);
+					await target?.send(message);
 				}
 			} else {
 				signale.error(`Help! i can't post in <${room}>`);
+				this.sendMessage(`Help! i can't post in <${room}>`, rooms.debug);
 			}
 		}
 		await sleep(750);
@@ -167,6 +176,16 @@ export class DiscordBot extends EventEmitter {
 
 	private hasProp(obj: unknown, prop: string): boolean {
 		return Object.prototype.hasOwnProperty.call(obj, prop);
+	}
+
+	private botHasPermission(channel: TextChannel | VoiceChannel, permissions: bigint) {
+		// Check if the channel is a GuildChannel (text or voice channel)
+		if (channel?.guild) {
+			// Check if the bot has the 'SEND_MESSAGES' permission in the channel
+			return channel.permissionsFor(this._discordClient.user?.id!)?.has(permissions);
+		}
+		// If the channel is not a GuildChannel, return false
+		return false;
 	}
 
 	extractMentions(text: string): string {

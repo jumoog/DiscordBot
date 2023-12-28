@@ -70,16 +70,11 @@ test("Mention Everyone in <🔴┃live>", () => {
 
 function botHasPermission(schannel: string, permissions: bigint) {
     // Replace 'YOUR_BOT_ID' with your actual bot's user ID
-    const botId = client.user?.id;
     const channel = getChannelByID(schannel);
     // Check if the channel is a GuildChannel (text or voice channel)
     if (channel?.guild) {
-        // Get the bot member in the guild
-        const botMember = channel.guild.members.cache.get(botId!);
-
         // Check if the bot has the 'SEND_MESSAGES' permission in the channel
-        const permission = channel.permissionsFor(botMember!);
-        return permission?.has(permissions);
+        return channel.permissionsFor(client.user?.id!)?.has(permissions);
     }
 
     // If the channel is not a GuildChannel, return false
