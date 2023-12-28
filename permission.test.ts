@@ -12,60 +12,77 @@ beforeAll(async () => {
     }
 });
 
-test("find id <📸┃socials>", () => {
-    expect(getChannelByID("1125885420379586660")?.name).toBe("📸┃socials");
-});
-
-test("find id <🔴┃live>", () => {
-    expect(getChannelByID("975822791741947984")?.name).toBe("🔴┃live");
-});
-
-test("find id <🚀┃hypetrain>", () => {
-    expect(getChannelByID("1060572257824546969")?.name).toBe("🚀┃hypetrain");
-});
-
-test("find id <🚨┃bot-debug>", () => {
-    expect(getChannelByID("1189878283899244626")?.name).toBe("🚨┃bot-debug");
-});
-
+// member stats room 
 test("check if member stats room is manageable", () => {
     expect(getChannelByID("1189573435710521345")?.manageable).toBe(true);
-});
-
-test("send a message in <📸┃socials>", () => {
-    expect(botHasPermission("1125885420379586660", PermissionsBitField.Flags.SendMessages)).toBe(true);
-});
-
-test("send a message in <🔴┃live>", () => {
-    expect(botHasPermission("975822791741947984", PermissionsBitField.Flags.SendMessages)).toBe(true);
-});
-
-test("send a message in <🚀┃hypetrain>", () => {
-    expect(botHasPermission("1060572257824546969", PermissionsBitField.Flags.SendMessages)).toBe(true);
-});
-
-test("deleting a message in <🚀┃hypetrain>", () => {
-    expect(botHasPermission("1060572257824546969", PermissionsBitField.Flags.ManageMessages)).toBe(true);
-});
-
-test("send a message in <🚨┃bot-debug>", () => {
-    expect(botHasPermission("1189878283899244626", PermissionsBitField.Flags.SendMessages)).toBe(true);
 });
 
 test("change room title of member stats", () => {
     expect(botHasPermission("1189573435710521345", PermissionsBitField.Flags.ManageChannels)).toBe(true);
 });
 
-test("Attach Files in <🔴┃live>", () => {
+// 🚨┃bot-debug
+test("<🚨┃bot-debug> Find channel by id", () => {
+    expect(getChannelByID("1189878283899244626")?.name).toBe("🚨┃bot-debug");
+});
+
+test("<🚨┃bot-debug> Send a message", () => {
+    expect(botHasPermission("1189878283899244626", PermissionsBitField.Flags.SendMessages)).toBe(true);
+});
+
+// 🚀┃hypetrain
+test("<🚀┃hypetrain> Find channel by id", () => {
+    expect(getChannelByID("1060572257824546969")?.name).toBe("🚀┃hypetrain");
+});
+
+test("<🚀┃hypetrain> Send a message", () => {
+    expect(botHasPermission("1060572257824546969", PermissionsBitField.Flags.SendMessages)).toBe(true);
+});
+
+test("<🚀┃hypetrain> Deleting a message", () => {
+    expect(botHasPermission("1060572257824546969", PermissionsBitField.Flags.ManageMessages)).toBe(true);
+});
+
+// 🔴┃live
+test("<🔴┃live> Find channel by id", () => {
+    expect(getChannelByID("975822791741947984")?.name).toBe("🔴┃live");
+});
+
+test("<🔴┃live> Send a message", () => {
+    expect(botHasPermission("975822791741947984", PermissionsBitField.Flags.SendMessages)).toBe(true);
+});
+
+test("<🔴┃live> Attach Files", () => {
     expect(botHasPermission("975822791741947984", PermissionsBitField.Flags.AttachFiles)).toBe(true);
 });
 
-test("Embed Links in <🔴┃live>", () => {
+test("<🔴┃live> Embed Links", () => {
     expect(botHasPermission("975822791741947984", PermissionsBitField.Flags.EmbedLinks)).toBe(true);
 });
 
-test("Mention Everyone in <🔴┃live>", () => {
+test("<🔴┃live> Mention Everyone", () => {
     expect(botHasPermission("975822791741947984", PermissionsBitField.Flags.MentionEveryone)).toBe(true);
+});
+
+// 📸┃socials
+test("<📸┃socials> Find channel by id", () => {
+    expect(getChannelByID("1125885420379586660")?.name).toBe("📸┃socials");
+});
+
+test("<📸┃socials> Send a message", () => {
+    expect(botHasPermission("1125885420379586660", PermissionsBitField.Flags.SendMessages)).toBe(true);
+});
+
+test("<📸┃socials> Attach Files", () => {
+    expect(botHasPermission("1125885420379586660", PermissionsBitField.Flags.AttachFiles)).toBe(true);
+});
+
+test("<📸┃socials> Embed Links", () => {
+    expect(botHasPermission("1125885420379586660", PermissionsBitField.Flags.EmbedLinks)).toBe(true);
+});
+
+test("<📸┃socials> Mention Everyone in", () => {
+    expect(botHasPermission("1125885420379586660", PermissionsBitField.Flags.MentionEveryone)).toBe(true);
 });
 
 function botHasPermission(schannel: string, permissions: bigint) {
