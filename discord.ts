@@ -14,7 +14,6 @@ const ContentRole = "953017309369344031";
 export enum rooms {
 	hypetrain = "HYPETRAIN",
 	debug = "DEBUG",
-	spam = "SAPM",
 	shoutout = "SHOUTOUT",
 	socials = "SOCIALS"
 }
@@ -51,25 +50,26 @@ export class DiscordBot extends EventEmitter {
 		this._discordClient.once(Events.ClientReady, c => {
 			this._rooms.set(rooms.hypetrain, this.getChannel(process.env.ROOMNAME ?? '🚀┃hypetrain'));
 			this._rooms.set(rooms.debug, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
-			this._rooms.set(rooms.spam, this.getChannel('debug_prod'));
 			this._rooms.set(rooms.shoutout, this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
 			this._rooms.set(rooms.socials, this.getChannel(process.env.SOCIALSROOMNAME ?? '📸┃socials'));
 			this._memberCount = (this._discordClient.guilds.cache.get(AnnabelDC) as Guild).memberCount;
-			this.sendMessage(`Ready! Logged in as ${c.user.tag}`, rooms.spam);
+			this.sendMessage(`Ready! Logged in as ${c.user.tag}`, rooms.debug);
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
 		});
 
-		// increase counter once a new member joins
 		this._discordClient.on('guildMemberAdd', member => {
+			signale.info("guildMemberAdd", member.guild.name, member.guild.id, member.guild.memberCount, this._memberCount);
 			if (member.guild.id === AnnabelDC) {
 				this._memberCount = member.guild.memberCount;
+				signale.info('guildMemberRemove', this._memberCount);
 			}
 		});
 
-		// decrease counter once a new member joins
 		this._discordClient.on('guildMemberRemove', member => {
+			signale.info("guildMemberRemove", member.guild.name, member.guild.id, member.guild.memberCount, this._memberCount);
 			if (member.guild.id === AnnabelDC) {
 				this._memberCount = member.guild.memberCount;
+				signale.info('guildMemberRemove', this._memberCount);
 			}
 		});
 
@@ -84,6 +84,7 @@ export class DiscordBot extends EventEmitter {
 		// every 10 minutes
 		Cron('*/10 * * * *', async () => {
 			if (this._discordClient.isReady()) {
+				signale.info(`cron`, this._memberCount, `A-Team: ${this._memberCount} members`);
 				(this._discordClient.channels.cache.get(StatsRoom) as TextChannel).setName(`A-Team: ${this._memberCount} members`);
 			}
 		})
