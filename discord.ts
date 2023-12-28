@@ -9,6 +9,7 @@ const DiscordMessageQueue = new PQueue({ concurrency: 1 });
 const sleep = (waitTimeInMs: number) => new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
 const AnnabelDC = "821708215216635904";
 const StatsRoom = "1189573435710521345";
+const ContentRole = "953017309369344031";
 
 export enum rooms {
 	hypetrain = "HYPETRAIN",
@@ -160,7 +161,7 @@ export class DiscordBot extends EventEmitter {
 				text: 'Instagram',
 			})
 			.setTimestamp();
-		this.sendMessage({ content: '<@&953017309369344031>', embeds: [embed], files: [file] }, rooms.socials);
+		this.sendMessage({ content: `<@&${ContentRole}>`, embeds: [embed], files: [file] }, rooms.socials);
 	}
 
 	private hasProp(obj: unknown, prop: string): boolean {
