@@ -174,11 +174,11 @@ export class DiscordBot extends EventEmitter {
 		return Object.prototype.hasOwnProperty.call(obj, prop);
 	}
 
-	private botHasPermission(channel: TextChannel | VoiceChannel, permissions: bigint) {
+	private botHasPermission(channel: TextChannel | VoiceChannel | null, permissions: bigint) {
 		// Check if the channel is a GuildChannel (text or voice channel)
 		if (channel?.guild) {
 			// Check if the bot has the 'SEND_MESSAGES' permission in the channel
-			return channel.permissionsFor(this._discordClient.user?.id!)?.has(permissions);
+			return channel.permissionsFor(channel?.guild.members.me!)?.has(permissions);
 		}
 		// If the channel is not a GuildChannel, return false
 		return false;

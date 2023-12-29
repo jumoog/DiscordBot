@@ -91,7 +91,7 @@ function botHasPermission(schannel: string, permissions: bigint) {
     // Check if the channel is a GuildChannel (text or voice channel)
     if (channel?.guild) {
         // Check if the bot has the 'SEND_MESSAGES' permission in the channel
-        return channel.permissionsFor(client.user?.id!)?.has(permissions);
+        return channel.permissionsFor(channel?.guild.members.me!)?.has(permissions);
     }
 
     // If the channel is not a GuildChannel, return false
