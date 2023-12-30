@@ -64,25 +64,25 @@ test("<🔴┃live> Mention Everyone", () => {
     expect(botHasPermission("975822791741947984", PermissionsBitField.Flags.MentionEveryone)).toBe(true);
 });
 
-// 📸┃socials
-test("<📸┃socials> Find channel by id", () => {
-    expect(getChannelByID("1125885420379586660")?.name).toBe("📸┃socials");
+// 💬┃general-chat
+test("<💬┃general-chat> Find channel by id", () => {
+    expect(getChannelByID("821710074577158144")?.name).toBe("💬┃general-chat");
 });
 
-test("<📸┃socials> Send a message", () => {
-    expect(botHasPermission("1125885420379586660", PermissionsBitField.Flags.SendMessages)).toBe(true);
+test("<💬┃general-chat> Send a message", () => {
+    expect(botHasPermission("821710074577158144", PermissionsBitField.Flags.SendMessages)).toBe(true);
 });
 
-test("<📸┃socials> Attach Files", () => {
-    expect(botHasPermission("1125885420379586660", PermissionsBitField.Flags.AttachFiles)).toBe(true);
+test("<💬┃general-chat> Attach Files", () => {
+    expect(botHasPermission("821710074577158144", PermissionsBitField.Flags.AttachFiles)).toBe(true);
 });
 
-test("<📸┃socials> Embed Links", () => {
-    expect(botHasPermission("1125885420379586660", PermissionsBitField.Flags.EmbedLinks)).toBe(true);
+test("<💬┃general-chat> Embed Links", () => {
+    expect(botHasPermission("821710074577158144", PermissionsBitField.Flags.EmbedLinks)).toBe(true);
 });
 
-test("<📸┃socials> Mention Everyone in", () => {
-    expect(botHasPermission("1125885420379586660", PermissionsBitField.Flags.MentionEveryone)).toBe(true);
+test("<💬┃general-chat> Mention Everyone in", () => {
+    expect(botHasPermission("821710074577158144", PermissionsBitField.Flags.MentionEveryone)).toBe(true);
 });
 
 function botHasPermission(schannel: string, permissions: bigint) {

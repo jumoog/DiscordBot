@@ -54,7 +54,7 @@ export class DiscordBot extends EventEmitter {
 			this._rooms.set(rooms.hypetrain, this.getChannel(process.env.ROOMNAME ?? '🚀┃hypetrain'));
 			this._rooms.set(rooms.debug, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
 			this._rooms.set(rooms.shoutout, this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
-			this._rooms.set(rooms.socials, this.getChannel(process.env.SOCIALSROOMNAME ?? '📸┃socials'));
+			this._rooms.set(rooms.socials, this.getChannel(process.env.SOCIALSROOMNAME ?? '💬┃general-chat'));
 			this._rooms.set(rooms.stats, (this._discordClient.channels.cache.get(StatsRoom) as TextChannel));
 			this._memberCount = (this._discordClient.guilds.cache.get(AnnabelDC) as Guild).memberCount;
 			this.sendMessage(`Ready! Logged in as ${c.user.tag}`, rooms.debug);
