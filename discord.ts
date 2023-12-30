@@ -50,6 +50,7 @@ export class DiscordBot extends EventEmitter {
 	async main() {
 		// discord client
 		this._discordClient.once(Events.ClientReady, c => {
+			this._discordClient.user?.setActivity(undefined);
 			this._rooms.set(rooms.hypetrain, this.getChannel(process.env.ROOMNAME ?? '🚀┃hypetrain'));
 			this._rooms.set(rooms.debug, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
 			this._rooms.set(rooms.shoutout, this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
