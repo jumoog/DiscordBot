@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import signale from "signale";
-import { AttachmentBuilder, Channel, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, PermissionsBitField, TextChannel, VoiceChannel } from 'discord.js';
+import { ActivityType, AttachmentBuilder, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, PermissionsBitField, TextChannel, VoiceChannel } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
 import { Cron } from "croner";
@@ -110,6 +110,26 @@ export class DiscordBot extends EventEmitter {
 	 */
 	async sendMessage(message: string | MessagePayload | MessageCreateOptions, room: rooms) {
 		DiscordMessageQueue.add(() => this.messageQueue(message, room));
+	}
+
+	/**
+	 * helper function to send normal text messages
+	 */
+	async onlineHandler(message: string) {
+		if (this._discordClient.isReady()) {
+			this._discordClient.user?.setActivity('ANNABEL', { type: ActivityType.Watching });
+			this.sendMessage(message, rooms.debug)
+		}
+	}
+
+	/**
+	 * helper function to send normal text messages
+	 */
+	async offlineHandler(message: string) {
+		if (this._discordClient.isReady()) {
+			this._discordClient.user?.setActivity(undefined);
+			this.sendMessage(message, rooms.debug)
+		}
 	}
 
 	/**

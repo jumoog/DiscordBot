@@ -30,6 +30,14 @@ twitch.on('sendMessage', (message: string, room: rooms) => {
     discord.sendMessage(message, room);
 });
 
+twitch.on('online', (message: string) => {
+    discord.onlineHandler(message);
+});
+
+twitch.on('offline', (message: string) => {
+    discord.offlineHandler(message);
+});
+
 twitch.on('deleteCoolDown', () => {
     discord.deleteCoolDown();
 });

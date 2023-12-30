@@ -117,11 +117,11 @@ export class Twitch extends EventEmitter {
                 logger: {
                     minLevel: 'trace',
                     custom: (level, message) => {
-                        fs.writeFileSync(`/tokens/HEALTH`, message )
+                        fs.writeFileSync(`/tokens/HEALTH`, message)
                     },
                 },
             });
-            
+
             twitchListener.start();
 
             try {
@@ -266,7 +266,7 @@ export class Twitch extends EventEmitter {
     private StreamOnlineEventsHandler(e: EventSubStreamOnlineEvent) {
         signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this._onlineTimer.start(120_000);
-        this.sendDebugMessage(`${e.broadcasterDisplayName} went online!`);
+        this.emit('online', `${e.broadcasterDisplayName} went online!`)
     }
 
     /**
@@ -276,7 +276,7 @@ export class Twitch extends EventEmitter {
     private StreamOfflineEventsHandler(e: EventSubStreamOfflineEvent) {
         signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this._onlineTimer.stop();
-        this.sendDebugMessage(`${e.broadcasterDisplayName} went offline!`);
+        this.emit('offline', `${e.broadcasterDisplayName} went offline!`)
     }
 
     /**
