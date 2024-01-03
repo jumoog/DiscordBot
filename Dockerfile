@@ -1,4 +1,4 @@
-FROM oven/bun:1.0.20-alpine
+FROM oven/bun:1.0.21-alpine
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /HypetrainDiscordBot
 COPY . .
