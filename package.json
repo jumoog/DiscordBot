@@ -15,7 +15,7 @@
   },
   "homepage": "https://github.com/annabelstopit/DiscordBot#readme",
   "dependencies": {
-    "@twurple/api": "^7.0.6",
+    "@twurple/api": "^7.0.7",
     "@twurple/auth": "^7.0.6",
     "@twurple/common": "^7.0.6",
     "@twurple/eventsub-ws": "^7.0.6",
