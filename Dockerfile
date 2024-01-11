@@ -1,5 +1,4 @@
-FROM oven/bun:1.0.21-alpine
-ARG DEBIAN_FRONTEND=noninteractive
+FROM oven/bun:1.0.22-alpine
 WORKDIR /HypetrainDiscordBot
 COPY . .
 ENV USERID= \
