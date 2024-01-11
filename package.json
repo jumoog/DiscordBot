@@ -23,7 +23,6 @@
     "discord.js": "^14.14.1",
     "p-queue": "^8.0.1",
     "signale": "^1.4.0",
-    "tiktok-live-connector": "^1.0.5",
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
