@@ -6,6 +6,7 @@ updates:
       interval: "daily"
     ignore:
       - dependency-name: "@types/*"
+      - dependency-name: "bun-types"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
