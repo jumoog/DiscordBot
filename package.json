@@ -15,18 +15,18 @@
   },
   "homepage": "https://github.com/annabelstopit/DiscordBot#readme",
   "dependencies": {
-    "@twurple/api": "^7.0.8",
-    "@twurple/auth": "^7.0.8",
-    "@twurple/common": "^7.0.8",
-    "@twurple/eventsub-ws": "^7.0.8",
-    "croner": "^8.0.0",
+    "@twurple/api": "^7.0.10",
+    "@twurple/auth": "^7.0.10",
+    "@twurple/common": "^7.0.10",
+    "@twurple/eventsub-ws": "^7.0.10",
+    "croner": "^8.0.1",
     "discord.js": "^14.14.1",
     "p-queue": "^8.0.1",
     "signale": "^1.4.0",
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.5",
+    "@types/bun": "^1.0.6",
     "@types/signale": "^1.4.7"
   },
   "peerDependencies": {
