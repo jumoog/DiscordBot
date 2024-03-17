@@ -2,6 +2,21 @@ import EventEmitter from 'events';
 import signale from 'signale';
 import fs from 'node:fs';
 
+type me = {
+    username:     string;
+    account_type: string;
+    id:           string;
+}
+
+type refresh_access_token = {
+	access_token: string;
+	token_type:   string;
+	expires_in:   number;
+}
+interface InstagramMediaItemData {
+	data: InstagramMediaItem[]
+}
+
 export interface InstagramMediaItem {
 	id: string
 	caption?: string
@@ -12,7 +27,7 @@ export interface InstagramMediaItem {
 	timestamp: string
 }
 
-export interface InstagramToken {
+interface InstagramToken {
 	accessToken: string;
 	expiresOn: number;
 	obtainmentTimestamp: number;
@@ -22,7 +37,7 @@ export class Instagram extends EventEmitter {
 	private _IgToken: InstagramToken;
 	private _IgLastTimeStamp: string;
 	private _IgAccessToken: string;
-	private _IgCurrentUserId: number;
+	private _IgCurrentUserId: string;
 	private _IgCurrentUserName: string;
 	private _IgTokenPath: string;
 	private _IgLastTimeStampPath: string;
@@ -33,7 +48,7 @@ export class Instagram extends EventEmitter {
 		this._IgToken = JSON.parse(fs.readFileSync(this._IgTokenPath, 'utf8'));
 		this._IgLastTimeStamp = JSON.parse(fs.readFileSync(this._IgLastTimeStampPath, 'utf8')).timestamp;
 		this._IgAccessToken = this._IgToken.accessToken;
-		this._IgCurrentUserId = 0;
+		this._IgCurrentUserId = "";
 		this._IgCurrentUserName = "";
 		this._IgCurrentUserName = "";
 	}
@@ -46,10 +61,10 @@ export class Instagram extends EventEmitter {
 			signale.success(`found ig_token.json and lastTimeStamp.json!`);
 			await this.checkIgToken();
 			await this.getIgUseId();
-			if (this._IgCurrentUserId !== 0) {
+			if (this._IgCurrentUserId !== "") {
 				this.checkForNewIgPosts();
 			} else {
-				signale.fatal(`user id is 0`);
+				signale.fatal(`user id is empty`);
 				process.exit(1);
 			}
 		} else {
@@ -66,9 +81,9 @@ export class Instagram extends EventEmitter {
 		await fetch(`https://graph.instagram.com/${this._IgCurrentUserId}/media/?fields=id,media_type,caption,media_url,thumbnail_url,timestamp,permalink&access_token=${this._IgAccessToken}&since=${epoch}`)
 			.then(async (res) => {
 				if (res.ok) {
-					const json = await res.json();
+					const json = (await res.json() as InstagramMediaItemData)
 					// extract data
-					const data: InstagramMediaItem[] = json.data;
+					const data = json.data
 					// set last timestamp
 					if (data.length > 0) {
 						this._IgLastTimeStamp = data[0].timestamp;
@@ -89,6 +104,7 @@ export class Instagram extends EventEmitter {
 		setTimeout(() => this.checkForNewIgPosts(), 30 * 1000);
 	}
 
+	
 	/**
 	 * validate token and refresh if needed
 	 */
@@ -100,7 +116,7 @@ export class Instagram extends EventEmitter {
 			await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${this._IgAccessToken}`)
 				.then(async (res) => {
 					if (res.ok) {
-						const json = await res.json();
+						const json = (await res.json() as refresh_access_token)
 						const expiresOn = Math.floor(Date.now() / 1000) + json.expires_in - 60;
 						signale.info(`refresh token!`)
 						this._IgAccessToken = json.access_token;
@@ -125,7 +141,7 @@ export class Instagram extends EventEmitter {
 		await fetch(`https://graph.instagram.com/me/?access_token=${this._IgAccessToken}&fields=username,account_type`)
 			.then(async (res) => {
 				if (res.ok) {
-					const json = await res.json();
+					const json = (await res.json() as me)
 					this._IgCurrentUserId = json.id;
 					this._IgCurrentUserName = json.username;
 					signale.success(`Hello username <${this._IgCurrentUserName}> id <${this._IgCurrentUserId}>`);
