@@ -19,7 +19,6 @@ export class Twitch extends EventEmitter {
     private _timerLeft;
     private _tokenPath;
     private _level;
-    private _total;
     private _currentCoolDownTimer: Timer;
     private _currentCoolDown: number;
     private _onlineTimer: Timer;
@@ -34,7 +33,6 @@ export class Twitch extends EventEmitter {
         this._currentCoolDownTimer = new Timer();
         this._currentCoolDown = 0;
         this._level = 0;
-        this._total = 0;
         this._onlineTimer = new Timer();
         this._streamStartTimer = new Timer();
     }
@@ -210,8 +208,6 @@ export class Twitch extends EventEmitter {
         this.sendMessage(`:checkered_flag: The hype train is over! We reached Level **${e.level}**!`);
         // reset level
         this._level = 0;
-        // reset total
-        this._total = 0;
         // next hype train as UTC
         this.setCoolDownEndDate(e.cooldownEndDate)
     }
@@ -231,32 +227,26 @@ export class Twitch extends EventEmitter {
      * @param e 
      */
     private hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressEvent) {
-        // filter duplicates out
-        if (this._total !== e.total) {
-            this._total = e.total;
-            // log JSON
-            signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
-            // check if reached a new level
-            if (this._level !== e.level) {
-                this._level = e.level;
-                this.sendMessage(`:trophy: The hype train reached Level **${e.level}**!`);
-            }
-            // check if is a subscription
-            // tier 1 500
-            // tier 2 1000
-            // tier 3 1500
-            if (e.lastContribution.type === "subscription") {
-                const amount = e.lastContribution.total / 500;
-                this.sendMessage(":gift: `" + e.lastContribution.userDisplayName + "` gifted **" + amount + "** sub" + (amount > 1 ? "s" : "") + "!");
-
-            }
-            else if (e.lastContribution.type === "bits") {
-                this.sendMessage(":coin: `" + e.lastContribution.userDisplayName + "` cheered **" + e.lastContribution.total + "** bits!");
-            }
-            this.sendDebugMessage(`The hype train points: ${e.total} Level: **${e.level}**`);
-        } else {
-            signale.debug('hypeTrainProgressEvents', 'skipping duplicate!');
+        // log JSON
+        signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
+        // check if reached a new level
+        if (this._level !== e.level) {
+            this._level = e.level;
+            this.sendMessage(`:trophy: The hype train reached Level **${e.level}**!`);
         }
+        // check if is a subscription
+        // tier 1 500
+        // tier 2 1000
+        // tier 3 1500
+        if (e.lastContribution.type === "subscription") {
+            const amount = e.lastContribution.total / 500;
+            this.sendMessage(":gift: `" + e.lastContribution.userDisplayName + "` gifted **" + amount + "** sub" + (amount > 1 ? "s" : "") + "!");
+
+        }
+        else if (e.lastContribution.type === "bits") {
+            this.sendMessage(":coin: `" + e.lastContribution.userDisplayName + "` cheered **" + e.lastContribution.total + "** bits!");
+        }
+        this.sendDebugMessage(`The hype train points: ${e.total} Level: **${e.level}**`);
     }
 
     /**
