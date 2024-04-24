@@ -85,6 +85,11 @@ test("<💬┃general-chat> Mention Everyone in", () => {
     expect(botHasPermission("821710074577158144", PermissionsBitField.Flags.MentionEveryone)).toBe(true);
 });
 
+// 🚨┃mod-logs
+test("<🚨┃mod-logs> Send a message", () => {
+    expect(botHasPermission("1229478102066008196", PermissionsBitField.Flags.SendMessages)).toBe(true);
+});
+
 function botHasPermission(schannel: string, permissions: bigint) {
     // Replace 'YOUR_BOT_ID' with your actual bot's user ID
     const channel = getChannelByID(schannel);

@@ -17,7 +17,8 @@ export enum rooms {
 	debug = "DEBUG",
 	shoutout = "SHOUTOUT",
 	socials = "SOCIALS",
-	stats = "STATS"
+	stats = "STATS",
+	modlog = "MODLOG"
 }
 
 /**
@@ -55,6 +56,7 @@ export class DiscordBot extends EventEmitter {
 			this._rooms.set(rooms.debug, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
 			this._rooms.set(rooms.shoutout, this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
 			this._rooms.set(rooms.socials, this.getChannel(process.env.SOCIALSROOMNAME ?? '💬┃general-chat'));
+			this._rooms.set(rooms.modlog, this.getChannel(process.env.MODLOGROONAME ?? '🚨┃mod-logs'));
 			this._rooms.set(rooms.stats, (this._discordClient.channels.cache.get(StatsRoom) as TextChannel));
 			this._memberCount = (this._discordClient.guilds.cache.get(AnnabelDC) as Guild).memberCount;
 			this.sendMessage(`Ready! Logged in as ${c.user.tag}`, rooms.debug);
@@ -63,12 +65,14 @@ export class DiscordBot extends EventEmitter {
 
 		this._discordClient.on('guildMemberAdd', member => {
 			if (member.guild.id === AnnabelDC) {
+				this.sendMessage(`${member.nickname} joined the Server`, rooms.modlog);
 				this._memberCount = member.guild.memberCount;
 			}
 		});
 
 		this._discordClient.on('guildMemberRemove', member => {
 			if (member.guild.id === AnnabelDC) {
+				this.sendMessage(`${member.nickname} left the Server`, rooms.modlog);
 				this._memberCount = member.guild.memberCount;
 			}
 		});
