@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import signale from "signale";
-import { ActivityType, AttachmentBuilder, AuditLogEvent, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, PermissionsBitField, TextChannel, User, VoiceChannel } from 'discord.js';
+import { ActivityType, AttachmentBuilder, AuditLogEvent, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, TextChannel, User, VoiceChannel } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
 import { Cron } from "croner";
@@ -34,6 +34,7 @@ export class DiscordBot extends EventEmitter {
 		super();
 		this._discordToken = process.env.DISCORDTOKEN ?? '';
 		this._discordClient = new Client({
+			partials: [Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message],
 			intents: [
 				GatewayIntentBits.Guilds,
 				GatewayIntentBits.GuildMessages,
@@ -189,7 +190,7 @@ export class DiscordBot extends EventEmitter {
 	/**
 	 * helper function to build message
 	 */
-	buildUserDetail(user: User) {
+	buildUserDetail(user: User): string {
 		return `[ <@${user.id}> \`${user.id}\` ] **${user.username}#${user.discriminator}**`
 	}
 
