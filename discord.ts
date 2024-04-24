@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import signale from "signale";
-import { ActivityType, AttachmentBuilder, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, PermissionsBitField, TextChannel, VoiceChannel } from 'discord.js';
+import { ActivityType, AttachmentBuilder, AuditLogEvent, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, PermissionsBitField, TextChannel, User, VoiceChannel } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
 import { Cron } from "croner";
@@ -70,10 +70,59 @@ export class DiscordBot extends EventEmitter {
 			}
 		});
 
-		this._discordClient.on('guildMemberRemove', member => {
+		this._discordClient.on('guildMemberRemove', async (member) => {
 			if (member.guild.id === AnnabelDC) {
-				this.sendMessage(`${member.nickname} left the Server`, rooms.modlog);
-				this._memberCount = member.guild.memberCount;
+				const user = member.user;
+				const guild = member.guild;
+
+
+				const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberKick);
+
+				if (auditEntry) {
+					const executorMessage = auditEntry.executor?.tag
+						? ` by **${auditEntry.executor.tag}**`
+						: '';
+
+					const reasonMessage = auditEntry.reason
+						? `\n**Reason:** ${auditEntry.reason}`
+						: '';
+
+					await this.sendMessage(`:foot: ${this.buildUserDetail(user)} was kicked from the server${executorMessage}.${reasonMessage}`, rooms.modlog);
+				} else {
+					await this.sendMessage(`:wave: ${this.buildUserDetail(user)} left the server.`, rooms.modlog);
+				}
+			}
+		})
+
+		this._discordClient.on('guildBanAdd', async (guildBan) => {
+			if (guildBan.guild.id === AnnabelDC) {
+				const guild = guildBan.guild;
+				const user = guildBan.user;
+
+				const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberBanAdd)
+				const executorMessage = auditEntry && auditEntry.executor?.tag
+					? ` by **${auditEntry.executor.tag}**`
+					: '';
+
+				const reasonMessage = auditEntry && auditEntry.reason
+					? `\n**Reason:** ${auditEntry.reason}`
+					: '';
+
+				await this.sendMessage(`:no_entry: ${this.buildUserDetail(user)} was banned${executorMessage}.${reasonMessage}`, rooms.modlog);
+			}
+		})
+
+		this._discordClient.on('guildBanRemove', async (guildBan) => {
+			if (guildBan.guild.id === AnnabelDC) {
+				const guild = guildBan.guild;
+				const user = guildBan.user;
+
+				const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberBanRemove);
+				const executorMessage = auditEntry && auditEntry.executor?.tag
+					? ` by **${auditEntry.executor.tag}**`
+					: '';
+
+				await this.sendMessage(`:ok: ${this.buildUserDetail(user)} was unbanned${executorMessage}.`, rooms.modlog);
 			}
 		});
 
@@ -135,6 +184,26 @@ export class DiscordBot extends EventEmitter {
 			this._discordClient.user?.setActivity(undefined);
 			this.sendMessage(message, rooms.debug)
 		}
+	}
+
+	/**
+	 * helper function to build message
+	 */
+	buildUserDetail(user: User) {
+		return `[ <@${user.id}> \`${user.id}\` ] **${user.username}#${user.discriminator}**`
+	}
+
+	async fetchAuditEntryFor(guild: Guild, user: User, type: AuditLogEvent) {
+		const auditLogs = await guild.fetchAuditLogs({
+			limit: 1,
+			type
+		}).catch(signale.debug)
+
+		if (!auditLogs) {
+			return null;
+		}
+
+		return auditLogs.entries.filter(entry => (entry.target as User).id == user.id).first();
 	}
 
 	/**
@@ -216,7 +285,7 @@ export class DiscordBot extends EventEmitter {
 			text = text.slice(0, maxChars).split(' ').slice(0, -1).join(' ') + ' ...';
 		}
 		for (let match of text.matchAll(resourceRegex)) {
-			text = text.replace(match[0], `[${match[0]}](https://www.instagram.com/${match[0].slice(1)}/)`)
+			text = text.replace(match[0], `[${match[0]}](https://www.instagram.com/${match[0].slice(1)}/)`);
 		}
 		return text;
 	}
