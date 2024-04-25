@@ -64,9 +64,10 @@ export class DiscordBot extends EventEmitter {
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
 		});
 
-		this._discordClient.on('guildMemberAdd', member => {
+		this._discordClient.on('guildMemberAdd', async (member) => {
 			if (member.guild.id === AnnabelDC) {
-				this.sendMessage(`${member.nickname} joined the Server`, rooms.modlog);
+				const user = member.user;
+				await this.sendMessage(`${this.buildUserDetail(user)} joined the Server`, rooms.modlog);
 				this._memberCount = member.guild.memberCount;
 			}
 		});
