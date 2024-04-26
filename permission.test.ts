@@ -12,6 +12,134 @@ beforeAll(async () => {
     }
 });
 
+test("permission CreateInstantInvite", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.CreateInstantInvite)).toBe(true);
+});
+
+test("permission ManageChannels", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageChannels)).toBe(true);
+});
+
+test("permission AddReactions", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.AddReactions)).toBe(true);
+});
+
+test("permission ViewAuditLog", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ViewAuditLog)).toBe(true);
+});
+
+test("permission PrioritySpeaker", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.PrioritySpeaker)).toBe(true);
+});
+
+test("permission Stream", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.Stream)).toBe(true);
+});
+
+test("permission ViewChannel", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ViewChannel)).toBe(true);
+});
+
+test("permission SendMessages", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.SendMessages)).toBe(true);
+});
+
+test("permission ManageMessages", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageMessages)).toBe(true);
+});
+
+test("permission EmbedLinks", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.EmbedLinks)).toBe(true);
+});
+
+test("permission AttachFiles", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.AttachFiles)).toBe(true);
+});
+
+test("permission ReadMessageHistory", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ReadMessageHistory)).toBe(true);
+});
+
+test("permission MentionEveryone", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.MentionEveryone)).toBe(true);
+});
+
+test("permission UseExternalEmojis", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.UseExternalEmojis)).toBe(true);
+});
+
+test("permission Connect", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.Connect)).toBe(true);
+});
+
+test("permission Speak", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.Speak)).toBe(true);
+});
+
+test("permission MuteMembers", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.MuteMembers)).toBe(true);
+});
+
+test("permission DeafenMembers", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.DeafenMembers)).toBe(true);
+});
+
+test("permission UseVAD", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.UseVAD)).toBe(true);
+});
+
+test("permission ChangeNickname", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ChangeNickname)).toBe(true);
+});
+
+test("permission ManageNicknames", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageNicknames)).toBe(true);
+});
+
+test("permission UseApplicationCommands", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.UseApplicationCommands)).toBe(true);
+});
+
+test("permission RequestToSpeak", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.RequestToSpeak)).toBe(true);
+});
+
+test("permission ManageThreads", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageThreads)).toBe(true);
+});
+
+test("permission CreatePublicThreads", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.CreatePublicThreads)).toBe(true);
+});
+
+test("permission CreatePrivateThreads", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.CreatePrivateThreads)).toBe(true);
+});
+
+test("permission UseExternalStickers", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.UseExternalStickers)).toBe(true);
+});
+
+test("permission SendMessagesInThreads", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.SendMessagesInThreads)).toBe(true);
+});
+
+test("permission UseEmbeddedActivities", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.UseEmbeddedActivities)).toBe(true);
+});
+
+test("permission UseSoundboard", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.UseSoundboard)).toBe(true);
+});
+
+test("permission UseExternalSounds", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.UseExternalSounds)).toBe(true);
+});
+
+test("permission SendVoiceMessages", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.SendVoiceMessages)).toBe(true);
+});
+
 // member stats room 
 test("check if member stats room is manageable", () => {
     expect(getChannelByID("1189573435710521345")?.manageable).toBe(true);
@@ -105,6 +233,19 @@ function botHasPermission(schannel: string, permissions: bigint) {
 
 function getChannelByID(room: string) {
     return client.channels.cache.find(
-        (channel) => (channel as TextChannel).id === room,
+        (channel) => (channel as TextChannel).id === room
     ) as TextChannel | VoiceChannel | null;
+}
+
+function checkBotPermissions(permission: bigint) {
+    const guildId = "821708215216635904";
+    const guild = client.guilds.cache.get(guildId);
+
+    if (guild) {
+        // Get the member object for the bot itself
+        const botMember = guild.members.cache.get(client.user?.id!);
+        //fs.writeFileSync('lol.json', JSON.stringify(botMember?.permissions.toArray()!))
+        return botMember?.permissions.has(permission);
+    }
+    return false;
 }
