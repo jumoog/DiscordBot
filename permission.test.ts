@@ -12,6 +12,65 @@ beforeAll(async () => {
     }
 });
 
+// not allowed
+test("permission SendTTSMessages", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.SendTTSMessages)).toBe(false);
+});
+
+test("permission ManageRoles", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageRoles)).toBe(false);
+});
+
+test("permission ManageEmojisAndStickers", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageEmojisAndStickers)).toBe(false);
+});
+
+test("permission ManageEvents", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageEvents)).toBe(false);
+});
+
+test("permission BanMembers", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.BanMembers)).toBe(false);
+});
+
+test("permission ManageWebhooks", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageWebhooks)).toBe(false);
+});
+
+test("permission ViewCreatorMonetizationAnalytics", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ViewCreatorMonetizationAnalytics)).toBe(false);
+});
+
+test("permission ViewGuildInsights", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ViewGuildInsights)).toBe(false);
+});
+
+test("permission ManageGuildExpressions", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageGuildExpressions)).toBe(false);
+});
+
+test("permission MoveMembers", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.MoveMembers)).toBe(false);
+});
+
+test("permission KickMembers", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.KickMembers)).toBe(false);
+});
+
+test("permission ManageGuild", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageGuild)).toBe(false);
+});
+
+test("permission ModerateMembers", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.ModerateMembers)).toBe(false);
+});
+
+test("permission Administrator", () => {
+    expect(checkBotPermissions(PermissionsBitField.Flags.Administrator)).toBe(false);
+});
+
+
+// allowed
 test("permission CreateInstantInvite", () => {
     expect(checkBotPermissions(PermissionsBitField.Flags.CreateInstantInvite)).toBe(true);
 });
