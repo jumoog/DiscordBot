@@ -77,7 +77,6 @@ export class DiscordBot extends EventEmitter {
 				const user = member.user;
 				const guild = member.guild;
 
-
 				const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberKick);
 
 				if (auditEntry) {
@@ -196,6 +195,7 @@ export class DiscordBot extends EventEmitter {
 	}
 
 	async fetchAuditEntryFor(guild: Guild, user: User, type: AuditLogEvent) {
+		await sleep(5_000);
 		const auditLogs = await guild.fetchAuditLogs({
 			limit: 1,
 			type
