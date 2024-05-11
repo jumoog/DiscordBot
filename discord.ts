@@ -195,9 +195,9 @@ export class DiscordBot extends EventEmitter {
 	}
 
 	async fetchAuditEntryFor(guild: Guild, user: User, type: AuditLogEvent) {
-		await sleep(5_000);
+		await sleep(2_500);
 		const auditLogs = await guild.fetchAuditLogs({
-			limit: 1,
+			limit: 10,
 			type
 		}).catch(signale.debug)
 
@@ -205,7 +205,8 @@ export class DiscordBot extends EventEmitter {
 			return null;
 		}
 
-		return auditLogs.entries.filter(entry => (entry.target as User).id == user.id).first();
+		return auditLogs.entries.find((entry) => (entry.target as User).id == user.id);
+		//return auditLogs.entries.filter(entry => (entry.target as User).id == user.id).first();
 	}
 
 	/**
