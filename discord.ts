@@ -257,7 +257,7 @@ export class DiscordBot extends EventEmitter {
 		const embed = new EmbedBuilder()
 			.setTitle(element.permalink?.includes('/reel/') ? 'Annabel shared a new reel!' : 'Annabel shared a new post!')
 			.setURL(element.permalink)
-			.setDescription(this.hasProp(element, "caption") ? this.extractMentions(element.caption!) : null)
+			.setDescription(this.hasProp(element, "caption") ? this.replaceInstagramHandles(element.caption!) : null)
 			.setImage('attachment://preview.jpg')
 			.setColor("#D300C5")
 			.setFooter({
@@ -281,15 +281,33 @@ export class DiscordBot extends EventEmitter {
 		return false;
 	}
 
-	extractMentions(text: string): string {
-		const resourceRegex = /\@(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}/gm
-		const maxChars = 100;
-		if (text.length > maxChars) {
-			text = text.slice(0, maxChars).split(' ').slice(0, -1).join(' ') + ' ...';
+	replaceInstagramHandles(caption: string): string {
+		let shortened = '';
+		const maxLength = 100;
+		if (caption.length <= maxLength) {
+			shortened = caption;
+		} else {
+
+			// Shorten the caption to the nearest word boundary within the max length
+			const words = caption.split(' ');
+
+			for (let word of words) {
+				if ((shortened + word).length + 1 > maxLength) { // +1 for the space
+					break;
+				}
+				shortened += (shortened ? ' ' : '') + word;
+			}
+
+			shortened += '...';
 		}
-		for (let match of text.matchAll(resourceRegex)) {
-			text = text.replace(match[0], `[${match[0]}](https://www.instagram.com/${match[0].slice(1)}/)`);
-		}
-		return text;
+		// Regular expression to match Instagram handles (e.g., @username)
+		const handleRegex = /@([a-zA-Z0-9_]+)/g;
+
+		// Replace each handle with the profile link
+		const updatedCaption = shortened.replace(handleRegex, (match, handle) => {
+			return `[${match}](https://www.instagram.com/${handle}/)`;
+		});
+
+		return updatedCaption;
 	}
 }
