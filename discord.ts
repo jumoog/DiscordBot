@@ -16,7 +16,7 @@ const IntroRoom = "821709936563191849";
 const stickNote = `__**Sticky Message:**__
 
 Welcome to the A-Team!
-Here are some questions to help you introduce yourself so we can get to know each other:
+Here are some prompts to help you introduce yourself so we can get to know each other:
 
 ${codeBlock(`**Name:** 
 **Where I'm from/based:** 
