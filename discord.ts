@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import signale from "signale";
-import { ActivityType, AttachmentBuilder, AuditLogEvent, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, TextChannel, User, VoiceChannel } from 'discord.js';
+import { ActivityType, AttachmentBuilder, AuditLogEvent, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, TextChannel, User, VoiceChannel } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
 import { Cron } from "croner";
@@ -11,6 +11,21 @@ const DiscordMessageQueue = new PQueue({ concurrency: 1 });
 const AnnabelDC = "821708215216635904";
 const StatsRoom = "1189573435710521345";
 const ContentRole = "953017309369344031";
+const IntroRoom = "821709936563191849";
+
+const stickNote = `__**Sticky Message:**__
+
+Welcome to the community!
+Here's a format to help you introduce yourself and share a little about you:
+
+${codeBlock(`**Name:** 
+**Where you’re from / based:** 
+**How you found out about ANNABEL:** 
+**My Favourite ANNABEL DJ set** 
+**My Favourite ANNABEL experience (e.g. live show or other):**  
+**Other music interests:** 
+**Other interests:** 
+**Something you are looking forward to:**`)}`
 
 export enum rooms {
 	hypetrain = "HYPETRAIN",
@@ -18,7 +33,8 @@ export enum rooms {
 	shoutout = "SHOUTOUT",
 	socials = "SOCIALS",
 	stats = "STATS",
-	modlog = "MODLOG"
+	modlog = "MODLOG",
+	intro = "INTRO"
 }
 
 /**
@@ -59,6 +75,7 @@ export class DiscordBot extends EventEmitter {
 			this._rooms.set(rooms.socials, this.getChannel(process.env.SOCIALSROOMNAME ?? '💬┃general-chat'));
 			this._rooms.set(rooms.modlog, this.getChannel(process.env.MODLOGROONAME ?? '🚨┃mod-logs'));
 			this._rooms.set(rooms.stats, (this._discordClient.channels.cache.get(StatsRoom) as TextChannel));
+			this._rooms.set(rooms.intro, (this._discordClient.channels.cache.get(IntroRoom) as TextChannel));
 			this._memberCount = (this._discordClient.guilds.cache.get(AnnabelDC) as Guild).memberCount;
 			this.sendMessage(`Ready! Logged in as ${c.user.tag}`, rooms.debug);
 			signale.success(`Ready! Logged in as ${c.user.tag}`);
@@ -124,6 +141,20 @@ export class DiscordBot extends EventEmitter {
 					: '';
 
 				await this.sendMessage(`:ok: ${this.buildUserDetail(user)} was unbanned${executorMessage}.`, rooms.modlog);
+			}
+		});
+
+		this._discordClient.on('messageCreate', async message => {
+			if (message.channel.id === IntroRoom && !message.author.bot) {
+					const lastCustomMessage = await this.findLastStickyNote();
+					if (lastCustomMessage) {
+						try {
+							await lastCustomMessage.delete();
+						} catch (error) {
+							signale.fatal('Error deleting previous custom message:', error);
+						}
+					}
+					this.sendMessage(stickNote, rooms.intro);	
 			}
 		});
 
@@ -310,4 +341,14 @@ export class DiscordBot extends EventEmitter {
 
 		return updatedCaption;
 	}
+
+	async findLastStickyNote() {
+		try {
+			const messages = await this._rooms.get(rooms.intro)?.messages.fetch({ limit: 10 });
+			return messages?.find(msg => msg.author.id === this._discordClient.user?.id && msg.content === stickNote);
+		} catch (error) {
+			signale.fatal('Error fetching messages:', error);
+		}
+		return null;
+	}	
 }
