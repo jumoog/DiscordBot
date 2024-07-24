@@ -15,17 +15,17 @@ const IntroRoom = "821709936563191849";
 
 const stickNote = `__**Sticky Message:**__
 
-Welcome to the community!
-Here's a format to help you introduce yourself and share a little about you:
+Welcome to the A-Team!
+Here are some questions to help you introduce yourself so we can get to know each other:
 
 ${codeBlock(`**Name:** 
-**Where you’re from / based:** 
-**How you found out about ANNABEL:** 
-**My Favourite ANNABEL DJ set** 
-**My Favourite ANNABEL experience (e.g. live show or other):**  
+**Where I'm from/based:** 
+**How I found out about ANNABEL:** 
+**My favourite ANNABEL DJ set:** 
+**My favourite ANNABEL experience (e.g. live show or other):** 
 **Other music interests:** 
 **Other interests:** 
-**Something you are looking forward to:**`)}`
+**Something I’m looking forward to:** `)}`
 
 export enum rooms {
 	hypetrain = "HYPETRAIN",
