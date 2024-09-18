@@ -1,4 +1,4 @@
-FROM oven/bun:1.1.27-alpine
+FROM oven/bun:1.1.28-alpine
 WORKDIR /HypetrainDiscordBot
 COPY . .
 ENV USERID= \
