@@ -7,25 +7,26 @@ import fs from 'node:fs';
 import signale from "signale";
 import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent } from '@twurple/eventsub-base';
 import { getRawData } from '@twurple/common';
-import { rooms } from './discord.js';
+import { Rooms } from './discord.js';
 
 /**
  * Bot class
  */
 export class Twitch extends EventEmitter {
-    private _userId: number | string;
-    private _clientId: string;
-    private _clientSecret: string;
-    private _timerLeft;
-    private _tokenPath;
-    private _level;
-    private _currentCoolDownTimer: Timer;
+    private readonly _userId: number | string;
+    private readonly _clientId: string;
+    private readonly _clientSecret: string;
+    private _timerLeft: number;
+    private _tokenPath: string;
+    private _level: number;
+    private readonly _currentCoolDownTimer: Timer;
     private _currentCoolDown: number;
-    private _onlineTimer: Timer;
-    private _streamStartTimer: Timer;
+    private readonly _onlineTimer: Timer;
+    private readonly _streamStartTimer: Timer;
+
     constructor() {
         super();
-        this._userId = process.env.USERID ?? 631529415; // annabelstopit
+        this._userId = process.env.USERID ?? 631529415;
         this._clientId = process.env.CLIENTID ?? '';
         this._clientSecret = process.env.CLIENTSECRET ?? '';
         this._timerLeft = 0;
@@ -35,6 +36,9 @@ export class Twitch extends EventEmitter {
         this._level = 0;
         this._onlineTimer = new Timer();
         this._streamStartTimer = new Timer();
+
+        this._currentCoolDownTimer.on('done', this.handleCoolDownTimerDone.bind(this));
+        this._onlineTimer.on('done', this.handleOnlineTimerDone.bind(this));
     }
 
     /**
@@ -47,22 +51,6 @@ export class Twitch extends EventEmitter {
         } else {
             this.sendDebugMessage(`can't find twitch tokens!`);
         }
-
-        // hype train timer is over event
-        this._currentCoolDownTimer.on('done', () => {
-            this.emit('deleteCoolDown');
-            this.sendMessage(`:index_pointing_at_the_viewer: The next hype train is ready!`);
-        });
-
-        // online timer is over
-        this._onlineTimer.on('done', () => {
-            // only do a shoutout at start or every 30 mins
-            if (this._streamStartTimer.status === 'stopped') {
-                this.sendMessage(`@everyone Λ N N Λ B E L is live now\nhttps://www.twitch.tv/annabelstopit`, rooms.shoutout);
-                // start 30 min timer
-                this._streamStartTimer.start(1_800_000);
-            }
-        });
     }
 
     /***
@@ -179,7 +167,7 @@ export class Twitch extends EventEmitter {
     /**
      * helper function to send normal text messages
      */
-    private sendMessage(message: string, room = rooms.hypetrain) {
+    private sendMessage(message: string, room = Rooms.HYPETRAIN) {
         this.emit('sendMessage', message, room);
     }
 
@@ -187,7 +175,7 @@ export class Twitch extends EventEmitter {
      * helper function to send debug text messages
      */
     private async sendDebugMessage(message: string) {
-        this.sendMessage(message, rooms.debug);
+        this.sendMessage(message, Rooms.DEBUG);
     }
 
     /**
@@ -293,5 +281,16 @@ export class Twitch extends EventEmitter {
         this.sendMessage(`:station: The hype train cool down ends <t:${this.timeInSeconds()}:R>.`);
     }
 
+    private handleCoolDownTimerDone() {
+        this.emit('deleteCoolDown');
+        this.sendMessage(`:index_pointing_at_the_viewer: The next hype train is ready!`);
+    }
+
+    private handleOnlineTimerDone() {
+        if (this._streamStartTimer.status === 'stopped') {
+            this.sendMessage(`@everyone Λ N N Λ B E L is live now\nhttps://www.twitch.tv/annabelstopit`, Rooms.SHOUTOUT);
+            this._streamStartTimer.start(1_800_000);
+        }
+    }
 }
 
