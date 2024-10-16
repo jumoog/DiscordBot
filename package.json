@@ -19,7 +19,7 @@
     "@twurple/auth": "^7.2.0",
     "@twurple/common": "^7.2.0",
     "@twurple/eventsub-ws": "^7.2.0",
-    "croner": "^8.1.2",
+    "croner": "^9.0.0",
     "discord.js": "^14.16.3",
     "p-queue": "^8.0.1",
     "signale": "^1.4.0",
@@ -30,6 +30,6 @@
     "@types/signale": "^1.4.7"
   },
   "peerDependencies": {
-    "typescript": "^5.3.3"
+    "typescript": "^5.6.3"
   }
 }
