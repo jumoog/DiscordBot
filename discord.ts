@@ -75,7 +75,7 @@ export class DiscordBot extends EventEmitter {
             await sleep(100);
         }
 
-        Cron('*/10 * * * *', this.updateMemberCount.bind(this));
+        new Cron('*/10 * * * *', this.updateMemberCount.bind(this));
     }
 
     private handleClientReady(c: Client<true>) {
