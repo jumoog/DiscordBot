@@ -5,7 +5,7 @@ import { EventSubWsListener } from '@twurple/eventsub-ws';
 import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
-import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent } from '@twurple/eventsub-base';
+import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent, EventSubChannelHypeTrainContribution } from '@twurple/eventsub-base';
 import { getRawData } from '@twurple/common';
 import { Rooms } from './discord.js';
 
@@ -19,6 +19,7 @@ export class Twitch extends EventEmitter {
     private _timerLeft: number;
     private _tokenPath: string;
     private _level: number;
+    private _total: number;
     private readonly _currentCoolDownTimer: Timer;
     private _currentCoolDown: number;
     private readonly _onlineTimer: Timer;
@@ -34,6 +35,7 @@ export class Twitch extends EventEmitter {
         this._currentCoolDownTimer = new Timer();
         this._currentCoolDown = 0;
         this._level = 0;
+        this._total = 0;
         this._onlineTimer = new Timer();
         this._streamStartTimer = new Timer();
 
@@ -193,9 +195,20 @@ export class Twitch extends EventEmitter {
      */
     private hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndEvent) {
         signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
+
+        this.sendMessage(`:clap: These are the top contributors to the hype train:`);
+
+        // Send message with all top contributions using handleLastContribution
+        e.topContributors.forEach(contribution => {
+            this.handleLastContribution(contribution);
+        });
+
+        // hype train ended
         this.sendMessage(`:checkered_flag: The hype train is over! We reached Level **${e.level}**!`);
         // reset level
         this._level = 0;
+        // reset total
+        this._total = 0;
         // next hype train as UTC
         this.setCoolDownEndDate(e.cooldownEndDate)
     }
@@ -215,26 +228,36 @@ export class Twitch extends EventEmitter {
      * @param e 
      */
     private hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressEvent) {
-        // log JSON
-        signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
-        // check if reached a new level
-        if (this._level !== e.level) {
-            this._level = e.level;
-            this.sendMessage(`:trophy: The hype train reached Level **${e.level}**!`);
-        }
-        // check if is a subscription
-        // tier 1 500
-        // tier 2 1000
-        // tier 3 1500
-        if (e.lastContribution.type === "subscription") {
-            const amount = e.lastContribution.total / 500;
-            this.sendMessage(":gift: `" + e.lastContribution.userDisplayName + "` gifted **" + amount + "** sub" + (amount > 1 ? "s" : "") + "!");
+        if (this._total !== e.total) {
+            this._total = e.total;
+            // log JSON
+            signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
 
+            // check if reached a new level
+            if (this._level !== e.level) {
+                this._level = e.level;
+                this.sendMessage(`:trophy: The hype train reached Level **${e.level}**!`);
+            }
+            // handle last contribution
+            this.handleLastContribution(e.lastContribution);
+
+            this.sendDebugMessage(`The hype train points: ${e.total} Level: **${e.level}**`);
         }
-        else if (e.lastContribution.type === "bits") {
-            this.sendMessage(":coin: `" + e.lastContribution.userDisplayName + "` cheered **" + e.lastContribution.total + "** bits!");
+    }
+
+    /**
+     * Handles the last contribution made during a hype train event.
+     * Sends a message to the channel based on the type of contribution.
+     *
+     * @param contribution - The contribution object containing details about the contribution.
+     */
+    private handleLastContribution(contribution: EventSubChannelHypeTrainContribution) {
+        if (contribution.type === "subscription") {
+            const amount = contribution.total / 500;
+            this.sendMessage(":gift: `" + contribution.userDisplayName + "` gifted **" + amount + "** sub" + (amount > 1 ? "s" : "") + "!");
+        } else if (contribution.type === "bits") {
+            this.sendMessage(":coin: `" + contribution.userDisplayName + "` cheered **" + contribution.total + "** bits!");
         }
-        this.sendDebugMessage(`The hype train points: ${e.total} Level: **${e.level}**`);
     }
 
     /**
