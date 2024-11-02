@@ -1,5 +1,8 @@
-FROM oven/bun:1.1.33-alpine
+FROM oven/bun:1.1.34-alpine
 WORKDIR /HypetrainDiscordBot
+
+RUN apk update && apk add --no-cache tini
+
 COPY . .
 ENV USERID= \
 	ROOMNAME= \
@@ -7,9 +10,7 @@ ENV USERID= \
 	CLIENTSECRET= \
 	DISCORDTOKEN= \ 
 	DEBUGROOMNAME=
-ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64 /bin/dumb-init
-RUN bun install --production --ignore-scripts &&\
-    chmod +x /bin/dumb-init
+RUN bun install --production --ignore-scripts
 HEALTHCHECK --interval=60s --timeout=12s --start-period=30s CMD bun run healthcheck.ts
-ENTRYPOINT ["dumb-init", "--"]
+ENTRYPOINT ["tini", "--"]
 CMD ["bun", "index.ts"]
