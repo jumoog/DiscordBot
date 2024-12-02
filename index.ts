@@ -1,6 +1,6 @@
 import signale from "signale";
 import { Instagram } from "./Instagram.ts";
-import { DiscordBot, rooms } from "./discord.js";
+import { DiscordBot, Rooms } from "./discord.js";
 import { Twitch } from "./twitch.ts";
 
 // catch all possible errors and don't crash
@@ -19,7 +19,7 @@ instagram.on('post', async (message) => {
     await discord.sendIgPost(message);
 });
 
-twitch.on('sendMessage', (message: string, room: rooms) => {
+twitch.on('sendMessage', (message: string, room: Rooms) => {
     discord.sendMessage(message, room);
 });
 
