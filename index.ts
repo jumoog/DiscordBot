@@ -1,5 +1,5 @@
 import signale from "signale";
-import { Instagram } from "./Instagram.ts";
+//import { Instagram } from "./Instagram.ts";
 import { DiscordBot, Rooms } from "./discord.js";
 import { Twitch } from "./twitch.ts";
 
@@ -13,11 +13,13 @@ process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
 
 const discord = new DiscordBot();
 const twitch = new Twitch();
-const instagram  = new Instagram();
+//const instagram  = new Instagram();
 
+/*
 instagram.on('post', async (message) => {
     await discord.sendIgPost(message);
 });
+*/
 
 twitch.on('sendMessage', (message: string, room: Rooms) => {
     discord.sendMessage(message, room);
@@ -37,4 +39,4 @@ twitch.on('deleteCoolDown', () => {
 
 await discord.main();
 await twitch.main();
-await instagram.main();
+//await instagram.main();
