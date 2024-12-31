@@ -18,3 +18,6 @@ fill `env.sample` with your tokens and rename it to `.env`. Without `token.json`
   bun run index.ts
 ```
 
+<p align="center">
+  <a href="https://discord.gg/QJE3tukzfv"><img src="https://invidget.switchblade.xyz/QJE3tukzfv"></a>
+</p>
