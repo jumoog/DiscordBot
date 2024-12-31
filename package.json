@@ -1,0 +1,35 @@
+{
+  "name": "discordbot",
+  "version": "1.0.0",
+  "description": "Get infos about Twitch and IG",
+  "type": "module",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/annabelstopit/DiscordBot.git"
+  },
+  "author": "DevKaos,jumoog",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/annabelstopit/DiscordBot/issues"
+  },
+  "homepage": "https://github.com/annabelstopit/DiscordBot#readme",
+  "dependencies": {
+    "@twurple/api": "^7.2.1",
+    "@twurple/auth": "^7.2.1",
+    "@twurple/common": "^7.2.1",
+    "@twurple/eventsub-ws": "^7.2.1",
+    "croner": "^9.0.0",
+    "discord.js": "^14.16.3",
+    "p-queue": "^8.0.1",
+    "signale": "^1.4.0",
+    "tiny-timer": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "@types/signale": "^1.4.7"
+  },
+  "peerDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
