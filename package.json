@@ -20,13 +20,13 @@
     "@twurple/common": "^7.2.1",
     "@twurple/eventsub-ws": "^7.2.1",
     "croner": "^9.0.0",
-    "discord.js": "^14.16.3",
-    "p-queue": "^8.0.1",
+    "discord.js": "^14.17.3",
+    "p-queue": "^8.1.0",
     "signale": "^1.4.0",
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.14",
+    "@types/bun": "^1.2.0",
     "@types/signale": "^1.4.7"
   },
   "peerDependencies": {
