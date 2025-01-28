@@ -206,7 +206,7 @@ export class DiscordBot extends EventEmitter {
     }
 
     buildUserDetail(user: User): string {
-        return `[ <@${user.id}> \`${user.id}\` ] **${user.username}#${user.discriminator}**`
+        return `[ <@${user.id}> \`${user.id}\` ] **${user.username}**`
     }
 
     async fetchAuditEntryFor(guild: Guild, user: User, type: AuditLogEvent) {
