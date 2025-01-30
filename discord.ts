@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import signale from "signale";
-import { ActivityType, AttachmentBuilder, AuditLogEvent, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildBan, GuildMember, PartialGuildMember, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, TextChannel, User, VoiceChannel } from 'discord.js';
+import { ActivityType, AttachmentBuilder, AuditLogEvent, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildBan, GuildMember, PartialGuildMember, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, TextChannel, User, VoiceChannel, userMention, roleMention } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
 import { Cron } from "croner";
@@ -165,7 +165,7 @@ export class DiscordBot extends EventEmitter {
                     signale.fatal('Error deleting previous custom message:', error);
                 }
             }
-            this.sendMessage(STICKY_NOTE, Rooms.INTRO);	
+            this.sendMessage(STICKY_NOTE, Rooms.INTRO);
         }
     }
 
@@ -193,7 +193,7 @@ export class DiscordBot extends EventEmitter {
 
     async onlineHandler(message: string) {
         if (this._discordClient.isReady()) {
-            this._discordClient.user?.setActivity('ANNABEL', { type: ActivityType.Watching });
+            this._discordClient.user?.setActivity({ name: "twitch.tv/annabelstopit", type: ActivityType.Streaming, url: "https://www.twitch.tv/annabelstopit" })
             this.sendMessage(message, Rooms.DEBUG)
         }
     }
@@ -206,7 +206,7 @@ export class DiscordBot extends EventEmitter {
     }
 
     buildUserDetail(user: User): string {
-        return `[ <@${user.id}> \`${user.id}\` ] **${user.username}**`
+        return `[${userMention(user.id)} \`${user.id}\`] **${user.username}**`
     }
 
     async fetchAuditEntryFor(guild: Guild, user: User, type: AuditLogEvent) {
@@ -266,7 +266,7 @@ export class DiscordBot extends EventEmitter {
                 text: 'Instagram',
             })
             .setTimestamp();
-        this.sendMessage({ content: `<@&${CONTENT_ROLE}>`, embeds: [embed], files: [file] }, Rooms.SOCIALS);
+        this.sendMessage({ content: `${roleMention(CONTENT_ROLE)}`, embeds: [embed], files: [file] }, Rooms.SOCIALS);
     }
 
     private hasProp(obj: unknown, prop: string): boolean {
@@ -314,5 +314,5 @@ export class DiscordBot extends EventEmitter {
             signale.fatal('Error fetching messages:', error);
         }
         return null;
-    }	
+    }
 }
