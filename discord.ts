@@ -193,7 +193,7 @@ export class DiscordBot extends EventEmitter {
 
     async onlineHandler(message: string) {
         if (this._discordClient.isReady()) {
-            this._discordClient.user?.setActivity({ name: "twitch.tv/annabelstopit", type: ActivityType.Watching })
+            this._discordClient.user?.setActivity({ name: "ΛNNΛBEL", type: ActivityType.Watching })
             this.sendMessage(message, Rooms.DEBUG)
         }
     }
