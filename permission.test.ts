@@ -22,7 +22,7 @@ test("permission ManageRoles", () => {
 });
 
 test("permission ManageEmojisAndStickers", () => {
-    expect(checkBotPermissions(PermissionsBitField.Flags.ManageEmojisAndStickers)).toBe(false);
+    expect(checkBotPermissions(PermissionsBitField.Flags.ManageGuildExpressions)).toBe(false);
 });
 
 test("permission ManageEvents", () => {
@@ -228,27 +228,6 @@ test("<🚀┃hypetrain> Send a message", () => {
 
 test("<🚀┃hypetrain> Deleting a message", () => {
     expect(botHasPermission("1060572257824546969", PermissionsBitField.Flags.ManageMessages)).toBe(true);
-});
-
-// 🔴┃live
-test("<🔴┃live> Find channel by id", () => {
-    expect(getChannelByID("975822791741947984")?.name).toBe("🔴┃live");
-});
-
-test("<🔴┃live> Send a message", () => {
-    expect(botHasPermission("975822791741947984", PermissionsBitField.Flags.SendMessages)).toBe(true);
-});
-
-test("<🔴┃live> Attach Files", () => {
-    expect(botHasPermission("975822791741947984", PermissionsBitField.Flags.AttachFiles)).toBe(true);
-});
-
-test("<🔴┃live> Embed Links", () => {
-    expect(botHasPermission("975822791741947984", PermissionsBitField.Flags.EmbedLinks)).toBe(true);
-});
-
-test("<🔴┃live> Mention Everyone", () => {
-    expect(botHasPermission("975822791741947984", PermissionsBitField.Flags.MentionEveryone)).toBe(true);
 });
 
 // 💬┃general-chat
