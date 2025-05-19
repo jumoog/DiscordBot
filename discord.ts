@@ -88,6 +88,7 @@ export class DiscordBot extends EventEmitter {
         this._rooms.set(Rooms.STATS, (this._discordClient.channels.cache.get(STATS_ROOM) as TextChannel));
         this._rooms.set(Rooms.INTRO, (this._discordClient.channels.cache.get(INTRO_ROOM) as TextChannel));
         this._memberCount = (this._discordClient.guilds.cache.get(ANNABEL_DC) as Guild).memberCount;
+        signale.debug(`Member count: ${this._memberCount}`);
         this.sendMessage(`Ready! Logged in as ${c.user.tag}`, Rooms.DEBUG);
         signale.success(`Ready! Logged in as ${c.user.tag}`);
     }
@@ -97,6 +98,7 @@ export class DiscordBot extends EventEmitter {
             const user = member.user;
             await this.sendMessage(`${this.buildUserDetail(user)} joined the Server`, Rooms.MODLOG);
             this._memberCount = member.guild.memberCount;
+            signale.debug(`Member count: ${this._memberCount}`);
         }
     }
 
@@ -104,7 +106,8 @@ export class DiscordBot extends EventEmitter {
         if (member.guild.id === ANNABEL_DC) {
             const user = member.user;
             const guild = member.guild;
-
+            this._memberCount = member.guild.memberCount;
+            signale.debug(`Member count: ${this._memberCount}`);
             const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberKick);
 
             if (auditEntry) {
@@ -127,7 +130,8 @@ export class DiscordBot extends EventEmitter {
         if (guildBan.guild.id === ANNABEL_DC) {
             const guild = guildBan.guild;
             const user = guildBan.user;
-
+            this._memberCount = guild.memberCount;
+            signale.debug(`Member count: ${this._memberCount}`);
             const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberBanAdd)
             const executorMessage = auditEntry && auditEntry.executor?.tag
                 ? ` by **${auditEntry.executor.tag}**`
@@ -145,7 +149,7 @@ export class DiscordBot extends EventEmitter {
         if (guildBan.guild.id === ANNABEL_DC) {
             const guild = guildBan.guild;
             const user = guildBan.user;
-
+            this._memberCount = guild.memberCount;
             const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberBanRemove);
             const executorMessage = auditEntry && auditEntry.executor?.tag
                 ? ` by **${auditEntry.executor.tag}**`
