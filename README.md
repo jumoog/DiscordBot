@@ -1,22 +1,80 @@
 # HypetrainDiscordBot
 
-Twitch does not allow subscribing to the Hype Train of other users. The ID of the broadcaster must match the User ID in the user access token. If you generate an access token you only need the scope `channel:read:hype_train`
+A Discord bot that integrates Twitch Hype Train events and Instagram posts into your Discord server.
 
-## get started
+## Features
 
-fill `env.sample` with your tokens and rename it to `.env`. Without `token.json`, the bot simulates Hype Train events and sends them to Discord.
+- **Twitch Integration:**  
+  - Monitors Hype Train events, stream online/offline status, and channel updates.
+  - Sends notifications and event summaries to specified Discord channels.
+  - Handles Twitch token refresh and cooldown logic.
 
-## install all dependencies
+- **Instagram Integration:**  
+  - Checks for new Instagram posts or reels from a specified account.
+  - Shares new posts (with preview image and caption) to a Discord channel.
 
-```shell
-  bun install
+- **Discord Features:**  
+  - Sends messages to specific channels for different event types (Hype Train, Debug, Shoutout, Socials, etc.).
+  - Updates member statistics and handles member join/leave/ban events.
+  - Sticky welcome message in the introduction channel.
+  - Permission checks for bot actions.
+
+- **Healthcheck:**  
+  - Healthcheck endpoint for Docker to ensure the bot is running and connected.
+
+## Getting Started
+
+### 1. Install Dependencies
+
+```sh
+bun install
 ```
 
-## run the bot
+### 2. Configure Environment
 
-```shell
-  bun run index.ts
+- Copy `env.sample` to `.env` and fill in your credentials:
+
+  ```
+  USERID=""
+  ROOMNAME=""
+  CLIENTID=""
+  CLIENTSECRET=""
+  DISCORDTOKEN=""
+  DEBUGROOMNAME=""
+  SHOUTOUTROOMNAME=""
+  SOCIALSROOMNAME=""
+  ```
+
+- Place your Twitch and Instagram token files (`tokens.json`, `ig_token.json`, `lastTimeStamp.json`) in the project root or `/tokens/` directory (for Docker).
+
+### 3. Run the Bot
+
+```sh
+bun run index.ts
 ```
+
+### 4. Docker
+
+A `Dockerfile` and `docker-compose.yaml` are provided for containerized deployment.  
+Mount your `/tokens/` directory for persistent token storage.
+
+## Usage
+
+- The bot will automatically post Twitch and Instagram updates to the configured Discord channels.
+- All errors are logged using [signale](https://github.com/klaussinani/signale).
+- For more details, see the code in [index.ts](index.ts), [twitch.ts](twitch.ts), [Instagram.ts](Instagram.ts), and [discord.ts](discord.ts).
+
+## Development
+
+- Written in TypeScript.
+- Uses [bun](https://bun.sh/) as the runtime.
+- See [permission.test.ts](permission.test.ts) for permission and integration tests.
+
+## License
+
+Apache-2.0
+
+---
 
 <p align="center">
   <a href="https://discord.gg/QJE3tukzfv"><img src="https://invidget.switchblade.xyz/QJE3tukzfv"></a>
