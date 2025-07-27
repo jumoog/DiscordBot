@@ -15,7 +15,7 @@
         "tiny-timer": "^1.6.0",
       },
       "devDependencies": {
-        "@types/bun": "^1.2.18",
+        "@types/bun": "^1.2.19",
         "@types/signale": "^1.4.7",
       },
       "peerDependencies": {
@@ -62,17 +62,17 @@
 
     "@sapphire/snowflake": ["@sapphire/snowflake@3.5.3", "", {}, "sha512-jjmJywLAFoWeBi1W7994zZyiNWPIiqRRNAmSERxyg93xRGzNYvGjlZ0gR6x0F4gPRi2+0O6S71kOZYyr3cxaIQ=="],
 
-    "@twurple/api": ["@twurple/api@7.3.0", "", { "dependencies": { "@d-fischer/cache-decorators": "^4.0.0", "@d-fischer/cross-fetch": "^5.0.1", "@d-fischer/detect-node": "^3.0.1", "@d-fischer/logger": "^4.2.1", "@d-fischer/rate-limiter": "^1.1.0", "@d-fischer/shared-utils": "^3.6.1", "@d-fischer/typed-event-emitter": "^3.3.1", "@twurple/api-call": "7.3.0", "@twurple/common": "7.3.0", "retry": "^0.13.1", "tslib": "^2.0.3" }, "peerDependencies": { "@twurple/auth": "7.3.0" } }, "sha512-QtaVgYi50E3AB/Nxivjou/u6w1cuQ6g4R8lzQawYDaQNtlP2Ue8vvYuSp2PfxSpe8vNiKhgV8hZAs+j4V29sxQ=="],
+    "@twurple/api": ["@twurple/api@7.4.0", "", { "dependencies": { "@d-fischer/cache-decorators": "^4.0.0", "@d-fischer/cross-fetch": "^5.0.1", "@d-fischer/detect-node": "^3.0.1", "@d-fischer/logger": "^4.2.1", "@d-fischer/rate-limiter": "^1.1.0", "@d-fischer/shared-utils": "^3.6.1", "@d-fischer/typed-event-emitter": "^3.3.1", "@twurple/api-call": "7.4.0", "@twurple/common": "7.4.0", "retry": "^0.13.1", "tslib": "^2.0.3" }, "peerDependencies": { "@twurple/auth": "7.4.0" } }, "sha512-RlXLs4ZvS8n0+iIk7YyVDwrjhlwpn+N+h7fX5Q61HoxlmzoCShmnnFo03abYw9i8Cc3deGpbQATOSVmigXM4qg=="],
 
-    "@twurple/api-call": ["@twurple/api-call@7.3.0", "", { "dependencies": { "@d-fischer/cross-fetch": "^5.0.1", "@d-fischer/qs": "^7.0.2", "@d-fischer/shared-utils": "^3.6.1", "@twurple/common": "7.3.0", "tslib": "^2.0.3" } }, "sha512-nx389kXjVphAeR3RfnzkRRf7Qa45wqHla067/mr3YxnUICCg4YOFv0Jb5UohQGHkj5h18mDZ3iUu/x2J49c1lA=="],
+    "@twurple/api-call": ["@twurple/api-call@7.4.0", "", { "dependencies": { "@d-fischer/cross-fetch": "^5.0.1", "@d-fischer/qs": "^7.0.2", "@d-fischer/shared-utils": "^3.6.1", "@twurple/common": "7.4.0", "tslib": "^2.0.3" } }, "sha512-WNxvjp/hMqZREElbvE4rHMyUIrHdGY5cbG8xbqgSM9CESFvJ1wm5BubhyANOyKd1TxABacLddbfbO//Fz9YHgA=="],
 
-    "@twurple/auth": ["@twurple/auth@7.3.0", "", { "dependencies": { "@d-fischer/logger": "^4.2.1", "@d-fischer/shared-utils": "^3.6.1", "@d-fischer/typed-event-emitter": "^3.3.1", "@twurple/api-call": "7.3.0", "@twurple/common": "7.3.0", "tslib": "^2.0.3" } }, "sha512-K68nFbQswfaEVCWP2MEPcxhHRR/N8kIHBP6AnRXzgSpmvWxhjOitz9oyP04di5DI1rJE+2NRauv1qFDyYia/qg=="],
+    "@twurple/auth": ["@twurple/auth@7.4.0", "", { "dependencies": { "@d-fischer/logger": "^4.2.1", "@d-fischer/shared-utils": "^3.6.1", "@d-fischer/typed-event-emitter": "^3.3.1", "@twurple/api-call": "7.4.0", "@twurple/common": "7.4.0", "tslib": "^2.0.3" } }, "sha512-WAQV6nJGkfY7r2BkRYhnzUpdfozLvjNsCxkyNVprl4dCWdJzccnTvqkKTdDRJc5ZJxDVaB9Drzwx9/fCp/gRDA=="],
 
-    "@twurple/common": ["@twurple/common@7.3.0", "", { "dependencies": { "@d-fischer/shared-utils": "^3.6.1", "klona": "^2.0.4", "tslib": "^2.0.3" } }, "sha512-BGNniY7PBIohxfpRQ1bsOxUaktZcXZOExq8ojCtnsNBVDlchNEX2fYsere03ZwTLd48XBtxsdaUaeQXbx1aXLw=="],
+    "@twurple/common": ["@twurple/common@7.4.0", "", { "dependencies": { "@d-fischer/shared-utils": "^3.6.1", "klona": "^2.0.4", "tslib": "^2.0.3" } }, "sha512-lX5cVkYar6jGvni6iLmMYjhxH1oPSl2v7XVeZ4C7U1GbLz/Jwk0L0uldQNGUIf9gpRHPY+TXRlk0UIpz2yo8DA=="],
 
-    "@twurple/eventsub-base": ["@twurple/eventsub-base@7.3.0", "", { "dependencies": { "@d-fischer/logger": "^4.2.1", "@d-fischer/shared-utils": "^3.6.1", "@d-fischer/typed-event-emitter": "^3.3.0", "@twurple/api": "7.3.0", "@twurple/auth": "7.3.0", "@twurple/common": "7.3.0", "tslib": "^2.0.3" } }, "sha512-Wc/3qpyFfyvjabk/tQJVjAke+ixp5QWUT7LsuU+kMcCf46jsRQMB3InoXsZMRgX5sD1frBZzxUEJ7ujhxb8Ngw=="],
+    "@twurple/eventsub-base": ["@twurple/eventsub-base@7.4.0", "", { "dependencies": { "@d-fischer/logger": "^4.2.1", "@d-fischer/shared-utils": "^3.6.1", "@d-fischer/typed-event-emitter": "^3.3.0", "@twurple/api": "7.4.0", "@twurple/auth": "7.4.0", "@twurple/common": "7.4.0", "tslib": "^2.0.3" } }, "sha512-Umx0kNZKxBUTF2/MHAlnnCuNPs8Tl1Aw8EzDJI2AW10tOiWvgeCR889fKCFBPlHXvcMYSEvsItkX+pXeZ8GkeQ=="],
 
-    "@twurple/eventsub-ws": ["@twurple/eventsub-ws@7.3.0", "", { "dependencies": { "@d-fischer/connection": "^9.0.0", "@d-fischer/logger": "^4.2.1", "@d-fischer/shared-utils": "^3.6.1", "@d-fischer/typed-event-emitter": "^3.3.0", "@twurple/auth": "7.3.0", "@twurple/common": "7.3.0", "@twurple/eventsub-base": "7.3.0", "tslib": "^2.0.3" }, "peerDependencies": { "@twurple/api": "7.3.0" } }, "sha512-jtIMdW/atTrn5Eo3XGS8Lw0EIsK3GQsZGJDLYRwqw2bCV8ZnQoZ8YaXUJb5Wd+gebUfeBr4j7mvZlGc+Wkp17w=="],
+    "@twurple/eventsub-ws": ["@twurple/eventsub-ws@7.4.0", "", { "dependencies": { "@d-fischer/connection": "^9.0.0", "@d-fischer/logger": "^4.2.1", "@d-fischer/shared-utils": "^3.6.1", "@d-fischer/typed-event-emitter": "^3.3.0", "@twurple/auth": "7.4.0", "@twurple/common": "7.4.0", "@twurple/eventsub-base": "7.4.0", "tslib": "^2.0.3" }, "peerDependencies": { "@twurple/api": "7.4.0" } }, "sha512-tA5zGmb2kK4w//V0mK5P9WXl+KwNjkXXRTv3YO8AK9sCObFag9rsqJdrBNNyx6G58NJvQzQIDtHI1U2M9q1h5w=="],
 
     "@types/bun": ["@types/bun@1.2.19", "", { "dependencies": { "bun-types": "1.2.19" } }, "sha512-d9ZCmrH3CJ2uYKXQIUuZ/pUnTqIvLDS0SK7pFmbx8ma+ziH/FRMoAq5bYpRG7y+w1gl+HgyNZbtqgMq4W4e2Lg=="],
 
