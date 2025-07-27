@@ -5,7 +5,7 @@ import { EventSubWsListener } from '@twurple/eventsub-ws';
 import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import signale from "signale";
-import { EventSubChannelHypeTrainBeginEvent, EventSubChannelHypeTrainEndEvent, EventSubChannelHypeTrainProgressEvent, EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent, EventSubChannelHypeTrainContribution } from '@twurple/eventsub-base';
+import { EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent, EventSubChannelHypeTrainContribution, EventSubChannelHypeTrainBeginV2Event, EventSubChannelHypeTrainEndV2Event, EventSubChannelHypeTrainProgressV2Event } from '@twurple/eventsub-base';
 import { getRawData } from '@twurple/common';
 import { Rooms } from './discord.js';
 
@@ -114,15 +114,15 @@ export class Twitch extends EventEmitter {
 
             try {
                 // https://twurple.js.org/reference/eventsub-ws/classes/EventSubWsListener.html#subscribeToChannelHypeTrainEndEvents
-                twitchListener.onChannelHypeTrainEnd(Number(this._userId), e => {
+                twitchListener.onChannelHypeTrainEndV2(Number(this._userId), e => {
                     this.hypeTrainEndEventsHandler(e);
                 });
 
-                twitchListener.onChannelHypeTrainBegin(Number(this._userId), e => {
+                twitchListener.onChannelHypeTrainBeginV2(Number(this._userId), e => {
                     this.hypeTrainBeginEventsHandler(e);
                 });
 
-                twitchListener.onChannelHypeTrainProgress(Number(this._userId), e => {
+                twitchListener.onChannelHypeTrainProgressV2(Number(this._userId), e => {
                     this.hypeTrainProgressEvents(e);
                 });
 
@@ -193,7 +193,7 @@ export class Twitch extends EventEmitter {
      * handle hype train EndEvents (fake and real)
      * @param e 
      */
-    private hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndEvent) {
+    private hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndV2Event) {
         signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
 
         this.sendMessage(`:clap: **These are the top contributors to the hype train:**`);
@@ -217,7 +217,7 @@ export class Twitch extends EventEmitter {
      * handle hype train BeginEvents (fake and real)
      * @param e 
      */
-    private hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginEvent) {
+    private hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginV2Event) {
         signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this._level = e.level;
         this.sendMessage(`:partying_face: A hype train has started at Level **${e.level}**!`);
@@ -227,7 +227,7 @@ export class Twitch extends EventEmitter {
      * handle hype train ProgressEvents (fake and real)
      * @param e 
      */
-    private hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressEvent) {
+    private hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressV2Event) {
         if (this._total !== e.total) {
             this._total = e.total;
             // log JSON
@@ -239,7 +239,8 @@ export class Twitch extends EventEmitter {
                 this.sendMessage(`:trophy: The hype train reached Level **${e.level}**!`);
             }
             // handle last contribution
-            this.handleLastContribution(e.lastContribution);
+            // dropped in v2
+            // this.handleLastContribution(e.lastContribution);
 
             this.sendDebugMessage(`The hype train points: ${e.total} Level: **${e.level}**`);
         }
