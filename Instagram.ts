@@ -82,7 +82,7 @@ export class Instagram extends EventEmitter {
                 }
                 data.forEach(post => {
                     signale.debug(JSON.stringify(post, null, 4));
-                    //this.emit('post', post);
+                    this.emit('post', post);
                 });
                 this.debug(`done! <${data.length}> new Posts <${this._IgLastTimeStamp}>`);
             } else {
