@@ -81,23 +81,24 @@ export class Twitch extends EventEmitter {
             const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
 
             // query Twitch API for last hype train
-            const { data: events } = await apiClient.hypeTrain.getHypeTrainEventsForBroadcaster(this._userId);
-            events.forEach(hypeTrainEvent => {
-                signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypeTrainEvent), null, 4));
+            const hypeTrainStatus = await apiClient.hypeTrain.getHypeTrainStatusForBroadcaster(this._userId);
+            
+                signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypeTrainStatus), null, 4));
+                if (hypeTrainStatus?.current != null) { 
                 // check if hype train is active
-                if (hypeTrainEvent.expiryDate.getTime() - new Date().getTime() > 0) {
+                if (hypeTrainStatus.current.expiryDate.getTime() - new Date().getTime() > 0) {
                     this.sendDebugMessage(`A hype train Event is currently running`);
                 } else {
                     this.sendDebugMessage(`No hype train Event is currently running`);
                     // check if the cool down is still active
-                    if (hypeTrainEvent.cooldownDate.getTime() - new Date().getTime() > 0) {
+                    if (hypeTrainStatus.current.expiryDate.getTime() - new Date().getTime() > 0) {
                         this.sendDebugMessage(`Cool down is still active`);
-                        this.setCoolDownEndDate(hypeTrainEvent.cooldownDate);
+                        this.setCoolDownEndDate(hypeTrainStatus.current.expiryDate);
                     } else {
-                        this.sendDebugMessage(`The last hype train started at <t:${this.timeInSeconds(hypeTrainEvent.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypeTrainEvent.expiryDate.getTime())}:f> with Level ${hypeTrainEvent.level}`);
+                        this.sendDebugMessage(`The last hype train started at <t:${this.timeInSeconds(hypeTrainStatus.current.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypeTrainStatus.current.expiryDate.getTime())}:f> with Level ${hypeTrainStatus.current.level}`);
                     }
                 }
-            });
+            }
             // We need the Twitch Events
             // https://dev.twitch.tv/docs/eventsub/handling-webhook-events
             const twitchListener = new EventSubWsListener({
