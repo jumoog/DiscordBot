@@ -1,4 +1,4 @@
-FROM oven/bun:1.3.4-alpine
+FROM oven/bun:1.3.5-alpine
 WORKDIR /HypetrainDiscordBot
 
 RUN apk update && apk add --no-cache tini
