@@ -34,7 +34,7 @@ bun install
 
 - Copy `env.sample` to `.env` and fill in your credentials:
 
-  ```
+  ```env
   USERID=""
   ROOMNAME=""
   CLIENTID=""
@@ -64,11 +64,17 @@ Mount your `/tokens/` directory for persistent token storage.
 - All errors are logged using [signale](https://github.com/klaussinani/signale).
 - For more details, see the code in [index.ts](index.ts), [twitch.ts](twitch.ts), [Instagram.ts](Instagram.ts), and [discord.ts](discord.ts).
 
+### Feature toggles
+
+The bot reads feature toggles from `featureToggles.json` (in the project root or `/tokens/` in Docker). Edit the file and restart the bot.
+
+- `instagramPostingEnabled`: enable/disable posting Instagram updates to Discord (note: `NOIG` always disables posting when set).
+- `stickyNoteEnabled`: enable/disable the intro channel sticky welcome message.
+
+
 ## Development
 
 - Written in TypeScript.
-- Uses [bun](https://bun.sh/) as the runtime.
-- See [permission.test.ts](permission.test.ts) for permission and integration tests.
 
 ## License
 

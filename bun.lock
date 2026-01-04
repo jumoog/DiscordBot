@@ -5,10 +5,10 @@
     "": {
       "name": "discordbot",
       "dependencies": {
-        "@twurple/api": "^8.0.1",
-        "@twurple/auth": "^8.0.1",
-        "@twurple/common": "^8.0.1",
-        "@twurple/eventsub-ws": "^8.0.1",
+        "@twurple/api": "^8.0.2",
+        "@twurple/auth": "^8.0.2",
+        "@twurple/common": "^8.0.2",
+        "@twurple/eventsub-ws": "^8.0.2",
         "croner": "^9.1.0",
         "discord.js": "^14.25.1",
         "p-queue": "^9.0.1",
@@ -71,7 +71,7 @@
 
     "@twurple/eventsub-ws": ["@twurple/eventsub-ws@8.0.2", "", { "dependencies": { "@d-fischer/connection": "^9.0.0", "@d-fischer/logger": "^4.2.1", "@d-fischer/shared-utils": "^3.6.1", "@d-fischer/typed-event-emitter": "^3.3.0", "@twurple/auth": "8.0.2", "@twurple/common": "8.0.2", "@twurple/eventsub-base": "8.0.2", "tslib": "^2.0.3" }, "peerDependencies": { "@twurple/api": "8.0.2" } }, "sha512-T+qzK4lJcoD+l6hIuyPJ0vAqiQSrdh6l017Sbs3f5k2cMfleiP5vio09e0RZmps6l8bxwq84CIyyrHMpP5R60A=="],
 
-    "@types/bun": ["@types/bun@1.3.3", "", { "dependencies": { "bun-types": "1.3.3" } }, "sha512-ogrKbJ2X5N0kWLLFKeytG0eHDleBYtngtlbu9cyBKFtNL3cnpDZkNdQj8flVf6WTZUX5ulI9AY1oa7ljhSrp+g=="],
+    "@types/bun": ["@types/bun@1.3.5", "", { "dependencies": { "bun-types": "1.3.5" } }, "sha512-RnygCqNrd3srIPEWBd5LFeUYG7plCoH2Yw9WaZGyNmdTEei+gWaHqydbaIRkIkcbXwhBT94q78QljxN0Sk838w=="],
 
     "@types/node": ["@types/node@20.10.4", "", { "dependencies": { "undici-types": "~5.26.4" } }, "sha512-D08YG6rr8X90YB56tSIuBaddy/UXAA9RKJoFvrsnogAum/0pmjkgi4+2nx96A330FmioegBWmEYQ+syqCFaveg=="],
 
@@ -83,7 +83,7 @@
 
     "ansi-styles": ["ansi-styles@3.2.1", "", { "dependencies": { "color-convert": "^1.9.0" } }, "sha512-VT0ZI6kZRdTh8YyJw3SMbYm/u+NqfsAxEpWO0Pf9sq8/e94WxxOpPKx9FR1FlyCtOVDNOQ+8ntlqFxiRc+r5qA=="],
 
-    "bun-types": ["bun-types@1.3.3", "", { "dependencies": { "@types/node": "*" } }, "sha512-z3Xwlg7j2l9JY27x5Qn3Wlyos8YAp0kKRlrePAOjgjMGS5IG6E7Jnlx736vH9UVI4wUICwwhC9anYL++XeOgTQ=="],
+    "bun-types": ["bun-types@1.3.5", "", { "dependencies": { "@types/node": "*" } }, "sha512-inmAYe2PFLs0SUbFOWSVD24sg1jFlMPxOjOSSCYqUgn4Hsc3rDc7dFvfVYjFPNHtov6kgUeulV4SxbuIV/stPw=="],
 
     "chalk": ["chalk@2.4.2", "", { "dependencies": { "ansi-styles": "^3.2.1", "escape-string-regexp": "^1.0.5", "supports-color": "^5.3.0" } }, "sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ=="],
 

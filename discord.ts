@@ -1,5 +1,6 @@
 import EventEmitter from 'events';
 import signale from "signale";
+import fs from 'node:fs';
 import { ActivityType, AttachmentBuilder, AuditLogEvent, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildBan, GuildMember, PartialGuildMember, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, TextChannel, User, VoiceChannel, userMention, roleMention } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
@@ -37,16 +38,26 @@ export enum Rooms {
     INTRO = "INTRO"
 }
 
+type FeatureToggles = {
+    instagramPostingEnabled: boolean;
+    stickyNoteEnabled: boolean;
+}
+
 export class DiscordBot extends EventEmitter {
     private _discordToken: string;
     private _lastCoolDownMessage: Message | undefined;
     private _discordClient: Client;
     private _rooms: Map<string, TextChannel | VoiceChannel | null>;
     private _memberCount: number;
+    private readonly _featureTogglesPath: string;
+    private _featureToggles: FeatureToggles;
 
     constructor() {
         super();
         this._discordToken = process.env.DISCORDTOKEN ?? '';
+        const tokenDir = fs.existsSync('/tokens/') ? '/tokens/' : './';
+        this._featureTogglesPath = `${tokenDir}featureToggles.json`;
+        this._featureToggles = this.loadFeatureToggles();
         this._discordClient = new Client({
             partials: [Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message],
             intents: [
@@ -59,6 +70,43 @@ export class DiscordBot extends EventEmitter {
         this._lastCoolDownMessage = undefined;
         this._rooms = new Map();
         this._memberCount = 0;
+    }
+
+    private loadFeatureToggles(): FeatureToggles {
+        const defaults: FeatureToggles = {
+            instagramPostingEnabled: true,
+            stickyNoteEnabled: true,
+        };
+
+        try {
+            if (!fs.existsSync(this._featureTogglesPath)) {
+                fs.writeFileSync(this._featureTogglesPath, JSON.stringify(defaults, null, 4));
+                return defaults;
+            }
+
+            const parsed = JSON.parse(fs.readFileSync(this._featureTogglesPath, 'utf8')) as Partial<FeatureToggles>;
+            const merged: FeatureToggles = {
+                instagramPostingEnabled: typeof parsed.instagramPostingEnabled === 'boolean' ? parsed.instagramPostingEnabled : defaults.instagramPostingEnabled,
+                stickyNoteEnabled: typeof parsed.stickyNoteEnabled === 'boolean' ? parsed.stickyNoteEnabled : defaults.stickyNoteEnabled,
+            };
+
+            if (merged.instagramPostingEnabled !== parsed.instagramPostingEnabled || merged.stickyNoteEnabled !== parsed.stickyNoteEnabled) {
+                fs.writeFileSync(this._featureTogglesPath, JSON.stringify(merged, null, 4));
+            }
+
+            return merged;
+        } catch (error) {
+            signale.fatal(`Failed to load feature toggles: ${error}`);
+            return defaults;
+        }
+    }
+
+    private saveFeatureToggles() {
+        try {
+            fs.writeFileSync(this._featureTogglesPath, JSON.stringify(this._featureToggles, null, 4));
+        } catch (error) {
+            signale.fatal(`Failed to save feature toggles: ${error}`);
+        }
     }
 
     async main() {
@@ -160,7 +208,11 @@ export class DiscordBot extends EventEmitter {
     }
 
     private async handleMessageCreate(message: Message) {
-        if (message.channel.id === INTRO_ROOM && !message.author.bot) {
+        if (message.author.bot) {
+            return;
+        }
+
+        if (message.channel.id === INTRO_ROOM && this._featureToggles.stickyNoteEnabled) {
             const lastCustomMessage = await this.findLastStickyNote();
             if (lastCustomMessage) {
                 try {
@@ -255,6 +307,10 @@ export class DiscordBot extends EventEmitter {
     }
 
     async sendIgPost(element: InstagramMediaItem): Promise<void> {
+        if (!this._featureToggles.instagramPostingEnabled) {
+            this.sendMessage('Instagram posting is disabled; skipping sendIgPost', Rooms.DEBUG);
+            return;
+        }
         const url = this.hasProp(element, "thumbnail_url") ? element.thumbnail_url : element.media_url
         const blob = await fetch(url!).then((r) => r.blob());
         const arrayBuffer = await blob.arrayBuffer();
