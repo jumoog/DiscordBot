@@ -8,6 +8,7 @@ import signale from "signale";
 import { EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent, EventSubChannelHypeTrainContribution, EventSubChannelHypeTrainBeginV2Event, EventSubChannelHypeTrainEndV2Event, EventSubChannelHypeTrainProgressV2Event } from '@twurple/eventsub-base';
 import { getRawData } from '@twurple/common';
 import { Rooms } from './discord.js';
+import { touch } from './health.ts';
 
 /**
  * Bot class
@@ -106,7 +107,8 @@ export class Twitch extends EventEmitter {
                 logger: {
                     minLevel: 'trace',
                     custom: (level, message) => {
-                        fs.writeFileSync(`/tokens/HEALTH`, message)
+                        touch('twitch');
+                        if (process.env.DEBUG) signale.debug(`[twurple:${level}] ${message}`);
                     },
                 },
             });
