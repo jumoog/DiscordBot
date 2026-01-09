@@ -73,7 +73,7 @@ Slash commands (server only):
 - `/ig action:on|off|status`
 - `/stickynote action:on|off|status`
 
-- `instagramPostingEnabled`: enable/disable posting Instagram updates to Discord (note: `NOIG` always disables posting when set).
+- `instagramPostingEnabled`: enable/disable posting Instagram updates to Discord.
 - `stickyNoteEnabled`: enable/disable the intro channel sticky welcome message.
 
 

@@ -304,10 +304,8 @@ export class DiscordBot extends EventEmitter {
 
     private async handleIgToggle(interaction: ChatInputCommandInteraction, action: 'on' | 'off' | 'status' | string) {
         if (action === 'status') {
-            const envDisabled = Boolean(process.env.NOIG);
-            const effective = this._featureToggles.instagramPostingEnabled && !envDisabled;
             await interaction.reply({
-                content: `Instagram posting: ${effective ? 'ON' : 'OFF'} (toggle=${this._featureToggles.instagramPostingEnabled ? 'on' : 'off'}, env.NOIG=${envDisabled ? 'set' : 'not set'})`,
+                content: `Instagram posting: ${this._featureToggles.instagramPostingEnabled ? 'ON' : 'OFF'}`,
                 ephemeral: true,
             });
             return;
