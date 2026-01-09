@@ -341,6 +341,17 @@ export class DiscordBot extends EventEmitter {
             this.saveFeatureToggles();
             await interaction.reply({ content: 'Sticky note is now ON.', flags: MessageFlags.Ephemeral });
             await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Sticky note to **ON**.`, Rooms.MODLOG);
+
+            // Immediately (re)post the sticky note
+            const lastCustomMessage = await this.findLastStickyNote();
+            if (lastCustomMessage) {
+                try {
+                    await lastCustomMessage.delete();
+                } catch (error) {
+                    signale.fatal('Error deleting previous custom message:', error);
+                }
+            }
+            this.sendMessage(STICKY_NOTE, Rooms.INTRO);
             return;
         }
 
@@ -349,6 +360,16 @@ export class DiscordBot extends EventEmitter {
             this.saveFeatureToggles();
             await interaction.reply({ content: 'Sticky note is now OFF.', flags: MessageFlags.Ephemeral });
             await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Sticky note to **OFF**.`, Rooms.MODLOG);
+
+            // Immediately remove the last sticky note
+            const lastCustomMessage = await this.findLastStickyNote();
+            if (lastCustomMessage) {
+                try {
+                    await lastCustomMessage.delete();
+                } catch (error) {
+                    signale.fatal('Error deleting previous custom message:', error);
+                }
+            }
             return;
         }
 
