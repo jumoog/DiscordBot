@@ -68,6 +68,11 @@ Mount your `/tokens/` directory for persistent token storage.
 
 The bot reads feature toggles from `featureToggles.json` (in the project root or `/tokens/` in Docker). Edit the file and restart the bot.
 
+Slash commands (server only):
+
+- `/ig action:on|off|status`
+- `/stickynote action:on|off|status`
+
 - `instagramPostingEnabled`: enable/disable posting Instagram updates to Discord (note: `NOIG` always disables posting when set).
 - `stickyNoteEnabled`: enable/disable the intro channel sticky welcome message.
 

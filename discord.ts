@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
 import signale from "signale";
 import fs from 'node:fs';
-import { ActivityType, AttachmentBuilder, AuditLogEvent, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildBan, GuildMember, PartialGuildMember, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, TextChannel, User, VoiceChannel, userMention, roleMention } from 'discord.js';
+import { ActivityType, AttachmentBuilder, AuditLogEvent, ChatInputCommandInteraction, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildBan, GuildMember, PartialGuildMember, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, REST, Routes, SlashCommandBuilder, TextChannel, User, VoiceChannel, userMention, roleMention, InteractionContextType, PermissionFlagsBits } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
 import { Cron } from "croner";
@@ -116,6 +116,7 @@ export class DiscordBot extends EventEmitter {
         this._discordClient.on(Events.GuildBanAdd, this.handleGuildBanAdd.bind(this));
         this._discordClient.on(Events.GuildBanRemove, this.handleGuildBanRemove.bind(this));
         this._discordClient.on(Events.MessageCreate, this.handleMessageCreate.bind(this));
+        this._discordClient.on(Events.InteractionCreate, this.handleInteractionCreate.bind(this));
 
         await this._discordClient.login(this._discordToken);
 
@@ -139,6 +140,60 @@ export class DiscordBot extends EventEmitter {
         signale.debug(`Member count: ${this._memberCount}`);
         this.sendMessage(`Ready! Logged in as ${c.user.tag}`, Rooms.DEBUG);
         signale.success(`Ready! Logged in as ${c.user.tag}`);
+
+        void this.registerSlashCommands();
+    }
+
+    private async registerSlashCommands() {
+        if (!this._discordClient.user) {
+            return;
+        }
+
+        const commands = [
+            new SlashCommandBuilder()
+                .setName('ig')
+                .setDescription('Enable/disable Instagram posting')
+                .setContexts(InteractionContextType.Guild)
+                .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers | PermissionFlagsBits.KickMembers)
+                .addStringOption((opt) =>
+                    opt
+                        .setName('action')
+                        .setDescription('Choose action')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'on', value: 'on' },
+                            { name: 'off', value: 'off' },
+                            { name: 'status', value: 'status' },
+                        )
+                ),
+            new SlashCommandBuilder()
+                .setName('stickynote')
+                .setDescription('Enable/disable intro sticky note')
+                .setContexts(InteractionContextType.Guild)
+                .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers | PermissionFlagsBits.KickMembers)
+                .addStringOption((opt) =>
+                    opt
+                        .setName('action')
+                        .setDescription('Choose action')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'on', value: 'on' },
+                            { name: 'off', value: 'off' },
+                            { name: 'status', value: 'status' },
+                        )
+                ),
+        ].map((c) => c.toJSON());
+
+        try {
+            const rest = new REST().setToken(this._discordToken);
+            await rest.put(
+                Routes.applicationGuildCommands(this._discordClient.user.id, ANNABEL_DC),
+                { body: commands },
+            );
+            signale.success('Registered slash commands: /ig, /stickynote');
+        } catch (error) {
+            signale.fatal(`Failed to register slash commands: ${error}`);
+        }
     }
 
     private async handleGuildMemberAdd(member: GuildMember) {
@@ -223,6 +278,83 @@ export class DiscordBot extends EventEmitter {
             }
             this.sendMessage(STICKY_NOTE, Rooms.INTRO);
         }
+    }
+
+    private async handleInteractionCreate(interaction: unknown) {
+        if (!(interaction instanceof ChatInputCommandInteraction)) {
+            return;
+        }
+
+        if (!interaction.inGuild()) {
+            await interaction.reply({ content: 'This command can only be used in a server.', ephemeral: true });
+            return;
+        }
+
+        const action = interaction.options.getString('action', true);
+        if (interaction.commandName === 'ig') {
+            await this.handleIgToggle(interaction, action);
+            return;
+        }
+
+        if (interaction.commandName === 'stickynote') {
+            await this.handleStickyToggle(interaction, action);
+            return;
+        }
+    }
+
+    private async handleIgToggle(interaction: ChatInputCommandInteraction, action: 'on' | 'off' | 'status' | string) {
+        if (action === 'status') {
+            const envDisabled = Boolean(process.env.NOIG);
+            const effective = this._featureToggles.instagramPostingEnabled && !envDisabled;
+            await interaction.reply({
+                content: `Instagram posting: ${effective ? 'ON' : 'OFF'} (toggle=${this._featureToggles.instagramPostingEnabled ? 'on' : 'off'}, env.NOIG=${envDisabled ? 'set' : 'not set'})`,
+                ephemeral: true,
+            });
+            return;
+        }
+
+        if (action === 'on') {
+            this._featureToggles.instagramPostingEnabled = true;
+            this.saveFeatureToggles();
+            await interaction.reply({ content: 'Instagram posting is now ON.', ephemeral: true });
+            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Instagram posting to **ON**.`, Rooms.MODLOG);
+            return;
+        }
+
+        if (action === 'off') {
+            this._featureToggles.instagramPostingEnabled = false;
+            this.saveFeatureToggles();
+            await interaction.reply({ content: 'Instagram posting is now OFF.', ephemeral: true });
+            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Instagram posting to **OFF**.`, Rooms.MODLOG);
+            return;
+        }
+
+        await interaction.reply({ content: 'Invalid action. Use on/off/status.', ephemeral: true });
+    }
+
+    private async handleStickyToggle(interaction: ChatInputCommandInteraction, action: 'on' | 'off' | 'status' | string) {
+        if (action === 'status') {
+            await interaction.reply({ content: `Sticky note: ${this._featureToggles.stickyNoteEnabled ? 'ON' : 'OFF'}`, ephemeral: true });
+            return;
+        }
+
+        if (action === 'on') {
+            this._featureToggles.stickyNoteEnabled = true;
+            this.saveFeatureToggles();
+            await interaction.reply({ content: 'Sticky note is now ON.', ephemeral: true });
+            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Sticky note to **ON**.`, Rooms.MODLOG);
+            return;
+        }
+
+        if (action === 'off') {
+            this._featureToggles.stickyNoteEnabled = false;
+            this.saveFeatureToggles();
+            await interaction.reply({ content: 'Sticky note is now OFF.', ephemeral: true });
+            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Sticky note to **OFF**.`, Rooms.MODLOG);
+            return;
+        }
+
+        await interaction.reply({ content: 'Invalid action. Use on/off/status.', ephemeral: true });
     }
 
     private async updateMemberCount() {
