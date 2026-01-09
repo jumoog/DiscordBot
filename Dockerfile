@@ -8,7 +8,7 @@ RUN cd /temp/prod && bun install --frozen-lockfile --production --ignore-scripts
 
 FROM base AS release
 COPY --from=install /temp/prod/node_modules node_modules
-COPY . .
+COPY *.ts .
 ENV USERID= \
 	ROOMNAME= \
 	CLIENTID= \
