@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
 import signale from "signale";
 import fs from 'node:fs';
-import { ActivityType, AttachmentBuilder, AuditLogEvent, ChatInputCommandInteraction, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildBan, GuildMember, PartialGuildMember, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, REST, Routes, SlashCommandBuilder, TextChannel, User, VoiceChannel, userMention, roleMention, InteractionContextType, PermissionFlagsBits } from 'discord.js';
+import { ActivityType, AttachmentBuilder, AuditLogEvent, ChatInputCommandInteraction, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildBan, GuildMember, PartialGuildMember, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, REST, Routes, SlashCommandBuilder, TextChannel, User, VoiceChannel, userMention, roleMention, InteractionContextType, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
 import { Cron } from "croner";
@@ -286,7 +286,7 @@ export class DiscordBot extends EventEmitter {
         }
 
         if (!interaction.inGuild()) {
-            await interaction.reply({ content: 'This command can only be used in a server.', ephemeral: true });
+            await interaction.reply({ content: 'This command can only be used in a server.', flags: MessageFlags.Ephemeral });
             return;
         }
 
@@ -306,7 +306,7 @@ export class DiscordBot extends EventEmitter {
         if (action === 'status') {
             await interaction.reply({
                 content: `Instagram posting: ${this._featureToggles.instagramPostingEnabled ? 'ON' : 'OFF'}`,
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
             return;
         }
@@ -314,7 +314,7 @@ export class DiscordBot extends EventEmitter {
         if (action === 'on') {
             this._featureToggles.instagramPostingEnabled = true;
             this.saveFeatureToggles();
-            await interaction.reply({ content: 'Instagram posting is now ON.', ephemeral: true });
+            await interaction.reply({ content: 'Instagram posting is now ON.', flags: MessageFlags.Ephemeral });
             await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Instagram posting to **ON**.`, Rooms.MODLOG);
             return;
         }
@@ -322,24 +322,24 @@ export class DiscordBot extends EventEmitter {
         if (action === 'off') {
             this._featureToggles.instagramPostingEnabled = false;
             this.saveFeatureToggles();
-            await interaction.reply({ content: 'Instagram posting is now OFF.', ephemeral: true });
+            await interaction.reply({ content: 'Instagram posting is now OFF.', flags: MessageFlags.Ephemeral });
             await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Instagram posting to **OFF**.`, Rooms.MODLOG);
             return;
         }
 
-        await interaction.reply({ content: 'Invalid action. Use on/off/status.', ephemeral: true });
+        await interaction.reply({ content: 'Invalid action. Use on/off/status.', flags: MessageFlags.Ephemeral });
     }
 
     private async handleStickyToggle(interaction: ChatInputCommandInteraction, action: 'on' | 'off' | 'status' | string) {
         if (action === 'status') {
-            await interaction.reply({ content: `Sticky note: ${this._featureToggles.stickyNoteEnabled ? 'ON' : 'OFF'}`, ephemeral: true });
+            await interaction.reply({ content: `Sticky note: ${this._featureToggles.stickyNoteEnabled ? 'ON' : 'OFF'}`, flags: MessageFlags.Ephemeral });
             return;
         }
 
         if (action === 'on') {
             this._featureToggles.stickyNoteEnabled = true;
             this.saveFeatureToggles();
-            await interaction.reply({ content: 'Sticky note is now ON.', ephemeral: true });
+            await interaction.reply({ content: 'Sticky note is now ON.', flags: MessageFlags.Ephemeral });
             await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Sticky note to **ON**.`, Rooms.MODLOG);
             return;
         }
@@ -347,12 +347,12 @@ export class DiscordBot extends EventEmitter {
         if (action === 'off') {
             this._featureToggles.stickyNoteEnabled = false;
             this.saveFeatureToggles();
-            await interaction.reply({ content: 'Sticky note is now OFF.', ephemeral: true });
+            await interaction.reply({ content: 'Sticky note is now OFF.', flags: MessageFlags.Ephemeral });
             await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Sticky note to **OFF**.`, Rooms.MODLOG);
             return;
         }
 
-        await interaction.reply({ content: 'Invalid action. Use on/off/status.', ephemeral: true });
+        await interaction.reply({ content: 'Invalid action. Use on/off/status.', flags: MessageFlags.Ephemeral });
     }
 
     private async updateMemberCount() {
