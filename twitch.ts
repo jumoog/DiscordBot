@@ -21,6 +21,7 @@ export class Twitch extends EventEmitter {
     private _tokenPath: string;
     private _hypeTrainLevel: number;
     private _hypeTrainTotal: number;
+    private _hypeTrainActive: boolean;
     private readonly _currentCoolDownTimer: Timer;
     private _currentCoolDown: number;
     private readonly _onlineTimer: Timer;
@@ -37,6 +38,7 @@ export class Twitch extends EventEmitter {
         this._currentCoolDown = 0;
         this._hypeTrainLevel = 0;
         this._hypeTrainTotal = 0;
+        this._hypeTrainActive = false;
         this._onlineTimer = new Timer();
         this._streamStartTimer = new Timer();
 
@@ -88,6 +90,7 @@ export class Twitch extends EventEmitter {
             if (hypeTrainStatus?.current) {
                 this._hypeTrainLevel = hypeTrainStatus.current.level;
                 this._hypeTrainTotal = hypeTrainStatus.current.total;
+                this._hypeTrainActive = true;
                 this.sendDebugMessage(`A hype train Event is currently running`);
             } else {
                 this.sendDebugMessage(`No hype train Event is currently running`);
@@ -120,6 +123,37 @@ export class Twitch extends EventEmitter {
 
                 twitchListener.onChannelHypeTrainProgressV2(Number(this._userId), e => {
                     this.hypeTrainProgressEvents(e);
+                });
+
+                // channel:read:subscriptions
+                twitchListener.onChannelSubscription(Number(this._userId), e => {
+                    signale.debug('onChannelSubscription', JSON.stringify(getRawData(e), null, 4));
+                    if (e.isGift) {
+                        // ignore gifted subs here
+                        return;
+                    }
+                    if (!this._hypeTrainActive) {
+                        return;
+                    }
+                    this.sendMessage(`New subscription from ${e.userDisplayName}!`);
+                });
+
+                // channel:read:subscriptions
+                twitchListener.onChannelSubscriptionGift(Number(this._userId), e => {
+                    signale.debug('onChannelSubscriptionGift', JSON.stringify(getRawData(e), null, 4));
+                    if (!this._hypeTrainActive) {
+                        return;
+                    }
+                    this.sendMessage(":gift: `" + e.gifterDisplayName + "` gifted **" + e.amount + "** sub" + (e.amount > 1 ? "s" : "") + "!");
+                });
+
+                // bits:read
+                twitchListener.onChannelCheer(Number(this._userId), e => {
+                    signale.debug('onChannelCheer', JSON.stringify(getRawData(e), null, 4));
+                    if (!this._hypeTrainActive) {
+                        return;
+                    }
+                    this.sendMessage(":coin: `" + e.userDisplayName + "` cheered **" + e.bits + "** bits!");
                 });
 
                 twitchListener.onStreamOnline(Number(this._userId), e => {
@@ -205,6 +239,8 @@ export class Twitch extends EventEmitter {
         this._hypeTrainLevel = 0;
         // reset total
         this._hypeTrainTotal = 0;
+        // reset active
+        this._hypeTrainActive = false;
         // next hype train as UTC
         this.setCoolDownEndDate(e.cooldownEndDate)
     }
@@ -217,6 +253,7 @@ export class Twitch extends EventEmitter {
         signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
         this._hypeTrainLevel = e.level;
         this._hypeTrainTotal = e.total;
+        this._hypeTrainActive = true;
         this.sendMessage(`:partying_face: A hype train has started at Level **${e.level}**!`);
     }
 
@@ -225,6 +262,7 @@ export class Twitch extends EventEmitter {
      * @param e 
      */
     private hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressV2Event) {
+        this._hypeTrainActive = true;
         const levelUp = e.level > this._hypeTrainLevel;
 
         if (this._hypeTrainTotal !== e.total) {
