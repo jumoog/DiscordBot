@@ -4,8 +4,9 @@ import { ApiClient } from '@twurple/api';
 import { EventSubWsListener } from '@twurple/eventsub-ws';
 import Timer from 'tiny-timer';
 import fs from 'node:fs';
+import path from 'node:path';
 import signale from "signale";
-import { EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent, EventSubChannelHypeTrainContribution, EventSubChannelHypeTrainBeginV2Event, EventSubChannelHypeTrainEndV2Event, EventSubChannelHypeTrainProgressV2Event } from '@twurple/eventsub-base';
+import { EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent, EventSubChannelHypeTrainContribution, EventSubChannelHypeTrainBeginV2Event, EventSubChannelHypeTrainEndV2Event, EventSubChannelHypeTrainProgressV2Event, EventSubChannelSubscriptionEvent, EventSubChannelSubscriptionGiftEvent, EventSubChannelCheerEvent } from '@twurple/eventsub-base';
 import { getRawData } from '@twurple/common';
 import { Rooms } from './discord.js';
 import { touch } from './health.ts';
@@ -14,10 +15,9 @@ import { touch } from './health.ts';
  * Bot class
  */
 export class Twitch extends EventEmitter {
-    private readonly _userId: number | string;
+    private readonly _userId: string;
     private readonly _clientId: string;
     private readonly _clientSecret: string;
-    private _timerLeft: number;
     private _tokenPath: string;
     private _hypeTrainLevel: number;
     private _hypeTrainTotal: number;
@@ -29,10 +29,9 @@ export class Twitch extends EventEmitter {
 
     constructor() {
         super();
-        this._userId = process.env.USERID ?? 631529415;
+        this._userId = String(process.env.USERID ?? '631529415');
         this._clientId = process.env.CLIENTID ?? '';
         this._clientSecret = process.env.CLIENTSECRET ?? '';
-        this._timerLeft = 0;
         this._tokenPath = '';
         this._currentCoolDownTimer = new Timer();
         this._currentCoolDown = 0;
@@ -42,157 +41,141 @@ export class Twitch extends EventEmitter {
         this._onlineTimer = new Timer();
         this._streamStartTimer = new Timer();
 
-        this._currentCoolDownTimer.on('done', this.handleCoolDownTimerDone.bind(this));
-        this._onlineTimer.on('done', this.handleOnlineTimerDone.bind(this));
+        this._currentCoolDownTimer.on('done', this.onCoolDownTimerDone.bind(this));
+        this._onlineTimer.on('done', this.onOnlineTimerDone.bind(this));
+    }
+
+    private get broadcasterId(): number {
+        const parsed = Number.parseInt(this._userId, 10);
+        if (!Number.isFinite(parsed)) {
+            throw new Error(`Invalid USERID: ${this._userId}`);
+        }
+        return parsed;
+    }
+
+    private resolveTokenPath(): string | null {
+        const candidates = [
+            // Docker: mounted volume
+            path.posix.join('/tokens', 'tokens.json'),
+            // Local dev
+            path.resolve('tokens.json'),
+        ];
+
+        for (const candidate of candidates) {
+            if (fs.existsSync(candidate)) return candidate;
+        }
+
+        return null;
     }
 
     /**
      * start function
      */
-    async main() {
-        this._tokenPath = fs.existsSync('/tokens/') ? '/tokens/tokens.json' : './tokens.json'
-        if (fs.existsSync(this._tokenPath)) {
-            this.twurpleStart();
-        } else {
-            this.sendDebugMessage(`can't find twitch tokens!`);
+    async main(): Promise<void> {
+        if (!this._clientId || !this._clientSecret) {
+            this.sendDebugMessage(`Missing CLIENTID/CLIENTSECRET env vars`);
+            signale.fatal(`Missing CLIENTID/CLIENTSECRET env vars`);
+            return;
         }
+
+        const tokenPath = this.resolveTokenPath();
+        if (!tokenPath) {
+            this.sendDebugMessage(`can't find twitch tokens!`);
+            return;
+        }
+
+        this._tokenPath = tokenPath;
+        await this.twurpleStart();
     }
 
     /***
      * internal start
      */
-    private async twurpleStart() {
-        // check if tokens.json exists
-        if (fs.existsSync(this._tokenPath)) {
-            signale.success(`found tokens.json!`);
-            // read tokens.json
-            const tokenDataHypeTrain = JSON.parse(fs.readFileSync(this._tokenPath, 'utf8'));
-            // refresh tokens if they expire
-            const authProviderHypeTrain = new RefreshingAuthProvider(
-                {
-                    clientId: this._clientId,
-                    clientSecret: this._clientSecret,
+    private async twurpleStart(): Promise<void> {
+        if (!fs.existsSync(this._tokenPath)) {
+            this.sendDebugMessage(`can't find twitch tokens!`);
+            return;
+        }
+
+        const broadcasterId = this.broadcasterId;
+
+        signale.success(`found tokens.json!`);
+        const tokenData = JSON.parse(fs.readFileSync(this._tokenPath, 'utf8'));
+
+        const authProvider = new RefreshingAuthProvider({
+            clientId: this._clientId,
+            clientSecret: this._clientSecret,
+        });
+
+        authProvider.addUser(this._userId, tokenData);
+        authProvider.onRefresh((_userId: unknown, newTokenData: unknown) => {
+            fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8');
+        });
+        authProvider.onRefreshFailure((_userId: unknown) => {
+            this.sendDebugMessage(`user token refresh failed!`);
+            signale.fatal(`user token refresh failed!`);
+        });
+
+        const apiClient = new ApiClient({ authProvider });
+
+        const hypeTrainStatus = await apiClient.hypeTrain.getHypeTrainStatusForBroadcaster(this._userId);
+        signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypeTrainStatus), null, 4));
+
+        if (hypeTrainStatus?.current) {
+            this._hypeTrainLevel = hypeTrainStatus.current.level;
+            this._hypeTrainTotal = hypeTrainStatus.current.total;
+            this._hypeTrainActive = true;
+            this.sendDebugMessage(`A hype train Event is currently running`);
+        } else {
+            this.sendDebugMessage(`No hype train Event is currently running`);
+        }
+
+        const twitchListener = new EventSubWsListener({
+            apiClient,
+            logger: {
+                minLevel: 'trace',
+                custom: (level, message) => {
+                    touch('twitch');
+                    if (process.env.DEBUG) signale.debug(`[twurple:${level}] ${message}`);
                 },
-            );
-            authProviderHypeTrain.addUser(this._userId, tokenDataHypeTrain);
-            authProviderHypeTrain.onRefresh((_userId: any, newTokenData: any) => fs.writeFileSync(this._tokenPath, JSON.stringify(newTokenData, null, 4), 'utf8'));
-            authProviderHypeTrain.onRefreshFailure((_userId: any) => {
-                this.sendDebugMessage(`user token refresh failed!`);
-                signale.fatal(`user token refresh failed!`);
-            })
-            // Twitch API
-            const apiClient = new ApiClient({ authProvider: authProviderHypeTrain });
+            },
+        });
 
-            // query Twitch API for last hype train
-            const hypeTrainStatus = await apiClient.hypeTrain.getHypeTrainStatusForBroadcaster(this._userId);
+        twitchListener.start();
 
-            signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypeTrainStatus), null, 4));
-            if (hypeTrainStatus?.current) {
-                this._hypeTrainLevel = hypeTrainStatus.current.level;
-                this._hypeTrainTotal = hypeTrainStatus.current.total;
-                this._hypeTrainActive = true;
-                this.sendDebugMessage(`A hype train Event is currently running`);
-            } else {
-                this.sendDebugMessage(`No hype train Event is currently running`);
-            }
+        try {
+            twitchListener.onChannelHypeTrainEndV2(broadcasterId, e => this.onHypeTrainEnd(e));
+            twitchListener.onChannelHypeTrainBeginV2(broadcasterId, e => this.onHypeTrainBegin(e));
+            twitchListener.onChannelHypeTrainProgressV2(broadcasterId, e => this.onHypeTrainProgress(e));
 
-            // We need the Twitch Events
-            // https://dev.twitch.tv/docs/eventsub/handling-webhook-events
-            const twitchListener = new EventSubWsListener({
-                apiClient,
-                logger: {
-                    minLevel: 'trace',
-                    custom: (level, message) => {
-                        touch('twitch');
-                        if (process.env.DEBUG) signale.debug(`[twurple:${level}] ${message}`);
-                    },
-                },
-            });
+            // channel:read:subscriptions
+            twitchListener.onChannelSubscription(broadcasterId, e => this.onChannelSubscription(e));
 
-            twitchListener.start();
+            // channel:read:subscriptions
+            twitchListener.onChannelSubscriptionGift(broadcasterId, e => this.onChannelSubscriptionGift(e));
 
-            try {
-                // https://twurple.js.org/reference/eventsub-ws/classes/EventSubWsListener.html#subscribeToChannelHypeTrainEndEvents
-                twitchListener.onChannelHypeTrainEndV2(Number(this._userId), e => {
-                    this.hypeTrainEndEventsHandler(e);
-                });
+            // bits:read
+            twitchListener.onChannelCheer(broadcasterId, e => this.onChannelCheer(e));
 
-                twitchListener.onChannelHypeTrainBeginV2(Number(this._userId), e => {
-                    this.hypeTrainBeginEventsHandler(e);
-                });
+            twitchListener.onStreamOnline(broadcasterId, e => this.onStreamOnline(e));
+            twitchListener.onStreamOffline(broadcasterId, e => this.onStreamOffline(e));
+            twitchListener.onChannelUpdate(broadcasterId, e => this.onChannelUpdate(e));
 
-                twitchListener.onChannelHypeTrainProgressV2(Number(this._userId), e => {
-                    this.hypeTrainProgressEvents(e);
-                });
-
-                // channel:read:subscriptions
-                twitchListener.onChannelSubscription(Number(this._userId), e => {
-                    signale.debug('onChannelSubscription', JSON.stringify(getRawData(e), null, 4));
-                    if (e.isGift) {
-                        // ignore gifted subs here
-                        return;
-                    }
-                    if (!this._hypeTrainActive) {
-                        return;
-                    }
-                    this.sendMessage(`New subscription from ${e.userDisplayName}!`);
-                });
-
-                // channel:read:subscriptions
-                twitchListener.onChannelSubscriptionGift(Number(this._userId), e => {
-                    signale.debug('onChannelSubscriptionGift', JSON.stringify(getRawData(e), null, 4));
-                    if (!this._hypeTrainActive) {
-                        return;
-                    }
-                    this.sendMessage(":gift: `" + e.gifterDisplayName + "` gifted **" + e.amount + "** sub" + (e.amount > 1 ? "s" : "") + "!");
-                });
-
-                // bits:read
-                twitchListener.onChannelCheer(Number(this._userId), e => {
-                    signale.debug('onChannelCheer', JSON.stringify(getRawData(e), null, 4));
-                    if (!this._hypeTrainActive) {
-                        return;
-                    }
-                    this.sendMessage(":coin: `" + e.userDisplayName + "` cheered **" + e.bits + "** bits!");
-                });
-
-                twitchListener.onStreamOnline(Number(this._userId), e => {
-                    // needs scope moderator:manage:chat_settings
-                    // apiClient.chat.updateSettings(this._userId, this._userId, { emoteOnlyModeEnabled: false });
-                    this.StreamOnlineEventsHandler(e);
-                });
-
-                twitchListener.onStreamOffline(Number(this._userId), e => {
-                    // needs scope moderator:manage:chat_settings
-                    // apiClient.chat.updateSettings(this._userId, this._userId, { emoteOnlyModeEnabled: true });
-                    this.StreamOfflineEventsHandler(e);
-                });
-
-                twitchListener.onChannelUpdate(Number(this._userId), e => {
-                    this.ChannelUpdateEvents(e);
-
-                });
-                // tell Twitch that we no longer listen
-                // otherwise it will try to send events to a down app
-                // normal CTRL + C
-                process.on('SIGINT', async () => {
-                    signale.success('shutting down!');
-                    await this.sendDebugMessage('shutting down!');
-                    twitchListener.stop();
-                    process.exit(0);
-                });
-                // DOCKER
-                process.on('SIGTERM', async () => {
-                    signale.success('shutting down!');
-                    await this.sendDebugMessage('shutting down!');
-                    twitchListener.stop();
-                    process.exit(0);
-                });
-            } catch (e) {
+            const shutdown = async () => {
+                signale.success('shutting down!');
+                await this.sendDebugMessage('shutting down!');
                 twitchListener.stop();
-                signale.fatal('Please reauthorize your broadcaster account to include all necessary scopes!');
-                this.sendDebugMessage('Please reauthorize your broadcaster account to include all necessary scopes!');
-            }
+                process.exit(0);
+            };
+
+            // normal CTRL + C
+            process.on('SIGINT', shutdown);
+            // DOCKER
+            process.on('SIGTERM', shutdown);
+        } catch (_error) {
+            twitchListener.stop();
+            signale.fatal('Please reauthorize your broadcaster account to include all necessary scopes!');
+            this.sendDebugMessage('Please reauthorize your broadcaster account to include all necessary scopes!');
         }
     }
 
@@ -206,7 +189,7 @@ export class Twitch extends EventEmitter {
     /**
      * helper function to send debug text messages
      */
-    private async sendDebugMessage(message: string) {
+    private sendDebugMessage(message: string) {
         this.sendMessage(message, Rooms.DEBUG);
     }
 
@@ -223,8 +206,8 @@ export class Twitch extends EventEmitter {
      * handle hype train EndEvents (fake and real)
      * @param e 
      */
-    private hypeTrainEndEventsHandler(e: EventSubChannelHypeTrainEndV2Event) {
-        signale.debug('hypeTrainEndEventsHandler', JSON.stringify(getRawData(e), null, 4));
+    private onHypeTrainEnd(e: EventSubChannelHypeTrainEndV2Event) {
+        signale.debug('onHypeTrainEnd', JSON.stringify(getRawData(e), null, 4));
 
         this.sendMessage(`:clap: **These are the top contributors to the hype train:**`);
 
@@ -242,15 +225,15 @@ export class Twitch extends EventEmitter {
         // reset active
         this._hypeTrainActive = false;
         // next hype train as UTC
-        this.setCoolDownEndDate(e.cooldownEndDate)
+        this.setCoolDownEndDate(e.cooldownEndDate);
     }
 
     /**
      * handle hype train BeginEvents (fake and real)
      * @param e 
      */
-    private hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginV2Event) {
-        signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
+    private onHypeTrainBegin(e: EventSubChannelHypeTrainBeginV2Event) {
+        signale.debug('onHypeTrainBegin', JSON.stringify(getRawData(e), null, 4));
         this._hypeTrainLevel = e.level;
         this._hypeTrainTotal = e.total;
         this._hypeTrainActive = true;
@@ -261,7 +244,7 @@ export class Twitch extends EventEmitter {
      * handle hype train ProgressEvents (fake and real)
      * @param e 
      */
-    private hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressV2Event) {
+    private onHypeTrainProgress(e: EventSubChannelHypeTrainProgressV2Event) {
         this._hypeTrainActive = true;
         const levelUp = e.level > this._hypeTrainLevel;
 
@@ -269,7 +252,7 @@ export class Twitch extends EventEmitter {
             this._hypeTrainLevel = e.level;
             this._hypeTrainTotal = e.total;
             // log JSON
-            signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
+            signale.debug('onHypeTrainProgress', JSON.stringify(getRawData(e), null, 4));
 
             // check if reached a new level
             if (levelUp) {
@@ -295,31 +278,57 @@ export class Twitch extends EventEmitter {
         }
     }
 
+    private onChannelSubscription(e: EventSubChannelSubscriptionEvent) {
+        signale.debug('onChannelSubscription', JSON.stringify(getRawData(e), null, 4));
+        if (e.isGift || !this._hypeTrainActive) return;
+        this.sendMessage(`New subscription from ${e.userDisplayName}!`);
+    }
+
+    private onChannelSubscriptionGift(e: EventSubChannelSubscriptionGiftEvent) {
+        signale.debug('onChannelSubscriptionGift', JSON.stringify(getRawData(e), null, 4));
+        const msg = ":gift: `" + e.gifterDisplayName + "` gifted **" + e.amount + "** sub" + (e.amount > 1 ? "s" : "") + "!";
+        if (!this._hypeTrainActive) {
+            this.sendDebugMessage(msg);
+            return;
+        }
+        this.sendMessage(msg);
+    }
+
+    private onChannelCheer(e: EventSubChannelCheerEvent) {
+        signale.debug('onChannelCheer', JSON.stringify(getRawData(e), null, 4));
+        const msg = ":coin: `" + e.userDisplayName + "` cheered **" + e.bits + "** bits!";
+        if (!this._hypeTrainActive) {
+            this.sendDebugMessage(msg);
+            return;
+        }
+        this.sendMessage(msg);
+    }
+
     /**
      * handle Stream OnlineEvents (fake and real)
      * @param e 
      */
-    private StreamOnlineEventsHandler(e: EventSubStreamOnlineEvent) {
-        signale.debug('StreamOnlineEventsHandler', JSON.stringify(getRawData(e), null, 4));
+    private onStreamOnline(e: EventSubStreamOnlineEvent) {
+        signale.debug('onStreamOnline', JSON.stringify(getRawData(e), null, 4));
         this._onlineTimer.start(120_000);
-        this.emit('online', `${e.broadcasterDisplayName} went online!`)
+        this.emit('online', `${e.broadcasterDisplayName} went online!`);
     }
 
     /**
      * handle Stream OfflineEvents (fake and real)
      * @param e 
      */
-    private StreamOfflineEventsHandler(e: EventSubStreamOfflineEvent) {
-        signale.debug('StreamOfflineEventsHandler', JSON.stringify(getRawData(e), null, 4));
+    private onStreamOffline(e: EventSubStreamOfflineEvent) {
+        signale.debug('onStreamOffline', JSON.stringify(getRawData(e), null, 4));
         this._onlineTimer.stop();
-        this.emit('offline', `${e.broadcasterDisplayName} went offline!`)
+        this.emit('offline', `${e.broadcasterDisplayName} went offline!`);
     }
 
     /**
      * handle Channel UpdateEvents
      */
-    private ChannelUpdateEvents(e: EventSubChannelUpdateEvent) {
-        signale.debug('ChannelUpdateEvents', JSON.stringify(getRawData(e), null, 4));
+    private onChannelUpdate(e: EventSubChannelUpdateEvent) {
+        signale.debug('onChannelUpdate', JSON.stringify(getRawData(e), null, 4));
         this.sendDebugMessage(`${e.broadcasterDisplayName} changed title to <${e.streamTitle}> and category to <${e.categoryName}>`);
     }
 
@@ -328,23 +337,23 @@ export class Twitch extends EventEmitter {
      */
     private setCoolDownEndDate(coolDownEndDate: Date) {
         this._currentCoolDown = coolDownEndDate.getTime();
-        this._timerLeft = this._currentCoolDown - Date.now();
+        const timerLeft = Math.max(0, this._currentCoolDown - Date.now());
         // stop timer just to be sure
         this._currentCoolDownTimer.stop();
         // set timer
-        this._currentCoolDownTimer.start(this._timerLeft);
+        this._currentCoolDownTimer.start(timerLeft);
         // inform channel about new cool down
         // R -> Relative (in 2 minutes)
         // t -> short time (2:19 AM)
         this.sendMessage(`:station: The hype train cool down ends <t:${this.timeInSeconds()}:R>.`);
     }
 
-    private handleCoolDownTimerDone() {
+    private onCoolDownTimerDone() {
         this.emit('deleteCoolDown');
         this.sendMessage(`:index_pointing_at_the_viewer: The next hype train is ready!`);
     }
 
-    private handleOnlineTimerDone() {
+    private onOnlineTimerDone() {
         if (this._streamStartTimer.status === 'stopped') {
             this.sendMessage(`@everyone Λ N N Λ B E L is live now\nhttps://www.twitch.tv/annabelstopit`, Rooms.SHOUTOUT);
             this._streamStartTimer.start(1_800_000);
