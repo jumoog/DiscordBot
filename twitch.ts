@@ -19,8 +19,8 @@ export class Twitch extends EventEmitter {
     private readonly _clientSecret: string;
     private _timerLeft: number;
     private _tokenPath: string;
-    private _level: number;
-    private _total: number;
+    private _hypeTrainLevel: number;
+    private _hypeTrainTotal: number;
     private readonly _currentCoolDownTimer: Timer;
     private _currentCoolDown: number;
     private readonly _onlineTimer: Timer;
@@ -35,8 +35,8 @@ export class Twitch extends EventEmitter {
         this._tokenPath = '';
         this._currentCoolDownTimer = new Timer();
         this._currentCoolDown = 0;
-        this._level = 0;
-        this._total = 0;
+        this._hypeTrainLevel = 0;
+        this._hypeTrainTotal = 0;
         this._onlineTimer = new Timer();
         this._streamStartTimer = new Timer();
 
@@ -83,23 +83,16 @@ export class Twitch extends EventEmitter {
 
             // query Twitch API for last hype train
             const hypeTrainStatus = await apiClient.hypeTrain.getHypeTrainStatusForBroadcaster(this._userId);
-            
-                signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypeTrainStatus), null, 4));
-                if (hypeTrainStatus?.current != null) { 
-                // check if hype train is active
-                if (hypeTrainStatus.current.expiryDate.getTime() - new Date().getTime() > 0) {
-                    this.sendDebugMessage(`A hype train Event is currently running`);
-                } else {
-                    this.sendDebugMessage(`No hype train Event is currently running`);
-                    // check if the cool down is still active
-                    if (hypeTrainStatus.current.expiryDate.getTime() - new Date().getTime() > 0) {
-                        this.sendDebugMessage(`Cool down is still active`);
-                        this.setCoolDownEndDate(hypeTrainStatus.current.expiryDate);
-                    } else {
-                        this.sendDebugMessage(`The last hype train started at <t:${this.timeInSeconds(hypeTrainStatus.current.startDate.getTime())}:f> and ended at <t:${this.timeInSeconds(hypeTrainStatus.current.expiryDate.getTime())}:f> with Level ${hypeTrainStatus.current.level}`);
-                    }
-                }
+
+            signale.debug('getHypeTrainEventsForBroadcaster', JSON.stringify(getRawData(hypeTrainStatus), null, 4));
+            if (hypeTrainStatus?.current) {
+                this._hypeTrainLevel = hypeTrainStatus.current.level;
+                this._hypeTrainTotal = hypeTrainStatus.current.total;
+                this.sendDebugMessage(`A hype train Event is currently running`);
+            } else {
+                this.sendDebugMessage(`No hype train Event is currently running`);
             }
+
             // We need the Twitch Events
             // https://dev.twitch.tv/docs/eventsub/handling-webhook-events
             const twitchListener = new EventSubWsListener({
@@ -209,9 +202,9 @@ export class Twitch extends EventEmitter {
         // hype train ended
         this.sendMessage(`:checkered_flag: The hype train is over! We reached Level **${e.level}**!`);
         // reset level
-        this._level = 0;
+        this._hypeTrainLevel = 0;
         // reset total
-        this._total = 0;
+        this._hypeTrainTotal = 0;
         // next hype train as UTC
         this.setCoolDownEndDate(e.cooldownEndDate)
     }
@@ -222,7 +215,8 @@ export class Twitch extends EventEmitter {
      */
     private hypeTrainBeginEventsHandler(e: EventSubChannelHypeTrainBeginV2Event) {
         signale.debug('hypeTrainBeginEventsHandler', JSON.stringify(getRawData(e), null, 4));
-        this._level = e.level;
+        this._hypeTrainLevel = e.level;
+        this._hypeTrainTotal = e.total;
         this.sendMessage(`:partying_face: A hype train has started at Level **${e.level}**!`);
     }
 
@@ -231,19 +225,18 @@ export class Twitch extends EventEmitter {
      * @param e 
      */
     private hypeTrainProgressEvents(e: EventSubChannelHypeTrainProgressV2Event) {
-        if (this._total !== e.total) {
-            this._total = e.total;
+        const levelUp = e.level > this._hypeTrainLevel;
+
+        if (this._hypeTrainTotal !== e.total) {
+            this._hypeTrainLevel = e.level;
+            this._hypeTrainTotal = e.total;
             // log JSON
             signale.debug('hypeTrainProgressEvents', JSON.stringify(getRawData(e), null, 4));
 
             // check if reached a new level
-            if (this._level !== e.level) {
-                this._level = e.level;
+            if (levelUp) {
                 this.sendMessage(`:trophy: The hype train reached Level **${e.level}**!`);
             }
-            // handle last contribution
-            // dropped in v2
-            // this.handleLastContribution(e.lastContribution);
 
             this.sendDebugMessage(`The hype train points: ${e.total} Level: **${e.level}**`);
         }
