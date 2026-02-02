@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
 import signale from "signale";
 import fs from 'node:fs';
-import { ActivityType, AttachmentBuilder, AuditLogEvent, ChatInputCommandInteraction, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildBan, GuildMember, PartialGuildMember, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, REST, Routes, SlashCommandBuilder, TextChannel, User, VoiceChannel, userMention, roleMention, InteractionContextType, PermissionFlagsBits, MessageFlags } from 'discord.js';
+import { ActivityType, AttachmentBuilder, AuditLogEvent, ChannelType, ChatInputCommandInteraction, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildBan, GuildMember, PartialGuildMember, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, REST, Routes, SlashCommandBuilder, TextChannel, User, VoiceChannel, userMention, roleMention, channelMention, InteractionContextType, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
 import { Cron } from "croner";
@@ -41,6 +41,8 @@ export enum Rooms {
 type FeatureToggles = {
     instagramPostingEnabled: boolean;
     stickyNoteEnabled: boolean;
+    shoutoutChannelId?: string;
+    socialsChannelId?: string;
 }
 
 export class DiscordBot extends EventEmitter {
@@ -76,6 +78,8 @@ export class DiscordBot extends EventEmitter {
         const defaults: FeatureToggles = {
             instagramPostingEnabled: true,
             stickyNoteEnabled: true,
+            shoutoutChannelId: undefined,
+            socialsChannelId: undefined,
         };
 
         try {
@@ -88,11 +92,9 @@ export class DiscordBot extends EventEmitter {
             const merged: FeatureToggles = {
                 instagramPostingEnabled: typeof parsed.instagramPostingEnabled === 'boolean' ? parsed.instagramPostingEnabled : defaults.instagramPostingEnabled,
                 stickyNoteEnabled: typeof parsed.stickyNoteEnabled === 'boolean' ? parsed.stickyNoteEnabled : defaults.stickyNoteEnabled,
+                shoutoutChannelId: typeof parsed.shoutoutChannelId === 'string' ? parsed.shoutoutChannelId : undefined,
+                socialsChannelId: typeof parsed.socialsChannelId === 'string' ? parsed.socialsChannelId : undefined,
             };
-
-            if (merged.instagramPostingEnabled !== parsed.instagramPostingEnabled || merged.stickyNoteEnabled !== parsed.stickyNoteEnabled) {
-                fs.writeFileSync(this._featureTogglesPath, JSON.stringify(merged, null, 4));
-            }
 
             return merged;
         } catch (error) {
@@ -131,8 +133,8 @@ export class DiscordBot extends EventEmitter {
         this._discordClient.user?.setActivity(undefined);
         this._rooms.set(Rooms.HYPETRAIN, this.getChannel(process.env.ROOMNAME ?? '🚀┃hypetrain'));
         this._rooms.set(Rooms.DEBUG, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
-        this._rooms.set(Rooms.SHOUTOUT, this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
-        this._rooms.set(Rooms.SOCIALS, this.getChannel(process.env.SOCIALSROOMNAME ?? '💬┃general-chat'));
+        this._rooms.set(Rooms.SHOUTOUT, this.getChannelById(this._featureToggles.shoutoutChannelId) ?? this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
+        this._rooms.set(Rooms.SOCIALS, this.getChannelById(this._featureToggles.socialsChannelId) ?? this.getChannel(process.env.SOCIALSROOMNAME ?? '💬┃general-chat'));
         this._rooms.set(Rooms.MODLOG, this.getChannel(process.env.MODLOGROONAME ?? '🚨┃mod-logs'));
         this._rooms.set(Rooms.STATS, (this._discordClient.channels.cache.get(STATS_ROOM) as TextChannel));
         this._rooms.set(Rooms.INTRO, (this._discordClient.channels.cache.get(INTRO_ROOM) as TextChannel));
@@ -182,6 +184,27 @@ export class DiscordBot extends EventEmitter {
                             { name: 'status', value: 'status' },
                         )
                 ),
+            new SlashCommandBuilder()
+                .setName('setchannel')
+                .setDescription('Change target channel for a feature')
+                .setContexts(InteractionContextType.Guild)
+                .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers | PermissionFlagsBits.KickMembers)
+                .addStringOption((opt) =>
+                    opt
+                        .setName('feature')
+                        .setDescription('Which feature channel to change')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'SHOUTOUT', value: 'SHOUTOUT' },
+                            { name: 'SOCIALS', value: 'SOCIALS' },
+                        )
+                )
+                .addChannelOption((opt) =>
+                    opt
+                        .setName('channel')
+                        .setDescription('The new target channel (leave empty to reset to default)')
+                        .addChannelTypes(ChannelType.GuildText)
+                ),
         ].map((c) => c.toJSON());
 
         try {
@@ -190,7 +213,7 @@ export class DiscordBot extends EventEmitter {
                 Routes.applicationGuildCommands(this._discordClient.user.id, ANNABEL_DC),
                 { body: commands },
             );
-            signale.success('Registered slash commands: /ig, /stickynote');
+            signale.success('Registered slash commands: /ig, /stickynote, /setchannel');
         } catch (error) {
             signale.fatal(`Failed to register slash commands: ${error}`);
         }
@@ -290,6 +313,11 @@ export class DiscordBot extends EventEmitter {
             return;
         }
 
+        if (interaction.commandName === 'setchannel') {
+            await this.handleSetChannel(interaction);
+            return;
+        }
+
         const action = interaction.options.getString('action', true);
         if (interaction.commandName === 'ig') {
             await this.handleIgToggle(interaction, action);
@@ -376,6 +404,48 @@ export class DiscordBot extends EventEmitter {
         await interaction.reply({ content: 'Invalid action. Use on/off/status.', flags: MessageFlags.Ephemeral });
     }
 
+    private async handleSetChannel(interaction: ChatInputCommandInteraction) {
+        const feature = interaction.options.getString('feature', true) as 'SHOUTOUT' | 'SOCIALS';
+        const channel = interaction.options.getChannel('channel') as TextChannel | null;
+
+        // If no channel provided, reset to default
+        if (!channel) {
+            if (feature === 'SHOUTOUT') {
+                this._featureToggles.shoutoutChannelId = undefined;
+                const defaultChannel = this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout');
+                this._rooms.set(Rooms.SHOUTOUT, defaultChannel);
+                this.saveFeatureToggles();
+                const channelInfo = defaultChannel ? channelMention(defaultChannel.id) : '(not found)';
+                await interaction.reply({ content: `SHOUTOUT channel reset to default: ${channelInfo}`, flags: MessageFlags.Ephemeral });
+                await this.sendMessage(`${this.buildUserDetail(interaction.user)} reset **SHOUTOUT** channel to default: ${channelInfo}`, Rooms.MODLOG);
+            } else {
+                this._featureToggles.socialsChannelId = undefined;
+                const defaultChannel = this.getChannel(process.env.SOCIALSROOMNAME ?? '💬┃general-chat');
+                this._rooms.set(Rooms.SOCIALS, defaultChannel);
+                this.saveFeatureToggles();
+                const channelInfo = defaultChannel ? channelMention(defaultChannel.id) : '(not found)';
+                await interaction.reply({ content: `SOCIALS channel reset to default: ${channelInfo}`, flags: MessageFlags.Ephemeral });
+                await this.sendMessage(`${this.buildUserDetail(interaction.user)} reset **SOCIALS** channel to default: ${channelInfo}`, Rooms.MODLOG);
+            }
+            return;
+        }
+
+        // Set the new channel
+        if (feature === 'SHOUTOUT') {
+            this._featureToggles.shoutoutChannelId = channel.id;
+            this._rooms.set(Rooms.SHOUTOUT, channel);
+            this.saveFeatureToggles();
+            await interaction.reply({ content: `SHOUTOUT channel set to ${channelMention(channel.id)}`, flags: MessageFlags.Ephemeral });
+            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set **SHOUTOUT** channel to ${channelMention(channel.id)}`, Rooms.MODLOG);
+        } else {
+            this._featureToggles.socialsChannelId = channel.id;
+            this._rooms.set(Rooms.SOCIALS, channel);
+            this.saveFeatureToggles();
+            await interaction.reply({ content: `SOCIALS channel set to ${channelMention(channel.id)}`, flags: MessageFlags.Ephemeral });
+            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set **SOCIALS** channel to ${channelMention(channel.id)}`, Rooms.MODLOG);
+        }
+    }
+
     private async updateMemberCount() {
         if (this._discordClient.isReady()) {
             const room = this._rooms.get(Rooms.STATS)!;
@@ -392,6 +462,12 @@ export class DiscordBot extends EventEmitter {
         return this._discordClient.channels.cache.find(
             (channel) => (channel as TextChannel).name === room,
         ) as TextChannel | VoiceChannel | null;
+    }
+
+    private getChannelById(id: string | undefined): TextChannel | null {
+        if (!id) return null;
+        const channel = this._discordClient.channels.cache.get(id);
+        return channel?.type === ChannelType.GuildText ? (channel as TextChannel) : null;
     }
 
     async sendMessage(message: string | MessagePayload | MessageCreateOptions, room: Rooms) {
