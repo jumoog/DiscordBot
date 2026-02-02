@@ -195,8 +195,8 @@ export class DiscordBot extends EventEmitter {
                         .setDescription('Which feature channel to change')
                         .setRequired(true)
                         .addChoices(
-                            { name: 'SHOUTOUT', value: 'SHOUTOUT' },
-                            { name: 'SOCIALS', value: 'SOCIALS' },
+                            { name: 'Twitch Live Ping', value: 'SHOUTOUT' },
+                            { name: 'Instagram Posts', value: 'SOCIALS' },
                         )
                 )
                 .addChannelOption((opt) =>
