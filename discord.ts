@@ -203,7 +203,7 @@ export class DiscordBot extends EventEmitter {
                     opt
                         .setName('channel')
                         .setDescription('The new target channel (leave empty to reset to default)')
-                        .addChannelTypes(ChannelType.GuildText)
+                        .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
                 ),
         ].map((c) => c.toJSON());
 
@@ -467,7 +467,10 @@ export class DiscordBot extends EventEmitter {
     private getChannelById(id: string | undefined): TextChannel | null {
         if (!id) return null;
         const channel = this._discordClient.channels.cache.get(id);
-        return channel?.type === ChannelType.GuildText ? (channel as TextChannel) : null;
+        if (channel?.type === ChannelType.GuildText || channel?.type === ChannelType.GuildAnnouncement) {
+            return channel as TextChannel;
+        }
+        return null;
     }
 
     async sendMessage(message: string | MessagePayload | MessageCreateOptions, room: Rooms) {
