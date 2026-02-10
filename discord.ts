@@ -541,9 +541,12 @@ export class DiscordBot extends EventEmitter {
             this.sendMessage('Instagram posting is disabled; skipping sendIgPost', Rooms.DEBUG);
             return;
         }
-        const url = this.hasProp(element, "thumbnail_url") ? element.thumbnail_url : element.media_url
-        const blob = await fetch(url!).then((r) => r.blob());
-        const arrayBuffer = await blob.arrayBuffer();
+        const url = this.hasProp(element, "thumbnail_url") ? element.thumbnail_url : element.media_url;
+        if (!url) {
+            this.sendMessage('No media URL available for Instagram post', Rooms.DEBUG);
+            return;
+        }
+        const arrayBuffer = await fetch(url).then((r) => r.arrayBuffer());
         const buffer = Buffer.from(arrayBuffer);
         const file = new AttachmentBuilder(buffer, { name: 'preview.jpg' });
         const embed = new EmbedBuilder()
