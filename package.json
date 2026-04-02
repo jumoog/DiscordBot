@@ -21,7 +21,7 @@
     "@twurple/eventsub-ws": "^8.0.3",
     "croner": "^10.0.1",
     "discord.js": "^14.26.0",
-    "p-queue": "^9.1.0",
+    "p-queue": "^9.1.1",
     "signale": "^1.4.0",
     "tiny-timer": "^1.6.0"
   },
