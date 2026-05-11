@@ -4,6 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      twurple:
+        patterns:
+          - "@twurple/*"
     ignore:
       - dependency-name: "@types/*"
       - dependency-name: "bun-types"
