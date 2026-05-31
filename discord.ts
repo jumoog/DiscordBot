@@ -135,7 +135,7 @@ export class DiscordBot extends EventEmitter {
         this._rooms.set(Rooms.DEBUG, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
         this._rooms.set(Rooms.SHOUTOUT, this.getChannelById(this._featureToggles.shoutoutChannelId) ?? this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
         this._rooms.set(Rooms.SOCIALS, this.getChannelById(this._featureToggles.socialsChannelId) ?? this.getChannel(process.env.SOCIALSROOMNAME ?? '💬┃general-chat'));
-        this._rooms.set(Rooms.MODLOG, this.getChannel(process.env.MODLOGROONAME ?? '🚨┃mod-logs'));
+        this._rooms.set(Rooms.MODLOG, this.getChannel(process.env.MODLOGROOMNAME ?? '🚨┃mod-logs'));
         this._rooms.set(Rooms.STATS, (this._discordClient.channels.cache.get(STATS_ROOM) as TextChannel));
         this._rooms.set(Rooms.INTRO, (this._discordClient.channels.cache.get(INTRO_ROOM) as TextChannel));
         this._memberCount = (this._discordClient.guilds.cache.get(ANNABEL_DC) as Guild).memberCount;
@@ -451,7 +451,7 @@ export class DiscordBot extends EventEmitter {
             const room = this._rooms.get(Rooms.STATS)!;
             signale.info(`cron`, this._memberCount, `A-Team: ${this._memberCount} members`);
             if (this.botHasPermission(room, PermissionsBitField.Flags.ManageChannels)) {
-                room.setName(`A-Team: ${this._memberCount} members`);
+                await room.setName(`A-Team: ${this._memberCount} members`);
             } else {
                 this.sendMessage(`Help! i can't set name of <${room}>`, Rooms.DEBUG);
             }
@@ -506,7 +506,7 @@ export class DiscordBot extends EventEmitter {
             return null;
         }
 
-        return auditLogs.entries.find((entry) => (entry.target as User).id == user.id);
+        return auditLogs.entries.find((entry) => (entry.target as User).id === user.id);
     }
 
     private async messageQueue(message: string | MessagePayload | MessageCreateOptions, room: Rooms) {
@@ -524,7 +524,9 @@ export class DiscordBot extends EventEmitter {
                 }
             } else {
                 signale.error(`Help! i can't post in <${room}>`);
-                this.sendMessage(`Help! i can't post in <${room}>`, Rooms.DEBUG);
+                if (room !== Rooms.DEBUG) {
+                    this.sendMessage(`Help! i can't post in <${room}>`, Rooms.DEBUG);
+                }
             }
         }
         await sleep(750);
@@ -541,7 +543,7 @@ export class DiscordBot extends EventEmitter {
             this.sendMessage('Instagram posting is disabled; skipping sendIgPost', Rooms.DEBUG);
             return;
         }
-        const url = this.hasProp(element, "thumbnail_url") ? element.thumbnail_url : element.media_url;
+        const url = element.thumbnail_url ?? element.media_url;
         if (!url) {
             this.sendMessage('No media URL available for Instagram post', Rooms.DEBUG);
             return;
@@ -552,7 +554,7 @@ export class DiscordBot extends EventEmitter {
         const embed = new EmbedBuilder()
             .setTitle(element.permalink?.includes('/reel/') ? 'Annabel shared a new reel!' : 'Annabel shared a new post!')
             .setURL(element.permalink)
-            .setDescription(this.hasProp(element, "caption") ? this.replaceInstagramHandles(element.caption!) : null)
+            .setDescription(element.caption ? this.replaceInstagramHandles(element.caption) : null)
             .setImage('attachment://preview.jpg')
             .setColor("#D300C5")
             .setFooter({
@@ -560,10 +562,6 @@ export class DiscordBot extends EventEmitter {
             })
             .setTimestamp();
         this.sendMessage({ content: `${roleMention(CONTENT_ROLE)}`, embeds: [embed], files: [file] }, Rooms.SOCIALS);
-    }
-
-    private hasProp(obj: unknown, prop: string): boolean {
-        return Object.prototype.hasOwnProperty.call(obj, prop);
     }
 
     private botHasPermission(channel: TextChannel | VoiceChannel | null, permissions: bigint) {

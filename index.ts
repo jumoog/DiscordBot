@@ -24,9 +24,9 @@ signale.success(`healthcheck listening on :${server.port}`);
 
 
 // catch all possible errors and don't crash
-process.on('unhandledRejection', (reason: Error | any, p: Promise<any>) => {
+process.on('unhandledRejection', (reason: unknown) => {
     signale.fatal('caught your junk %s', reason);
-    if (reason.stack) {
+    if (reason instanceof Error && reason.stack) {
         signale.fatal(reason.stack);
     }
 });
@@ -55,8 +55,6 @@ twitch.on('deleteCoolDown', () => {
     discord.deleteCoolDown();
 });
 
-await discord.main();
-await twitch.main();
-await instagram.main();
+await Promise.all([discord.main(), twitch.main(), instagram.main()]);
 
 setReady(true);

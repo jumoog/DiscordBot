@@ -321,6 +321,7 @@ export class Twitch extends EventEmitter {
     private onStreamOffline(e: EventSubStreamOfflineEvent) {
         signale.debug('onStreamOffline', JSON.stringify(getRawData(e), null, 4));
         this._onlineTimer.stop();
+        this._streamStartTimer.stop();
         this.emit('offline', `${e.broadcasterDisplayName} went offline!`);
     }
 
