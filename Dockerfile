@@ -1,4 +1,4 @@
-FROM oven/bun:1.4.0 AS base
+FROM oven/bun:1.4.2 AS base
 WORKDIR /HypetrainDiscordBot
 
 FROM base AS install
