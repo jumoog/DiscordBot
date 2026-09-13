@@ -43,6 +43,7 @@ bun install
   DEBUGROOMNAME=""
   SHOUTOUTROOMNAME=""
   SOCIALSROOMNAME=""
+  MODLOGROOMNAME=""
   ```
 
 - Place your Twitch and Instagram token files (`tokens.json`, `ig_token.json`, `lastTimeStamp.json`) in the project root or `/tokens/` directory (for Docker).
@@ -68,18 +69,26 @@ Mount your `/tokens/` directory for persistent token storage.
 
 The bot reads feature toggles from `featureToggles.json` (in the project root or `/tokens/` in Docker). Edit the file and restart the bot.
 
-Slash commands (server only):
+Slash commands (server only, require Kick/Ban Members):
 
 - `/ig action:on|off|status`
 - `/stickynote action:on|off|status`
+- `/setchannel feature:<Twitch Live Ping|Instagram Posts> [channel]` (omit `channel` to reset to the default from the environment)
 
 - `instagramPostingEnabled`: enable/disable posting Instagram updates to Discord.
 - `stickyNoteEnabled`: enable/disable the intro channel sticky welcome message.
+- `shoutoutChannelId` / `socialsChannelId`: channel overrides set via `/setchannel`.
+
+### Healthcheck
+
+`GET /health` on `HEALTH_PORT` (default `3000`) returns `200` while the bot is ready and every started integration is alive (Discord connected, Twitch EventSub socket heartbeating), otherwise `503`.
 
 
 ## Development
 
 - Written in TypeScript.
+- `bun run typecheck` runs the type checker.
+- `bun test` runs the permission tests against the live server; they are skipped when `DISCORDTOKEN` is not set.
 
 ## License
 

@@ -6,15 +6,23 @@ import Timer from 'tiny-timer';
 import fs from 'node:fs';
 import path from 'node:path';
 import signale from "signale";
-import { EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent, EventSubChannelHypeTrainContribution, EventSubChannelHypeTrainBeginV2Event, EventSubChannelHypeTrainEndV2Event, EventSubChannelHypeTrainProgressV2Event, EventSubChannelSubscriptionEvent, EventSubChannelSubscriptionGiftEvent, EventSubChannelCheerEvent } from '@twurple/eventsub-base';
+import type { EventSubStreamOnlineEvent, EventSubStreamOfflineEvent, EventSubChannelUpdateEvent, EventSubChannelHypeTrainContribution, EventSubChannelHypeTrainBeginV2Event, EventSubChannelHypeTrainEndV2Event, EventSubChannelHypeTrainProgressV2Event, EventSubChannelSubscriptionEvent, EventSubChannelSubscriptionGiftEvent, EventSubChannelCheerEvent } from '@twurple/eventsub-base';
 import { getRawData } from '@twurple/common';
-import { Rooms } from './discord.js';
-import { touch } from './health.ts';
+import { Rooms } from './discord.ts';
+import { heartbeatProbe, registerProbe, touch } from './health.ts';
+
+type TwitchEvents = {
+    sendMessage: [message: string, room: Rooms];
+    coolDown: [message: string];
+    deleteCoolDown: [];
+    online: [message: string];
+    offline: [message: string];
+}
 
 /**
  * Bot class
  */
-export class Twitch extends EventEmitter {
+export class Twitch extends EventEmitter<TwitchEvents> {
     private readonly _userId: string;
     private readonly _clientId: string;
     private readonly _clientSecret: string;
@@ -26,6 +34,7 @@ export class Twitch extends EventEmitter {
     private _currentCoolDown: number;
     private readonly _onlineTimer: Timer;
     private readonly _streamStartTimer: Timer;
+    private _listener: EventSubWsListener | undefined;
 
     constructor() {
         super();
@@ -88,6 +97,17 @@ export class Twitch extends EventEmitter {
         await this.twurpleStart();
     }
 
+    /**
+     * stop the EventSub listener (graceful shutdown)
+     */
+    stop(): void {
+        this._listener?.stop();
+        this._listener = undefined;
+        this._currentCoolDownTimer.stop();
+        this._onlineTimer.stop();
+        this._streamStartTimer.stop();
+    }
+
     /***
      * internal start
      */
@@ -141,42 +161,39 @@ export class Twitch extends EventEmitter {
             },
         });
 
+        // subscriptions are verified asynchronously; a missing scope surfaces here, not as a thrown error
+        twitchListener.onSubscriptionCreateFailure((subscription, error) => {
+            signale.fatal(`EventSub subscription <${subscription.id}> failed: ${error.message}`);
+            this.sendDebugMessage(`EventSub subscription <${subscription.id}> failed: ${error.message}\nPlease reauthorize your broadcaster account to include all necessary scopes!`);
+        });
+        twitchListener.onRevoke((subscription, status) => {
+            signale.fatal(`EventSub subscription <${subscription.id}> revoked: ${status}`);
+            this.sendDebugMessage(`EventSub subscription <${subscription.id}> revoked: ${status}`);
+        });
+
+        twitchListener.onChannelHypeTrainEndV2(broadcasterId, e => this.onHypeTrainEnd(e));
+        twitchListener.onChannelHypeTrainBeginV2(broadcasterId, e => this.onHypeTrainBegin(e));
+        twitchListener.onChannelHypeTrainProgressV2(broadcasterId, e => this.onHypeTrainProgress(e));
+
+        // channel:read:subscriptions
+        twitchListener.onChannelSubscription(broadcasterId, e => this.onChannelSubscription(e));
+
+        // channel:read:subscriptions
+        twitchListener.onChannelSubscriptionGift(broadcasterId, e => this.onChannelSubscriptionGift(e));
+
+        // bits:read
+        twitchListener.onChannelCheer(broadcasterId, e => this.onChannelCheer(e));
+
+        twitchListener.onStreamOnline(broadcasterId, e => this.onStreamOnline(e));
+        twitchListener.onStreamOffline(broadcasterId, e => this.onStreamOffline(e));
+        twitchListener.onChannelUpdate(broadcasterId, e => this.onChannelUpdate(e));
+
         twitchListener.start();
+        this._listener = twitchListener;
 
-        try {
-            twitchListener.onChannelHypeTrainEndV2(broadcasterId, e => this.onHypeTrainEnd(e));
-            twitchListener.onChannelHypeTrainBeginV2(broadcasterId, e => this.onHypeTrainBegin(e));
-            twitchListener.onChannelHypeTrainProgressV2(broadcasterId, e => this.onHypeTrainProgress(e));
-
-            // channel:read:subscriptions
-            twitchListener.onChannelSubscription(broadcasterId, e => this.onChannelSubscription(e));
-
-            // channel:read:subscriptions
-            twitchListener.onChannelSubscriptionGift(broadcasterId, e => this.onChannelSubscriptionGift(e));
-
-            // bits:read
-            twitchListener.onChannelCheer(broadcasterId, e => this.onChannelCheer(e));
-
-            twitchListener.onStreamOnline(broadcasterId, e => this.onStreamOnline(e));
-            twitchListener.onStreamOffline(broadcasterId, e => this.onStreamOffline(e));
-            twitchListener.onChannelUpdate(broadcasterId, e => this.onChannelUpdate(e));
-
-            const shutdown = async () => {
-                signale.success('shutting down!');
-                await this.sendDebugMessage('shutting down!');
-                twitchListener.stop();
-                process.exit(0);
-            };
-
-            // normal CTRL + C
-            process.on('SIGINT', shutdown);
-            // DOCKER
-            process.on('SIGTERM', shutdown);
-        } catch (_error) {
-            twitchListener.stop();
-            signale.fatal('Please reauthorize your broadcaster account to include all necessary scopes!');
-            this.sendDebugMessage('Please reauthorize your broadcaster account to include all necessary scopes!');
-        }
+        // the websocket keepalive produces trace logs every few seconds, so a silent logger means a dead connection
+        touch('twitch');
+        registerProbe('twitch', heartbeatProbe('twitch'));
     }
 
     /**
@@ -343,10 +360,10 @@ export class Twitch extends EventEmitter {
         this._currentCoolDownTimer.stop();
         // set timer
         this._currentCoolDownTimer.start(timerLeft);
-        // inform channel about new cool down
+        // inform channel about new cool down (tracked separately so it can be deleted once the cool down is over)
         // R -> Relative (in 2 minutes)
         // t -> short time (2:19 AM)
-        this.sendMessage(`:station: The hype train cool down ends <t:${this.timeInSeconds()}:R>.`);
+        this.emit('coolDown', `:station: The hype train cool down ends <t:${this.timeInSeconds()}:R>.`);
     }
 
     private onCoolDownTimerDone() {

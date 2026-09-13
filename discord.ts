@@ -1,11 +1,12 @@
 import EventEmitter from 'events';
 import signale from "signale";
 import fs from 'node:fs';
-import { ActivityType, AttachmentBuilder, AuditLogEvent, ChannelType, ChatInputCommandInteraction, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildBan, GuildMember, PartialGuildMember, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, REST, Routes, SlashCommandBuilder, TextChannel, User, VoiceChannel, userMention, roleMention, channelMention, InteractionContextType, PermissionFlagsBits, MessageFlags } from 'discord.js';
+import { ActivityType, AttachmentBuilder, AuditLogEvent, ChannelType, ChatInputCommandInteraction, Client, codeBlock, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildAuditLogsEntry, GuildBan, GuildMember, PartialGuildMember, Interaction, Message, MessageCreateOptions, MessagePayload, Partials, PermissionsBitField, REST, Routes, SlashCommandBuilder, TextChannel, User, VoiceChannel, userMention, roleMention, channelMention, InteractionContextType, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import PQueue from 'p-queue';
 import { InstagramMediaItem } from './Instagram.ts';
 import { Cron } from "croner";
 import { sleep } from 'bun';
+import { registerProbe } from './health.ts';
 
 const DiscordMessageQueue = new PQueue({ concurrency: 1 });
 
@@ -13,6 +14,16 @@ const ANNABEL_DC = "821708215216635904";
 const STATS_ROOM = "1189573435710521345";
 const CONTENT_ROLE = "953017309369344031";
 const INTRO_ROOM = "821709936563191849";
+
+/**
+ * how far back an audit log entry may be to still count as the cause of a member leaving.
+ * Entry timestamps come from Discord's clock, so leave generous room for host clock skew.
+ */
+const AUDIT_LOG_MAX_AGE_MS = 60_000;
+/** how long a ban reported by handleGuildBanAdd suppresses the matching guildMemberRemove */
+const REPORTED_BAN_TTL_MS = 60_000;
+/** audit log entries show up with a small delay after the gateway event */
+const AUDIT_LOG_DELAY_MS = 2_500;
 
 const STICKY_NOTE = `__**Sticky Message:**__
 
@@ -45,11 +56,28 @@ type FeatureToggles = {
     socialsChannelId?: string;
 }
 
+type ToggleAction = 'on' | 'off' | 'status';
+
+/** features whose target channel can be changed at runtime via /setchannel */
+type ConfigurableRoom = Rooms.SHOUTOUT | Rooms.SOCIALS;
+
+const CONFIGURABLE_ROOMS: Record<ConfigurableRoom, { toggleKey: 'shoutoutChannelId' | 'socialsChannelId'; envVar: string; defaultName: string }> = {
+    [Rooms.SHOUTOUT]: { toggleKey: 'shoutoutChannelId', envVar: 'SHOUTOUTROOMNAME', defaultName: 'shoutout' },
+    [Rooms.SOCIALS]: { toggleKey: 'socialsChannelId', envVar: 'SOCIALSROOMNAME', defaultName: '💬┃general-chat' },
+};
+
+type SendableChannel = TextChannel | VoiceChannel;
+
 export class DiscordBot extends EventEmitter {
     private _discordToken: string;
     private _lastCoolDownMessage: Message | undefined;
+    /** bumped for every new cool down notice so a stale queued notice can recognise it was superseded */
+    private _coolDownGeneration = 0;
+    private _coolDownActive = false;
+    /** user ids whose ban was (or is being) reported by handleGuildBanAdd */
+    private readonly _reportedBans = new Set<string>();
     private _discordClient: Client;
-    private _rooms: Map<string, TextChannel | VoiceChannel | null>;
+    private _rooms: Map<Rooms, SendableChannel | null>;
     private _memberCount: number;
     private readonly _featureTogglesPath: string;
     private _featureToggles: FeatureToggles;
@@ -66,7 +94,8 @@ export class DiscordBot extends EventEmitter {
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.GuildMessages,
                 GatewayIntentBits.GuildMembers,
-                GatewayIntentBits.GuildPresences
+                // required for guildBanAdd / guildBanRemove
+                GatewayIntentBits.GuildModeration,
             ],
         });
         this._lastCoolDownMessage = undefined;
@@ -114,31 +143,39 @@ export class DiscordBot extends EventEmitter {
     async main() {
         this._discordClient.on(Events.ClientReady, this.handleClientReady.bind(this));
         this._discordClient.on(Events.GuildMemberAdd, this.handleGuildMemberAdd.bind(this));
-        this._discordClient.on(Events.GuildMemberRemove, (member: GuildMember | PartialGuildMember) => this.handleGuildMemberRemove(member));
+        this._discordClient.on(Events.GuildMemberRemove, this.handleGuildMemberRemove.bind(this));
         this._discordClient.on(Events.GuildBanAdd, this.handleGuildBanAdd.bind(this));
         this._discordClient.on(Events.GuildBanRemove, this.handleGuildBanRemove.bind(this));
         this._discordClient.on(Events.MessageCreate, this.handleMessageCreate.bind(this));
         this._discordClient.on(Events.InteractionCreate, this.handleInteractionCreate.bind(this));
 
+        // login() resolves once the token is accepted, not once the gateway session is ready
+        const ready = new Promise<void>((resolve) => this._discordClient.once(Events.ClientReady, () => resolve()));
         await this._discordClient.login(this._discordToken);
+        await ready;
 
-        while (!this._discordClient.isReady()) {
-            await sleep(100);
-        }
-
+        registerProbe('discord', () => this._discordClient.isReady());
         new Cron('*/10 * * * *', this.updateMemberCount.bind(this));
+    }
+
+    /**
+     * flush pending messages and disconnect (graceful shutdown)
+     */
+    async shutdown() {
+        await DiscordMessageQueue.onIdle();
+        await this._discordClient.destroy();
     }
 
     private handleClientReady(c: Client<true>) {
         this._discordClient.user?.setActivity(undefined);
         this._rooms.set(Rooms.HYPETRAIN, this.getChannel(process.env.ROOMNAME ?? '🚀┃hypetrain'));
         this._rooms.set(Rooms.DEBUG, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
-        this._rooms.set(Rooms.SHOUTOUT, this.getChannelById(this._featureToggles.shoutoutChannelId) ?? this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout'));
-        this._rooms.set(Rooms.SOCIALS, this.getChannelById(this._featureToggles.socialsChannelId) ?? this.getChannel(process.env.SOCIALSROOMNAME ?? '💬┃general-chat'));
+        this._rooms.set(Rooms.SHOUTOUT, this.getChannelById(this._featureToggles.shoutoutChannelId) ?? this.getDefaultChannel(Rooms.SHOUTOUT));
+        this._rooms.set(Rooms.SOCIALS, this.getChannelById(this._featureToggles.socialsChannelId) ?? this.getDefaultChannel(Rooms.SOCIALS));
         this._rooms.set(Rooms.MODLOG, this.getChannel(process.env.MODLOGROOMNAME ?? '🚨┃mod-logs'));
-        this._rooms.set(Rooms.STATS, (this._discordClient.channels.cache.get(STATS_ROOM) as TextChannel));
-        this._rooms.set(Rooms.INTRO, (this._discordClient.channels.cache.get(INTRO_ROOM) as TextChannel));
-        this._memberCount = (this._discordClient.guilds.cache.get(ANNABEL_DC) as Guild).memberCount;
+        this._rooms.set(Rooms.STATS, (this._discordClient.channels.cache.get(STATS_ROOM) as SendableChannel | undefined) ?? null);
+        this._rooms.set(Rooms.INTRO, (this._discordClient.channels.cache.get(INTRO_ROOM) as TextChannel | undefined) ?? null);
+        this._memberCount = this._discordClient.guilds.cache.get(ANNABEL_DC)?.memberCount ?? 0;
         signale.debug(`Member count: ${this._memberCount}`);
         this.sendMessage(`Ready! Logged in as ${c.user.tag}`, Rooms.DEBUG);
         signale.success(`Ready! Logged in as ${c.user.tag}`);
@@ -151,39 +188,27 @@ export class DiscordBot extends EventEmitter {
             return;
         }
 
+        const toggleCommand = (name: string, description: string) =>
+            new SlashCommandBuilder()
+                .setName(name)
+                .setDescription(description)
+                .setContexts(InteractionContextType.Guild)
+                .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers | PermissionFlagsBits.KickMembers)
+                .addStringOption((opt) =>
+                    opt
+                        .setName('action')
+                        .setDescription('Choose action')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'on', value: 'on' },
+                            { name: 'off', value: 'off' },
+                            { name: 'status', value: 'status' },
+                        )
+                );
+
         const commands = [
-            new SlashCommandBuilder()
-                .setName('ig')
-                .setDescription('Enable/disable Instagram posting')
-                .setContexts(InteractionContextType.Guild)
-                .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers | PermissionFlagsBits.KickMembers)
-                .addStringOption((opt) =>
-                    opt
-                        .setName('action')
-                        .setDescription('Choose action')
-                        .setRequired(true)
-                        .addChoices(
-                            { name: 'on', value: 'on' },
-                            { name: 'off', value: 'off' },
-                            { name: 'status', value: 'status' },
-                        )
-                ),
-            new SlashCommandBuilder()
-                .setName('stickynote')
-                .setDescription('Enable/disable intro sticky note')
-                .setContexts(InteractionContextType.Guild)
-                .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers | PermissionFlagsBits.KickMembers)
-                .addStringOption((opt) =>
-                    opt
-                        .setName('action')
-                        .setDescription('Choose action')
-                        .setRequired(true)
-                        .addChoices(
-                            { name: 'on', value: 'on' },
-                            { name: 'off', value: 'off' },
-                            { name: 'status', value: 'status' },
-                        )
-                ),
+            toggleCommand('ig', 'Enable/disable Instagram posting'),
+            toggleCommand('stickynote', 'Enable/disable intro sticky note'),
             new SlashCommandBuilder()
                 .setName('setchannel')
                 .setDescription('Change target channel for a feature')
@@ -195,8 +220,8 @@ export class DiscordBot extends EventEmitter {
                         .setDescription('Which feature channel to change')
                         .setRequired(true)
                         .addChoices(
-                            { name: 'Twitch Live Ping', value: 'SHOUTOUT' },
-                            { name: 'Instagram Posts', value: 'SOCIALS' },
+                            { name: 'Twitch Live Ping', value: Rooms.SHOUTOUT },
+                            { name: 'Instagram Posts', value: Rooms.SOCIALS },
                         )
                 )
                 .addChannelOption((opt) =>
@@ -234,18 +259,25 @@ export class DiscordBot extends EventEmitter {
             const guild = member.guild;
             this._memberCount = member.guild.memberCount;
             signale.debug(`Member count: ${this._memberCount}`);
-            const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberKick);
 
+            const since = Date.now() - AUDIT_LOG_MAX_AGE_MS;
+            await sleep(AUDIT_LOG_DELAY_MS);
+
+            // a ban also fires guildMemberRemove; handleGuildBanAdd reports it when the event arrives
+            if (this._reportedBans.has(user.id)) {
+                return;
+            }
+
+            // fallback: guildBanAdd did not arrive (e.g. missing intent), report the ban from the audit log instead
+            const banEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberBanAdd, since);
+            if (banEntry) {
+                await this.reportBan(user, banEntry);
+                return;
+            }
+
+            const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberKick, since);
             if (auditEntry) {
-                const executorMessage = auditEntry.executor?.tag
-                    ? ` by **${auditEntry.executor.tag}**`
-                    : '';
-
-                const reasonMessage = auditEntry.reason
-                    ? `\n**Reason:** ${auditEntry.reason}`
-                    : '';
-
-                await this.sendMessage(`:foot: ${this.buildUserDetail(user)} was kicked from the server${executorMessage}.${reasonMessage}`, Rooms.MODLOG);
+                await this.sendMessage(`:foot: ${this.buildUserDetail(user)} was kicked from the server${this.formatExecutor(auditEntry)}.${this.formatReason(auditEntry)}`, Rooms.MODLOG);
             } else {
                 await this.sendMessage(`:wave: ${this.buildUserDetail(user)} left the server.`, Rooms.MODLOG);
             }
@@ -258,17 +290,19 @@ export class DiscordBot extends EventEmitter {
             const user = guildBan.user;
             this._memberCount = guild.memberCount;
             signale.debug(`Member count: ${this._memberCount}`);
-            const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberBanAdd)
-            const executorMessage = auditEntry && auditEntry.executor?.tag
-                ? ` by **${auditEntry.executor.tag}**`
-                : '';
+            // claim the report synchronously so the concurrent guildMemberRemove handler backs off
+            this._reportedBans.add(user.id);
+            setTimeout(() => this._reportedBans.delete(user.id), REPORTED_BAN_TTL_MS);
+            const since = Date.now() - AUDIT_LOG_MAX_AGE_MS;
+            await sleep(AUDIT_LOG_DELAY_MS);
+            const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberBanAdd, since);
 
-            const reasonMessage = auditEntry && auditEntry.reason
-                ? `\n**Reason:** ${auditEntry.reason}`
-                : '';
-
-            await this.sendMessage(`:no_entry: ${this.buildUserDetail(user)} was banned${executorMessage}.${reasonMessage}`, Rooms.MODLOG);
+            await this.reportBan(user, auditEntry);
         }
+    }
+
+    private reportBan(user: User, auditEntry: GuildAuditLogsEntry | null) {
+        return this.sendMessage(`:no_entry: ${this.buildUserDetail(user)} was banned${this.formatExecutor(auditEntry)}.${this.formatReason(auditEntry)}`, Rooms.MODLOG);
     }
 
     private async handleGuildBanRemove(guildBan: GuildBan) {
@@ -276,12 +310,11 @@ export class DiscordBot extends EventEmitter {
             const guild = guildBan.guild;
             const user = guildBan.user;
             this._memberCount = guild.memberCount;
-            const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberBanRemove);
-            const executorMessage = auditEntry && auditEntry.executor?.tag
-                ? ` by **${auditEntry.executor.tag}**`
-                : '';
+            const since = Date.now() - AUDIT_LOG_MAX_AGE_MS;
+            await sleep(AUDIT_LOG_DELAY_MS);
+            const auditEntry = await this.fetchAuditEntryFor(guild, user, AuditLogEvent.MemberBanRemove, since);
 
-            await this.sendMessage(`:ok: ${this.buildUserDetail(user)} was unbanned${executorMessage}.`, Rooms.MODLOG);
+            await this.sendMessage(`:ok: ${this.buildUserDetail(user)} was unbanned${this.formatExecutor(auditEntry)}.`, Rooms.MODLOG);
         }
     }
 
@@ -291,20 +324,12 @@ export class DiscordBot extends EventEmitter {
         }
 
         if (message.channel.id === INTRO_ROOM && this._featureToggles.stickyNoteEnabled) {
-            const lastCustomMessage = await this.findLastStickyNote();
-            if (lastCustomMessage) {
-                try {
-                    await lastCustomMessage.delete();
-                } catch (error) {
-                    signale.fatal('Error deleting previous custom message:', error);
-                }
-            }
-            this.sendMessage(STICKY_NOTE, Rooms.INTRO);
+            await this.repostStickyNote();
         }
     }
 
-    private async handleInteractionCreate(interaction: unknown) {
-        if (!(interaction instanceof ChatInputCommandInteraction)) {
+    private async handleInteractionCreate(interaction: Interaction) {
+        if (!interaction.isChatInputCommand()) {
             return;
         }
 
@@ -313,155 +338,102 @@ export class DiscordBot extends EventEmitter {
             return;
         }
 
-        if (interaction.commandName === 'setchannel') {
-            await this.handleSetChannel(interaction);
-            return;
-        }
-
-        const action = interaction.options.getString('action', true);
-        if (interaction.commandName === 'ig') {
-            await this.handleIgToggle(interaction, action);
-            return;
-        }
-
-        if (interaction.commandName === 'stickynote') {
-            await this.handleStickyToggle(interaction, action);
-            return;
+        switch (interaction.commandName) {
+            case 'setchannel':
+                await this.handleSetChannel(interaction);
+                break;
+            case 'ig':
+                await this.handleToggle(interaction, 'instagramPostingEnabled', 'Instagram posting');
+                break;
+            case 'stickynote': {
+                const enabled = await this.handleToggle(interaction, 'stickyNoteEnabled', 'Sticky note');
+                // apply the change immediately instead of waiting for the next intro message
+                if (enabled === true) {
+                    await this.repostStickyNote();
+                } else if (enabled === false) {
+                    await this.removeStickyNote();
+                }
+                break;
+            }
         }
     }
 
-    private async handleIgToggle(interaction: ChatInputCommandInteraction, action: 'on' | 'off' | 'status' | string) {
+    /**
+     * handle an on/off/status command for a boolean feature toggle
+     * @returns the new value when it was changed, otherwise undefined
+     */
+    private async handleToggle(interaction: ChatInputCommandInteraction, key: 'instagramPostingEnabled' | 'stickyNoteEnabled', label: string): Promise<boolean | undefined> {
+        const action = interaction.options.getString('action', true) as ToggleAction;
+
         if (action === 'status') {
-            await interaction.reply({
-                content: `Instagram posting: ${this._featureToggles.instagramPostingEnabled ? 'ON' : 'OFF'}`,
-                flags: MessageFlags.Ephemeral,
-            });
-            return;
+            await interaction.reply({ content: `${label}: ${this._featureToggles[key] ? 'ON' : 'OFF'}`, flags: MessageFlags.Ephemeral });
+            return undefined;
         }
 
-        if (action === 'on') {
-            this._featureToggles.instagramPostingEnabled = true;
-            this.saveFeatureToggles();
-            await interaction.reply({ content: 'Instagram posting is now ON.', flags: MessageFlags.Ephemeral });
-            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Instagram posting to **ON**.`, Rooms.MODLOG);
-            return;
+        if (action !== 'on' && action !== 'off') {
+            await interaction.reply({ content: 'Invalid action. Use on/off/status.', flags: MessageFlags.Ephemeral });
+            return undefined;
         }
 
-        if (action === 'off') {
-            this._featureToggles.instagramPostingEnabled = false;
-            this.saveFeatureToggles();
-            await interaction.reply({ content: 'Instagram posting is now OFF.', flags: MessageFlags.Ephemeral });
-            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Instagram posting to **OFF**.`, Rooms.MODLOG);
-            return;
-        }
-
-        await interaction.reply({ content: 'Invalid action. Use on/off/status.', flags: MessageFlags.Ephemeral });
-    }
-
-    private async handleStickyToggle(interaction: ChatInputCommandInteraction, action: 'on' | 'off' | 'status' | string) {
-        if (action === 'status') {
-            await interaction.reply({ content: `Sticky note: ${this._featureToggles.stickyNoteEnabled ? 'ON' : 'OFF'}`, flags: MessageFlags.Ephemeral });
-            return;
-        }
-
-        if (action === 'on') {
-            this._featureToggles.stickyNoteEnabled = true;
-            this.saveFeatureToggles();
-            await interaction.reply({ content: 'Sticky note is now ON.', flags: MessageFlags.Ephemeral });
-            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Sticky note to **ON**.`, Rooms.MODLOG);
-
-            // Immediately (re)post the sticky note
-            const lastCustomMessage = await this.findLastStickyNote();
-            if (lastCustomMessage) {
-                try {
-                    await lastCustomMessage.delete();
-                } catch (error) {
-                    signale.fatal('Error deleting previous custom message:', error);
-                }
-            }
-            this.sendMessage(STICKY_NOTE, Rooms.INTRO);
-            return;
-        }
-
-        if (action === 'off') {
-            this._featureToggles.stickyNoteEnabled = false;
-            this.saveFeatureToggles();
-            await interaction.reply({ content: 'Sticky note is now OFF.', flags: MessageFlags.Ephemeral });
-            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set Sticky note to **OFF**.`, Rooms.MODLOG);
-
-            // Immediately remove the last sticky note
-            const lastCustomMessage = await this.findLastStickyNote();
-            if (lastCustomMessage) {
-                try {
-                    await lastCustomMessage.delete();
-                } catch (error) {
-                    signale.fatal('Error deleting previous custom message:', error);
-                }
-            }
-            return;
-        }
-
-        await interaction.reply({ content: 'Invalid action. Use on/off/status.', flags: MessageFlags.Ephemeral });
+        const enabled = action === 'on';
+        this._featureToggles[key] = enabled;
+        this.saveFeatureToggles();
+        await interaction.reply({ content: `${label} is now ${enabled ? 'ON' : 'OFF'}.`, flags: MessageFlags.Ephemeral });
+        await this.sendMessage(`${this.buildUserDetail(interaction.user)} set ${label} to **${enabled ? 'ON' : 'OFF'}**.`, Rooms.MODLOG);
+        return enabled;
     }
 
     private async handleSetChannel(interaction: ChatInputCommandInteraction) {
-        const feature = interaction.options.getString('feature', true) as 'SHOUTOUT' | 'SOCIALS';
-        const channel = interaction.options.getChannel('channel') as TextChannel | null;
-
-        // If no channel provided, reset to default
-        if (!channel) {
-            if (feature === 'SHOUTOUT') {
-                this._featureToggles.shoutoutChannelId = undefined;
-                const defaultChannel = this.getChannel(process.env.SHOUTOUTROOMNAME ?? 'shoutout');
-                this._rooms.set(Rooms.SHOUTOUT, defaultChannel);
-                this.saveFeatureToggles();
-                const channelInfo = defaultChannel ? channelMention(defaultChannel.id) : '(not found)';
-                await interaction.reply({ content: `SHOUTOUT channel reset to default: ${channelInfo}`, flags: MessageFlags.Ephemeral });
-                await this.sendMessage(`${this.buildUserDetail(interaction.user)} reset **SHOUTOUT** channel to default: ${channelInfo}`, Rooms.MODLOG);
-            } else {
-                this._featureToggles.socialsChannelId = undefined;
-                const defaultChannel = this.getChannel(process.env.SOCIALSROOMNAME ?? '💬┃general-chat');
-                this._rooms.set(Rooms.SOCIALS, defaultChannel);
-                this.saveFeatureToggles();
-                const channelInfo = defaultChannel ? channelMention(defaultChannel.id) : '(not found)';
-                await interaction.reply({ content: `SOCIALS channel reset to default: ${channelInfo}`, flags: MessageFlags.Ephemeral });
-                await this.sendMessage(`${this.buildUserDetail(interaction.user)} reset **SOCIALS** channel to default: ${channelInfo}`, Rooms.MODLOG);
-            }
+        const feature = interaction.options.getString('feature', true) as ConfigurableRoom;
+        const config = CONFIGURABLE_ROOMS[feature];
+        if (!config) {
+            await interaction.reply({ content: 'Unknown feature.', flags: MessageFlags.Ephemeral });
             return;
         }
 
-        // Set the new channel
-        if (feature === 'SHOUTOUT') {
-            this._featureToggles.shoutoutChannelId = channel.id;
-            this._rooms.set(Rooms.SHOUTOUT, channel);
+        const channel = interaction.options.getChannel('channel') as TextChannel | null;
+
+        if (channel) {
+            this._featureToggles[config.toggleKey] = channel.id;
+            this._rooms.set(feature, channel);
             this.saveFeatureToggles();
-            await interaction.reply({ content: `SHOUTOUT channel set to ${channelMention(channel.id)}`, flags: MessageFlags.Ephemeral });
-            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set **SHOUTOUT** channel to ${channelMention(channel.id)}`, Rooms.MODLOG);
-        } else {
-            this._featureToggles.socialsChannelId = channel.id;
-            this._rooms.set(Rooms.SOCIALS, channel);
-            this.saveFeatureToggles();
-            await interaction.reply({ content: `SOCIALS channel set to ${channelMention(channel.id)}`, flags: MessageFlags.Ephemeral });
-            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set **SOCIALS** channel to ${channelMention(channel.id)}`, Rooms.MODLOG);
+            await interaction.reply({ content: `${feature} channel set to ${channelMention(channel.id)}`, flags: MessageFlags.Ephemeral });
+            await this.sendMessage(`${this.buildUserDetail(interaction.user)} set **${feature}** channel to ${channelMention(channel.id)}`, Rooms.MODLOG);
+            return;
         }
+
+        // no channel provided: reset to default
+        this._featureToggles[config.toggleKey] = undefined;
+        const defaultChannel = this.getDefaultChannel(feature);
+        this._rooms.set(feature, defaultChannel);
+        this.saveFeatureToggles();
+        const channelInfo = defaultChannel ? channelMention(defaultChannel.id) : '(not found)';
+        await interaction.reply({ content: `${feature} channel reset to default: ${channelInfo}`, flags: MessageFlags.Ephemeral });
+        await this.sendMessage(`${this.buildUserDetail(interaction.user)} reset **${feature}** channel to default: ${channelInfo}`, Rooms.MODLOG);
     }
 
     private async updateMemberCount() {
-        if (this._discordClient.isReady()) {
-            const room = this._rooms.get(Rooms.STATS)!;
-            signale.info(`cron`, this._memberCount, `A-Team: ${this._memberCount} members`);
-            if (this.botHasPermission(room, PermissionsBitField.Flags.ManageChannels)) {
-                await room.setName(`A-Team: ${this._memberCount} members`);
-            } else {
-                this.sendMessage(`Help! i can't set name of <${room}>`, Rooms.DEBUG);
-            }
+        if (!this._discordClient.isReady()) {
+            return;
+        }
+        const room = this._rooms.get(Rooms.STATS);
+        const name = `A-Team: ${this._memberCount} members`;
+        signale.info(`cron`, this._memberCount, name);
+        if (!this.botHasPermission(room, PermissionsBitField.Flags.ManageChannels)) {
+            this.sendMessage(`Help! i can't set name of <${Rooms.STATS}>`, Rooms.DEBUG);
+            return;
+        }
+        // channel renames are rate limited to 2 per 10 minutes, don't waste them on a no-op
+        if (room.name !== name) {
+            await room.setName(name).catch((error) => signale.error(`Failed to rename stats channel: ${error}`));
         }
     }
 
-    private getChannel(room: string) {
-        return this._discordClient.channels.cache.find(
-            (channel) => (channel as TextChannel).name === room,
-        ) as TextChannel | VoiceChannel | null;
+    private getChannel(room: string): SendableChannel | null {
+        const channel = this._discordClient.channels.cache.find(
+            (channel): channel is SendableChannel => channel.isTextBased() && !channel.isDMBased() && !channel.isThread() && channel.name === room,
+        );
+        return channel ?? null;
     }
 
     private getChannelById(id: string | undefined): TextChannel | null {
@@ -473,20 +445,51 @@ export class DiscordBot extends EventEmitter {
         return null;
     }
 
-    async sendMessage(message: string | MessagePayload | MessageCreateOptions, room: Rooms) {
-        DiscordMessageQueue.add(() => this.messageQueue(message, room));
+    private getDefaultChannel(room: ConfigurableRoom): SendableChannel | null {
+        const config = CONFIGURABLE_ROOMS[room];
+        return this.getChannel(process.env[config.envVar] ?? config.defaultName);
     }
 
-    async onlineHandler(message: string) {
+    /**
+     * queue a message for delivery
+     * @returns the sent message once it has been delivered (undefined when it could not be sent)
+     */
+    sendMessage(message: string | MessagePayload | MessageCreateOptions, room: Rooms): Promise<Message | undefined> {
+        return DiscordMessageQueue.add(() => this.messageQueue(message, room));
+    }
+
+    /**
+     * post the hype train cool down notice and remember it so it can be removed once the cool down is over
+     */
+    async sendCoolDownMessage(message: string) {
+        const generation = ++this._coolDownGeneration;
+        this._coolDownActive = true;
+        // a notice from a previous cool down that is still around is obsolete now
+        this.deleteMessage(this._lastCoolDownMessage);
+        this._lastCoolDownMessage = undefined;
+
+        const sent = await this.sendMessage(message, Rooms.HYPETRAIN);
+        if (!sent) {
+            return;
+        }
+        if (generation !== this._coolDownGeneration || !this._coolDownActive) {
+            // the cool down ended (or a newer one started) while this notice was still queued
+            this.deleteMessage(sent);
+            return;
+        }
+        this._lastCoolDownMessage = sent;
+    }
+
+    onlineHandler(message: string) {
         if (this._discordClient.isReady()) {
-            this._discordClient.user?.setActivity({ name: "ΛNNΛBEL", type: ActivityType.Watching })
+            this._discordClient.user.setActivity({ name: "ΛNNΛBEL", type: ActivityType.Watching })
             this.sendMessage(message, Rooms.DEBUG)
         }
     }
 
-    async offlineHandler(message: string) {
+    offlineHandler(message: string) {
         if (this._discordClient.isReady()) {
-            this._discordClient.user?.setActivity(undefined);
+            this._discordClient.user.setActivity(undefined);
             this.sendMessage(message, Rooms.DEBUG)
         }
     }
@@ -495,46 +498,61 @@ export class DiscordBot extends EventEmitter {
         return `[${userMention(user.id)} \`${user.id}\`] **${user.username}**`
     }
 
-    async fetchAuditEntryFor(guild: Guild, user: User, type: AuditLogEvent) {
-        await sleep(2_500);
+    private formatExecutor(entry: GuildAuditLogsEntry | null | undefined): string {
+        return entry?.executor?.tag ? ` by **${entry.executor.tag}**` : '';
+    }
+
+    private formatReason(entry: GuildAuditLogsEntry | null | undefined): string {
+        return entry?.reason ? `\n**Reason:** ${entry.reason}` : '';
+    }
+
+    /**
+     * find the most recent audit log entry of `type` targeting `user` that was created after `since`
+     */
+    private async fetchAuditEntryFor(guild: Guild, user: User, type: AuditLogEvent, since: number) {
         const auditLogs = await guild.fetchAuditLogs({
             limit: 10,
             type
-        }).catch(signale.debug)
-
-        if (!auditLogs) {
+        }).catch((error) => {
+            signale.debug(`fetchAuditLogs failed: ${error}`);
             return null;
-        }
+        });
 
-        return auditLogs.entries.find((entry) => (entry.target as User).id === user.id);
+        return auditLogs?.entries.find((entry) => entry.targetId === user.id && entry.createdTimestamp >= since) ?? null;
     }
 
-    private async messageQueue(message: string | MessagePayload | MessageCreateOptions, room: Rooms) {
+    private async messageQueue(message: string | MessagePayload | MessageCreateOptions, room: Rooms): Promise<Message | undefined> {
+        let sent: Message | undefined;
         if (this._discordClient.isReady()) {
             const target = this._rooms.get(room);
-            if (this.botHasPermission(target!, PermissionsBitField.Flags.SendMessages)) {
-                if (typeof message === "string") {
-                    if (message.includes('The hype train cool down ends')) {
-                        this._lastCoolDownMessage = await target?.send(message);
-                    } else {
-                        await target?.send(message);
-                    }
-                } else {
-                    await target?.send(message);
+            if (this.botHasPermission(target, PermissionsBitField.Flags.SendMessages)) {
+                try {
+                    sent = await target.send(message);
+                } catch (error) {
+                    signale.error(`Failed to send message to <${room}>: ${error}`);
                 }
             } else {
                 signale.error(`Help! i can't post in <${room}>`);
                 if (room !== Rooms.DEBUG) {
+                    // not awaited: we are inside the queue, waiting would deadlock
                     this.sendMessage(`Help! i can't post in <${room}>`, Rooms.DEBUG);
                 }
             }
         }
         await sleep(750);
+        return sent;
     }
 
     deleteCoolDown() {
-        if (this._discordClient.isReady()) {
-            this._lastCoolDownMessage?.delete();
+        this._coolDownActive = false;
+        const message = this._lastCoolDownMessage;
+        this._lastCoolDownMessage = undefined;
+        this.deleteMessage(message);
+    }
+
+    private deleteMessage(message: Message | undefined) {
+        if (this._discordClient.isReady() && message) {
+            message.delete().catch((error) => signale.debug(`Failed to delete message ${message.id}: ${error}`));
         }
     }
 
@@ -548,25 +566,39 @@ export class DiscordBot extends EventEmitter {
             this.sendMessage('No media URL available for Instagram post', Rooms.DEBUG);
             return;
         }
-        const arrayBuffer = await fetch(url).then((r) => r.arrayBuffer());
-        const buffer = Buffer.from(arrayBuffer);
-        const file = new AttachmentBuilder(buffer, { name: 'preview.jpg' });
+
         const embed = new EmbedBuilder()
             .setTitle(element.permalink?.includes('/reel/') ? 'Annabel shared a new reel!' : 'Annabel shared a new post!')
             .setURL(element.permalink)
             .setDescription(element.caption ? this.replaceInstagramHandles(element.caption) : null)
-            .setImage('attachment://preview.jpg')
             .setColor("#D300C5")
             .setFooter({
                 text: 'Instagram',
             })
             .setTimestamp();
-        this.sendMessage({ content: `${roleMention(CONTENT_ROLE)}`, embeds: [embed], files: [file] }, Rooms.SOCIALS);
+
+        // re-upload the preview so the embed survives Instagram's short-lived CDN links;
+        // fall back to linking the image directly if the download fails
+        const files: AttachmentBuilder[] = [];
+        try {
+            const res = await fetch(url);
+            if (!res.ok) {
+                throw new Error(`status <${res.status}> statusText: <${res.statusText}>`);
+            }
+            files.push(new AttachmentBuilder(Buffer.from(await res.arrayBuffer()), { name: 'preview.jpg' }));
+            embed.setImage('attachment://preview.jpg');
+        } catch (error) {
+            signale.error(`Failed to download Instagram preview: ${error}`);
+            embed.setImage(url);
+        }
+
+        this.sendMessage({ content: `${roleMention(CONTENT_ROLE)}`, embeds: [embed], files }, Rooms.SOCIALS);
     }
 
-    private botHasPermission(channel: TextChannel | VoiceChannel | null, permissions: bigint) {
-        if (channel?.guild) {
-            return channel.permissionsFor(channel?.guild.members.me!)?.has(permissions);
+    private botHasPermission(channel: SendableChannel | null | undefined, permissions: bigint): channel is SendableChannel {
+        const me = channel?.guild.members.me;
+        if (channel && me) {
+            return channel.permissionsFor(me).has(permissions);
         }
         return false;
     }
@@ -579,7 +611,7 @@ export class DiscordBot extends EventEmitter {
         } else {
             const words = caption.split(' ');
 
-            for (let word of words) {
+            for (const word of words) {
                 if ((shortened + word).length + 1 > maxLength) {
                     break;
                 }
@@ -588,13 +620,12 @@ export class DiscordBot extends EventEmitter {
 
             shortened += '...';
         }
-        const handleRegex = /@([a-zA-Z0-9_]+)/g;
+        // Instagram handles may contain letters, digits, underscores and periods
+        const handleRegex = /@([a-zA-Z0-9_.]+)/g;
 
-        const updatedCaption = shortened.replace(handleRegex, (match, handle) => {
+        return shortened.replace(handleRegex, (match, handle) => {
             return `[${match}](https://www.instagram.com/${handle}/)`;
         });
-
-        return updatedCaption;
     }
 
     async findLastStickyNote() {
@@ -605,5 +636,24 @@ export class DiscordBot extends EventEmitter {
             signale.fatal('Error fetching messages:', error);
         }
         return null;
+    }
+
+    /**
+     * delete the current sticky note (if any) so it can be re-posted at the bottom of the channel
+     */
+    private async removeStickyNote() {
+        const lastStickyNote = await this.findLastStickyNote();
+        if (lastStickyNote) {
+            try {
+                await lastStickyNote.delete();
+            } catch (error) {
+                signale.fatal('Error deleting previous sticky note:', error);
+            }
+        }
+    }
+
+    private async repostStickyNote() {
+        await this.removeStickyNote();
+        this.sendMessage(STICKY_NOTE, Rooms.INTRO);
     }
 }

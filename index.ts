@@ -1,6 +1,7 @@
 import signale from "signale";
+import { sleep } from "bun";
 import { Instagram } from "./Instagram.ts";
-import { DiscordBot, Rooms } from "./discord.js";
+import { DiscordBot, Rooms } from "./discord.ts";
 import { Twitch } from "./twitch.ts";
 import { setReady, snapshot, touch } from "./health.ts";
 
@@ -39,21 +40,44 @@ instagram.on('post', async (message) => {
     await discord.sendIgPost(message);
 });
 
-twitch.on('sendMessage', (message: string, room: Rooms) => {
+twitch.on('sendMessage', (message, room) => {
     discord.sendMessage(message, room);
 });
 
-twitch.on('online', (message: string) => {
+twitch.on('coolDown', (message) => {
+    discord.sendCoolDownMessage(message);
+});
+
+twitch.on('online', (message) => {
     discord.onlineHandler(message);
 });
 
-twitch.on('offline', (message: string) => {
+twitch.on('offline', (message) => {
     discord.offlineHandler(message);
 });
 
 twitch.on('deleteCoolDown', () => {
     discord.deleteCoolDown();
 });
+
+// SIGINT: CTRL + C, SIGTERM: docker stop
+const SHUTDOWN_TIMEOUT_MS = 5_000;
+let shuttingDown = false;
+const shutdown = async (signal: NodeJS.Signals) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    signale.info(`received ${signal}, shutting down!`);
+    setReady(false);
+    twitch.stop();
+    instagram.stop();
+    discord.sendMessage('shutting down!', Rooms.DEBUG);
+    // give queued messages a chance to go out, but never hang the container stop
+    await Promise.race([discord.shutdown(), sleep(SHUTDOWN_TIMEOUT_MS)]);
+    await server.stop();
+    process.exit(0);
+};
+process.once('SIGINT', shutdown);
+process.once('SIGTERM', shutdown);
 
 await Promise.all([discord.main(), twitch.main(), instagram.main()]);
 

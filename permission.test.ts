@@ -1,15 +1,24 @@
 import { sleep } from "bun";
-import { beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, expect, test as baseTest } from "bun:test";
 import { Client, GatewayIntentBits, PermissionsBitField, TextChannel, VoiceChannel } from 'discord.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 
+// these are integration tests against the live guild and need a real bot token
+const hasToken = Boolean(process.env.DISCORDTOKEN);
+const test = baseTest.skipIf(!hasToken);
+
 beforeAll(async () => {
+    if (!hasToken) return;
     // login discord
-    client.login(process.env.DISCORDTOKEN);
+    await client.login(process.env.DISCORDTOKEN);
     while (!client.isReady()) {
         await sleep(1000);
     }
+}, 30_000);
+
+afterAll(async () => {
+    await client.destroy();
 });
 
 // not allowed

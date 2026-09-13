@@ -34,39 +34,73 @@ interface InstagramToken {
     obtainmentTimestamp: number;
 }
 
-export class Instagram extends EventEmitter {
+type InstagramEvents = {
+    post: [post: InstagramMediaItem];
+}
+
+const POST_POLL_INTERVAL = 30 * 1000;
+const TOKEN_CHECK_INTERVAL = 30 * 60 * 1000;
+const STARTUP_RETRY_INTERVAL = 60 * 1000;
+
+export class Instagram extends EventEmitter<InstagramEvents> {
     private readonly _IgTokenPath: string;
     private readonly _IgLastTimeStampPath: string;
-    private _IgToken: InstagramToken;
-    private _IgLastTimeStamp: string;
-    private _IgAccessToken: string;
+    private _IgToken: InstagramToken = { accessToken: '', expiresOn: 0, obtainmentTimestamp: 0 };
+    private _IgLastTimeStamp: string = '';
+    private _IgAccessToken: string = '';
     private _IgCurrentUserId: string = "";
     private _IgCurrentUserName: string = "";
+    private _postTimer: ReturnType<typeof setTimeout> | undefined;
+    private _tokenTimer: ReturnType<typeof setTimeout> | undefined;
+    private _stopped = false;
 
     constructor() {
         super();
         const tokenDir = fs.existsSync('/tokens/') ? '/tokens/' : './';
         this._IgTokenPath = `${tokenDir}ig_token.json`;
         this._IgLastTimeStampPath = `${tokenDir}lastTimeStamp.json`;
-        this._IgToken = JSON.parse(fs.readFileSync(this._IgTokenPath, 'utf8'));
-        this._IgLastTimeStamp = JSON.parse(fs.readFileSync(this._IgLastTimeStampPath, 'utf8')).timestamp;
-        this._IgAccessToken = this._IgToken.accessToken;
     }
 
     async main() {
-        if (fs.existsSync(this._IgTokenPath) && fs.existsSync(this._IgLastTimeStampPath)) {
-            signale.success(`found ig_token.json and lastTimeStamp.json!`);
-            await this.checkIgToken();
-            await this.getIgUseId();
-            if (this._IgCurrentUserId) {
-                this.checkForNewIgPosts();
-            } else {
-                signale.fatal(`user id is empty`);
-                process.exit(1);
-            }
-        } else {
+        if (!fs.existsSync(this._IgTokenPath) || !fs.existsSync(this._IgLastTimeStampPath)) {
             signale.fatal(`can't find ig_token.json or lastTimeStamp.json!`);
+            return;
         }
+
+        try {
+            this._IgToken = JSON.parse(fs.readFileSync(this._IgTokenPath, 'utf8'));
+            this._IgLastTimeStamp = JSON.parse(fs.readFileSync(this._IgLastTimeStampPath, 'utf8')).timestamp;
+            this._IgAccessToken = this._IgToken.accessToken;
+        } catch (error) {
+            signale.fatal(`failed to read ig_token.json / lastTimeStamp.json: ${error}`);
+            return;
+        }
+
+        signale.success(`found ig_token.json and lastTimeStamp.json!`);
+        await this.checkIgToken();
+        await this.startPolling();
+    }
+
+    private async startPolling() {
+        await this.getIgUseId();
+        if (this._IgCurrentUserId) {
+            this.checkForNewIgPosts();
+            return;
+        }
+        // usually a transient network/API problem - try again instead of taking the whole bot down
+        signale.fatal(`user id is empty, retrying in ${STARTUP_RETRY_INTERVAL / 1000}s`);
+        if (!this._stopped) {
+            this._postTimer = setTimeout(() => this.startPolling(), STARTUP_RETRY_INTERVAL);
+        }
+    }
+
+    /**
+     * stop polling (graceful shutdown)
+     */
+    stop() {
+        this._stopped = true;
+        clearTimeout(this._postTimer);
+        clearTimeout(this._tokenTimer);
     }
 
     private async checkForNewIgPosts() {
@@ -74,9 +108,9 @@ export class Instagram extends EventEmitter {
         try {
             const res = await fetch(`https://graph.instagram.com/${this._IgCurrentUserId}/media/?fields=id,media_type,caption,media_url,thumbnail_url,timestamp,permalink&access_token=${this._IgAccessToken}&since=${epoch}`);
             if (res.ok) {
-                const json = await res.json() as InstagramMediaItemData;
-                const { data } = json;
+                const { data } = await res.json() as InstagramMediaItemData;
                 if (data.length > 0) {
+                    // the API returns newest first
                     this._IgLastTimeStamp = data[0].timestamp;
                     fs.writeFileSync(this._IgLastTimeStampPath, JSON.stringify({ timestamp: this._IgLastTimeStamp }, null, 4));
                 }
@@ -92,7 +126,9 @@ export class Instagram extends EventEmitter {
             signale.fatal(`checkForNewIgPosts: ${error}`);
         }
 
-        setTimeout(() => this.checkForNewIgPosts(), 30 * 1000);
+        if (!this._stopped) {
+            this._postTimer = setTimeout(() => this.checkForNewIgPosts(), POST_POLL_INTERVAL);
+        }
     }
 
     private async checkIgToken() {
@@ -100,14 +136,16 @@ export class Instagram extends EventEmitter {
             await this.updateToken();
         } else {
             const now = Math.floor(Date.now() / 1000);
-            let expiresIn = this._IgToken.expiresOn - now;
+            const expiresIn = this._IgToken.expiresOn - now;
             const numDays = expiresIn / 60 / 60 / 24;
             if (numDays <= 2) {
                 await this.updateToken();
             }
             this.debug(`current token is still valid for <${this.formatTime(expiresIn)}>`);
         }
-        setTimeout(() => this.checkIgToken(), 30 * 60 * 1000);
+        if (!this._stopped) {
+            this._tokenTimer = setTimeout(() => this.checkIgToken(), TOKEN_CHECK_INTERVAL);
+        }
     }
 
     private async getIgUseId() {
@@ -118,6 +156,8 @@ export class Instagram extends EventEmitter {
                 this._IgCurrentUserId = json.id;
                 this._IgCurrentUserName = json.username;
                 signale.success(`Hello username <${this._IgCurrentUserName}> id <${this._IgCurrentUserId}>`);
+            } else {
+                signale.fatal(`getIgUseId: status <${res.status}> statusText: <${res.statusText}>`);
             }
         } catch (error) {
             signale.fatal(`getIgUseId: ${error}`);
@@ -142,16 +182,16 @@ export class Instagram extends EventEmitter {
             const res = await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${this._IgAccessToken}`);
             if (res.ok) {
                 const json = await res.json() as RefreshAccessToken;
-                const expiresOn = Math.floor(Date.now() / 1000) + json.expires_in - 60;
+                const expiresOn = now + json.expires_in - 60;
                 signale.info(`refresh token!`);
                 this._IgAccessToken = json.access_token;
                 this._IgToken = { accessToken: this._IgAccessToken, expiresOn, obtainmentTimestamp: now };
                 fs.writeFileSync(this._IgTokenPath, JSON.stringify(this._IgToken, null, 4));
             } else {
-                signale.fatal(`status <${res.status}> statusText: <${res.statusText}>`);
+                signale.fatal(`updateToken: status <${res.status}> statusText: <${res.statusText}>`);
             }
         } catch (error) {
-            signale.fatal(`checkIgToken: ${error}`);
+            signale.fatal(`updateToken: ${error}`);
         }
     }
 }

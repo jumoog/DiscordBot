@@ -1,7 +1,6 @@
-version: '3.9'
 services:
   hypetrain_discordbot:
-    image: jumoog/hypetrain_discordbot
+    image: ghcr.io/jumoog/discordbot:bun
     environment:
       - USERID=${USERID}
       - ROOMNAME=${ROOMNAME}
@@ -9,6 +8,9 @@ services:
       - CLIENTSECRET=${CLIENTSECRET}
       - DISCORDTOKEN=${DISCORDTOKEN}
       - DEBUGROOMNAME=${DEBUGROOMNAME}
+      - SHOUTOUTROOMNAME=${SHOUTOUTROOMNAME}
+      - SOCIALSROOMNAME=${SOCIALSROOMNAME}
+      - MODLOGROOMNAME=${MODLOGROOMNAME}
     restart: "always"
     volumes:
       - /home/HypetrainDiscordBot/:/tokens/
