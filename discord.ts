@@ -68,6 +68,14 @@ const CONFIGURABLE_ROOMS: Record<ConfigurableRoom, { toggleKey: 'shoutoutChannel
 
 type SendableChannel = TextChannel | VoiceChannel;
 
+/**
+ * read a room name from the environment; an empty value (e.g. `MODLOGROOMNAME=` from docker compose
+ * when the variable is missing on the host) counts as unset
+ */
+function roomNameFromEnv(envVar: string, defaultName: string): string {
+    return process.env[envVar]?.trim() || defaultName;
+}
+
 export class DiscordBot extends EventEmitter {
     private _discordToken: string;
     private _lastCoolDownMessage: Message | undefined;
@@ -168,15 +176,16 @@ export class DiscordBot extends EventEmitter {
 
     private handleClientReady(c: Client<true>) {
         this._discordClient.user?.setActivity(undefined);
-        this._rooms.set(Rooms.HYPETRAIN, this.getChannel(process.env.ROOMNAME ?? '🚀┃hypetrain'));
-        this._rooms.set(Rooms.DEBUG, this.getChannel(process.env.DEBUGROOMNAME ?? 'debug_prod'));
+        this._rooms.set(Rooms.HYPETRAIN, this.getChannel(roomNameFromEnv('ROOMNAME', '🚀┃hypetrain')));
+        this._rooms.set(Rooms.DEBUG, this.getChannel(roomNameFromEnv('DEBUGROOMNAME', 'debug_prod')));
         this._rooms.set(Rooms.SHOUTOUT, this.getChannelById(this._featureToggles.shoutoutChannelId) ?? this.getDefaultChannel(Rooms.SHOUTOUT));
         this._rooms.set(Rooms.SOCIALS, this.getChannelById(this._featureToggles.socialsChannelId) ?? this.getDefaultChannel(Rooms.SOCIALS));
-        this._rooms.set(Rooms.MODLOG, this.getChannel(process.env.MODLOGROOMNAME ?? '🚨┃mod-logs'));
+        this._rooms.set(Rooms.MODLOG, this.getChannel(roomNameFromEnv('MODLOGROOMNAME', '🚨┃mod-logs')));
         this._rooms.set(Rooms.STATS, (this._discordClient.channels.cache.get(STATS_ROOM) as SendableChannel | undefined) ?? null);
         this._rooms.set(Rooms.INTRO, (this._discordClient.channels.cache.get(INTRO_ROOM) as TextChannel | undefined) ?? null);
         this._memberCount = this._discordClient.guilds.cache.get(ANNABEL_DC)?.memberCount ?? 0;
         signale.debug(`Member count: ${this._memberCount}`);
+        this.reportUnresolvedRooms();
         this.sendMessage(`Ready! Logged in as ${c.user.tag}`, Rooms.DEBUG);
         signale.success(`Ready! Logged in as ${c.user.tag}`);
 
@@ -447,7 +456,29 @@ export class DiscordBot extends EventEmitter {
 
     private getDefaultChannel(room: ConfigurableRoom): SendableChannel | null {
         const config = CONFIGURABLE_ROOMS[room];
-        return this.getChannel(process.env[config.envVar] ?? config.defaultName);
+        return this.getChannel(roomNameFromEnv(config.envVar, config.defaultName));
+    }
+
+    /**
+     * log every room that could not be resolved or that the bot cannot post in, so a misconfigured
+     * channel name or missing permission shows up at startup instead of on the first message
+     */
+    private reportUnresolvedRooms() {
+        for (const [room, channel] of this._rooms) {
+            if (!channel) {
+                signale.warn(`Room <${room}> not found: no matching channel in the cache (check the *ROOMNAME env var / channel name)`);
+                continue;
+            }
+            // STATS is only ever renamed (member count), every other room is posted to
+            const [permission, label] = room === Rooms.STATS
+                ? [PermissionsBitField.Flags.ManageChannels, 'Manage Channels']
+                : [PermissionsBitField.Flags.SendMessages, 'Send Messages'];
+            // read these before the guard: TS narrows `channel` to never in the negative branch
+            const { name, id } = channel;
+            if (!this.botHasPermission(channel, permission)) {
+                signale.warn(`Room <${room}> resolved to #${name} (${id}) but the bot lacks ${label} there`);
+            }
+        }
     }
 
     /**
