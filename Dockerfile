@@ -9,15 +9,6 @@ RUN cd /temp/prod && bun install --frozen-lockfile --production --ignore-scripts
 FROM base AS release
 COPY --from=install /temp/prod/node_modules node_modules
 COPY *.ts .
-ENV USERID= \
-	ROOMNAME= \
-	CLIENTID= \
-	CLIENTSECRET= \
-	DISCORDTOKEN= \
-	DEBUGROOMNAME= \
-	SHOUTOUTROOMNAME= \
-	SOCIALSROOMNAME= \
-	MODLOGROOMNAME= \
-	HEALTH_PORT=3000
+ENV HEALTH_PORT=3000
 HEALTHCHECK --interval=60s --timeout=12s --start-period=30s CMD bun run healthcheck.ts
 ENTRYPOINT [ "bun", "run", "index.ts" ]
