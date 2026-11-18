@@ -24,7 +24,7 @@
     "@twurple/auth": "^8.2.0",
     "@twurple/common": "^8.2.0",
     "@twurple/eventsub-ws": "^8.2.0",
-    "croner": "^11.0.0",
+    "croner": "^11.0.1",
     "discord.js": "^14.28.1",
     "p-queue": "^10.0.0",
     "signale": "^1.4.0",
